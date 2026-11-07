@@ -16,6 +16,20 @@ and a small configuration.
 `/starter:setup` walks you through the rest. Read `ONBOARDING.md` first if you
 are new to Claude Code.
 
+### Not using Claude Code?
+
+OpenCode, Codex, Cursor, Gemini CLI or another agent tool, or a non-Claude
+model: clone this repo, start your tool inside the clone, and tell it:
+
+```
+Set this kit up for me.
+```
+
+Most tools read `AGENTS.md` on start, which points the agent at `PORTING.md`. It
+translates each piece into your tool's own format and walks you through
+`ONBOARDING.md`. If your tool does not read `AGENTS.md`, say "Read AGENTS.md and
+set this kit up for me" instead.
+
 ## What is inside
 
 | Piece | What it does | Failure it exists for |
