@@ -36,3 +36,4 @@ are new to Claude Code.
 
 - `ONBOARDING.md`: a first-hour walkthrough.
 - `plugins/starter/ADDONS.md`: optional add-ons and when each is worth installing.
+- `PORTING.md`: using this kit on another tool (OpenCode, Codex and others) or a non-Claude model. An agent that isn't Claude Code follows it to translate each piece.

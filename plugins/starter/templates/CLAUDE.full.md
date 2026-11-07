@@ -19,6 +19,10 @@ session that reaches upward is asking a subagent to make the judgment the sessio
 was chosen to make, and the result arrives as a claim the orchestrator cannot
 evaluate.
 
+On a non-Claude model, map these tiers by role, not name: the most capable model
+available plans and verifies, a solid general one implements, the cheapest
+reliable one does lookups. `PORTING.md` in the starter repo has the full mapping.
+
 Name tiers by alias (`opus`, `sonnet`, `haiku`), never by a dated model ID: an
 alias follows the next release, a pinned ID quietly keeps you on the old one.
 

@@ -5,6 +5,14 @@
 You are guiding someone who may be new to Claude Code through this file. The
 sections after this one are written for them; this section is for you.
 
+- **First, check what you are.** This kit targets Claude Code running a Claude
+  model. If you are another tool (OpenCode, Codex CLI, Cursor, Gemini CLI or
+  similar) or a non-Claude model, say so, then read `PORTING.md`
+  (https://github.com/abyss-node/claude-starter/blob/main/PORTING.md) and translate
+  each piece into your own conventions as you go: rules into your instruction
+  file, skills, agents and commands into your formats, Claude model tiers into the
+  models the user has. Do not install Claude-specific files unchanged. Everything
+  below still applies; only the install steps change.
 - **One step at a time.** Cover one section, then stop and check in: ask whether
   it made sense and whether they want to go on, go deeper, or skip ahead. Never
   paste the whole file back at them.
