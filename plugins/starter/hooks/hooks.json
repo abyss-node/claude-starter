@@ -1,0 +1,57 @@
+{
+  "description": "Commit guard: scans agent commits for secrets, Indian PII, AI attribution lines and a missing Verified:/Unverified: trailer",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}\"/hooks/commit-guard/run.sh claude-hook",
+            "if": "Bash(git *commit*)",
+            "timeout": 150,
+            "statusMessage": "Commit guard..."
+          }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}\"/hooks/commit-guard/run.sh claude-hook",
+            "if": "PowerShell(git *commit*)",
+            "timeout": 150,
+            "statusMessage": "Commit guard..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}\"/hooks/commit-guard/run.sh claude-post-hook",
+            "if": "Bash(git *commit*)",
+            "timeout": 60,
+            "statusMessage": "Commit guard (post)..."
+          }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}\"/hooks/commit-guard/run.sh claude-post-hook",
+            "if": "PowerShell(git *commit*)",
+            "timeout": 60,
+            "statusMessage": "Commit guard (post)..."
+          }
+        ]
+      }
+    ]
+  }
+}

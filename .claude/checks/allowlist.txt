@@ -1,0 +1,1 @@
+plugins/starter/hooks/commit-guard/tests/*:*

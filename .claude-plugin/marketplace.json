@@ -1,0 +1,13 @@
+{
+  "name": "claude-starter",
+  "description": "A beginner-friendly Claude Code starter plugin.",
+  "owner": { "name": "Arnuv" },
+  "plugins": [
+    {
+      "name": "starter",
+      "source": "./plugins/starter",
+      "description": "Opinionated Claude Code starter: verification agents, a commit guard, checkpoint and lanes commands.",
+      "version": "0.1.0"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "starter",
+  "version": "0.1.0",
+  "description": "Opinionated Claude Code starter: verification agents, a commit guard, checkpoint and lanes commands.",
+  "author": {
+    "name": "Arnuv"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/abyss-node/claude-starter"
+}
