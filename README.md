@@ -27,6 +27,10 @@ are new to Claude Code.
 | `/starter:lanes` | Splits a multi-stack repo into lanes with nested rules | One session acting as a generalist across two stacks |
 | Commit guard hook | Checks commits carry `Verified:` / `Unverified:` trailers | A chat summary of what was checked dies with the session |
 | Templates | Starting `CLAUDE.md` and related files, installed by setup | Starting from an empty configuration |
+| `backend-build-guardrails` skill | Checks while writing endpoints, queries, auth, jobs, caches, outbound calls | Code that works on the happy path but misses authorization, timeouts, idempotency or SSRF |
+| `frontend-build-guardrails` skill | Checks while building interactive UI, forms, client fetching, Next.js server code | UI that breaks on real data, excludes keyboard and screen-reader users, or leaks secrets to the browser |
+| `data-pipeline-guardrails` skill | Checks while writing jobs and scrapers that save data and may be re-run | Re-runs that duplicate rows, and scrapers that save a block page as data |
+| `llm-app-guardrails` skill | Checks while writing code that calls a model API | Prompt injection, API keys in the browser, runaway cost, no evals |
 
 ## More
 

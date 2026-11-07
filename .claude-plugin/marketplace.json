@@ -7,7 +7,7 @@
       "name": "starter",
       "source": "./plugins/starter",
       "description": "Opinionated Claude Code starter: verification agents, a commit guard, checkpoint and lanes commands.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }
