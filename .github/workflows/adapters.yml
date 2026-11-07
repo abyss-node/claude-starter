@@ -15,17 +15,19 @@ permissions:
 jobs:
   # The scripts and the commit guard promise Python 3.9; a 3.10-only keyword once broke the failure
   # reporter on 3.9 while every test passed on 3.12. So both suites run on both ends of the supported range.
+  # Pinned: ubuntu-latest moved to 26.04 in Oct 2026, which has no Python 3.9 build, and the
+  # 3.9 job failed at setup before any test ran. 24.04 still carries 3.9.25.
   scripts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.12"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -44,13 +46,13 @@ jobs:
       OPENCODE_VERSION: "1.19.5"
       CODEX_VERSION: "0.167.0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
 
