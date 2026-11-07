@@ -1,0 +1,140 @@
+name: adapters
+
+# Generated adapters must match their sources, the commit guard must pass its suite, and the
+# OpenCode adapter must actually load in OpenCode. A hand translation once produced agent files
+# that made OpenCode's whole config invalid while reporting success; this job is the check that
+# would have caught it.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # The scripts and the commit guard promise Python 3.9; a 3.10-only keyword once broke the failure
+  # reporter on 3.9 while every test passed on 3.12. So both suites run on both ends of the supported range.
+  scripts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Installer, adapter and report tests
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest -q scripts/tests
+
+      - name: Commit-guard tests
+        run: python -m pytest -q -rs plugins/starter/hooks/commit-guard/tests
+
+  adapters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OPENCODE_VERSION: "1.19.5"
+      CODEX_VERSION: "0.167.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Adapters match a fresh build
+        run: python scripts/build_adapters.py --check
+
+      - name: Install OpenCode
+        run: |
+          npm install --global "opencode-ai@${OPENCODE_VERSION}"
+          test "$(opencode --version)" = "${OPENCODE_VERSION}"
+
+      - name: Install the kit into a throwaway HOME
+        run: |
+          H="$RUNNER_TEMP/home"
+          mkdir -p "$H"
+          {
+            echo "HOME=$H"
+            echo "XDG_CONFIG_HOME=$H/.config"
+            echo "XDG_DATA_HOME=$H/.local/share"
+            echo "XDG_CACHE_HOME=$H/.cache"
+            echo "XDG_STATE_HOME=$H/.local/state"
+          } >> "$GITHUB_ENV"
+          export HOME="$H" XDG_CONFIG_HOME="$H/.config" XDG_DATA_HOME="$H/.local/share" \
+            XDG_CACHE_HOME="$H/.cache" XDG_STATE_HOME="$H/.local/state"
+          opencode debug paths
+          python scripts/install.py --tool opencode --tier starter --yes
+
+      - name: OpenCode loads the agents, skills and commands
+        working-directory: ${{ runner.temp }}
+        run: |
+          C="$XDG_CONFIG_HOME/opencode"
+          opencode agent list > agents.txt
+          for a in verifier code-reviewer consultant; do
+            grep -qx "$a (subagent)" agents.txt || { echo "::error::agent $a not loaded"; cat agents.txt; exit 1; }
+          done
+          test "$(find "$C/skills" -name SKILL.md | wc -l)" -eq 4
+          test -f "$C/commands/checkpoint.md"
+          test -f "$C/commands/lanes.md"
+          opencode debug skill | python -c '
+          import json, sys
+          names = {s["name"] for s in json.load(sys.stdin)}
+          want = {"backend-build-guardrails", "frontend-build-guardrails", "data-pipeline-guardrails", "llm-app-guardrails"}
+          assert want <= names, f"skills not loaded: {want - names}"
+          print("skills loaded:", sorted(want))'
+          opencode debug config | python -c '
+          import json, sys
+          cmds = set(json.load(sys.stdin).get("command") or {})
+          assert {"checkpoint", "lanes"} <= cmds, f"commands loaded: {cmds}"
+          print("commands loaded:", sorted(cmds))'
+          for a in verifier code-reviewer consultant; do
+            opencode debug agent "$a" | python -c '
+          import json, sys
+          name, tools = sys.argv[1], json.load(sys.stdin)["tools"]
+          off = ["edit", "write", "task"] + (["bash"] if name == "consultant" else [])
+          on = [t for t in off if tools.get(t)]
+          assert not on, f"{name}: should be off but enabled: {on}"
+          print(name, "read-only as intended; off:", off)' "$a"
+          done
+
+      - name: Re-running the installer changes nothing
+        run: |
+          python scripts/install.py --tool opencode --tier starter --yes | tee rerun.txt
+          if grep -E '  (installed|merged|updated)$' rerun.txt; then
+            echo "::error::second install run changed files"; exit 1
+          fi
+          test "$(grep -c 'BEGIN claude-starter rules' "$XDG_CONFIG_HOME/opencode/AGENTS.md")" -eq 1
+
+      # `codex execpolicy check` is offline and needs no account. The installer's Codex load check
+      # runs it on the installed rules: git status must be allowed; git push, git branch <name> and
+      # ruff with --cache-dir (it writes a cache) must not.
+      - name: Install Codex
+        run: |
+          npm install --global "@openai/codex@${CODEX_VERSION}"
+          codex --version
+
+      - name: Codex accepts the rules file (execpolicy)
+        run: |
+          export CODEX_HOME="$HOME/.codex"
+          python scripts/install.py --tool codex --tier starter --yes | tee codex.txt
+          grep -q 'rules verified with `codex execpolicy`' codex.txt
+          codex execpolicy check --rules "$CODEX_HOME/rules/claude-starter.rules" -- git status | grep -q '"decision":"allow"'
+          for cmd in "git push" "git branch x" "ruff format --check --cache-dir x"; do
+            # shellcheck disable=SC2086 # the command is split into words on purpose
+            if codex execpolicy check --rules "$CODEX_HOME/rules/claude-starter.rules" -- $cmd | grep -q '"decision":"allow"'; then
+              echo "::error::'$cmd' is allowed by the Codex rules"; exit 1
+            fi
+          done

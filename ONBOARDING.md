@@ -6,13 +6,12 @@ You are guiding someone who may be new to Claude Code through this file. The
 sections after this one are written for them; this section is for you.
 
 - **First, check what you are.** This kit targets Claude Code running a Claude
-  model. If you are another tool (OpenCode, Codex CLI, Cursor, Gemini CLI or
-  similar) or a non-Claude model, say so, then read `PORTING.md`
-  (https://github.com/abyss-node/claude-starter/blob/main/PORTING.md) and translate
-  each piece into your own conventions as you go: rules into your instruction
-  file, skills, agents and commands into your formats, Claude model tiers into the
-  models the user has. Do not install Claude-specific files unchanged. Everything
-  below still applies; only the install steps change.
+  model. If you are not Claude Code, say so, then run the installer for your tool
+  as `AGENTS.md` describes
+  (https://github.com/abyss-node/claude-starter/blob/main/AGENTS.md) instead of
+  translating anything by hand. Do not install Claude-specific files unchanged.
+  Only if your tool is not one the installer supports, use `PORTING.md` as the
+  last resort. Everything below still applies; only the install steps change.
 - **One step at a time.** Cover one section, then stop and check in: ask whether
   it made sense and whether they want to go on, go deeper, or skip ahead. Never
   paste the whole file back at them.
@@ -119,6 +118,22 @@ The first line registers this repo as a plugin source. The second installs the
 plugin. If `/starter:setup` is not found afterwards, run `/reload-plugins`; if it
 is still missing, restart Claude Code.
 
+Or let the installer do the first two lines. You need `git` and Python 3.9 or
+newer. Claude, tell the user what each command does, and run them one at a time
+with their yes:
+
+```
+git clone https://github.com/abyss-node/claude-starter ~/.claude-starter
+python ~/.claude-starter/scripts/install.py --tool claude --dry-run
+python ~/.claude-starter/scripts/install.py --tool claude --yes
+```
+
+In PowerShell, use `"$HOME\.claude-starter"` for the folder, and `py` if `python`
+is not found. The dry run prints the plan and changes nothing. Afterwards,
+restart Claude Code if it does not see the plugin, then run `/starter:setup`. If
+the installer fails, it saves a redacted report and prints an issue link; show
+both to the user and do not install by hand.
+
 `/starter:setup` asks whether you want the **starter** or **full** rules, installs
 a `CLAUDE.md`, merges a short list of read-only git and format-check commands into your settings,
 and asks how strict the commit guard should be. It never overwrites a file you
@@ -179,3 +194,8 @@ usually faster than searching the docs.
 - **A repo with two stacks:** run `/starter:lanes` once in it.
 - **Make the rules yours:** edit `~/.claude/CLAUDE.md`. Keep a rule only while
   you can say what failure it prevents; delete it when you cannot.
+- **Something misbehaved:** if the commit guard flags something it should not, or
+  an agent or skill from this kit does something wrong, run
+  `python ~/.claude-starter/scripts/report.py --kind guard-false-positive --step "what happened"`
+  (`--kind` can also be `agent-misbehaved`). It saves a redacted report and sends
+  nothing unless you add `--submit` and confirm.

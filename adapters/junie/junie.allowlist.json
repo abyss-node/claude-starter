@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "executables": {
+      "rules": [
+        {
+          "prefix": "git status",
+          "action": "allow"
+        },
+        {
+          "prefix": "git branch --show-current",
+          "action": "allow"
+        }
+      ]
+    }
+  }
+}

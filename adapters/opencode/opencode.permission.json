@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "bash": {
+      "git status": "allow",
+      "git diff": "allow",
+      "git diff --stat": "allow",
+      "git diff --staged": "allow",
+      "git diff --cached": "allow",
+      "git log --oneline": "allow",
+      "git branch": "allow",
+      "git branch --show-current": "allow",
+      "ruff format --check": "allow",
+      "ruff format --check .": "allow"
+    }
+  }
+}

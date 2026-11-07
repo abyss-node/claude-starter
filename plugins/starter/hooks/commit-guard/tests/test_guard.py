@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -99,14 +100,17 @@ def sh(args, cwd, env, **kw):
     return subprocess.run(args, cwd=str(cwd), env=env, capture_output=True, text=True, **kw)
 
 
-@pytest.fixture
-def repo(tmp_path, env):
-    r = tmp_path / "repo"
-    r.mkdir()
+def init_repo(r, env):
+    r.mkdir(parents=True)
     for a in (["init", "-q"], ["config", "user.email", "dev@fixture-repo.test"],
               ["config", "user.name", "Dev"], ["config", "commit.gpgsign", "false"]):
         assert sh(["git", *a], r, env).returncode == 0
     return r
+
+
+@pytest.fixture
+def repo(tmp_path, env):
+    return init_repo(tmp_path / "repo", env)
 
 
 def stage(repo, env, name, content):
@@ -374,7 +378,9 @@ def test_failing_repo_check_blocks_and_shows_tail(repo, env):
 
 @pytest.mark.parametrize("name,body", [
     ("c.sh", "echo failing-sh\nexit 4\n"),
-    ("c.ps1", "Write-Output 'failing-ps'\nexit 5\n"),
+    pytest.param("c.ps1", "Write-Output 'failing-ps'\nexit 5\n",
+                 marks=pytest.mark.skipif(not (shutil.which("powershell") or shutil.which("pwsh")),
+                                          reason="no PowerShell (powershell or pwsh) on PATH")),
 ])
 def test_repo_check_script_types(repo, env, name, body):
     trust(env, repo)
@@ -620,7 +626,7 @@ def test_install_is_idempotent_and_does_not_chain_to_itself(repo, env):
 
 def test_install_chains_existing_hook_and_uninstall_restores_it(repo, env):
     h = repo / ".git" / "hooks" / "pre-commit"
-    h.write_text("#!/bin/sh\necho local-hook-ran >&2\nexit 7\n", newline="\n")
+    G._write_lf(h, "#!/bin/sh\necho local-hook-ran >&2\nexit 7\n")
     h.chmod(0o755)
     install(repo, env)
     assert (repo / ".git" / "hooks" / "pre-commit.local").exists()
@@ -636,7 +642,7 @@ def test_install_chains_existing_hook_and_uninstall_restores_it(repo, env):
 
 def test_chain_runs_local_hook_then_guard_when_local_passes(repo, env):
     h = repo / ".git" / "hooks" / "pre-commit"
-    h.write_text("#!/bin/sh\necho local-hook-ran >&2\nexit 0\n", newline="\n")
+    G._write_lf(h, "#!/bin/sh\necho local-hook-ran >&2\nexit 0\n")
     h.chmod(0o755)
     install(repo, env)
     stage(repo, env, "s.txt", f"t = {SECRETS['github-token']}\n")
@@ -726,7 +732,7 @@ def test_e2e_broken_python_never_blocks_a_commit(repo, env, tmp_path, rc):
     stub.write_text(f"import sys\nsys.exit({rc})\n")
     for name in ("pre-commit", "commit-msg"):
         hp = repo / ".git" / "hooks" / name
-        hp.write_text(hp.read_text().replace((Path(env["_data"]) / "guard.py").as_posix(), stub.as_posix()), newline="\n")
+        G._write_lf(hp, hp.read_text().replace((Path(env["_data"]) / "guard.py").as_posix(), stub.as_posix()))
     stage(repo, env, "ok.txt", "clean\n")
     p = commit(repo, env, "clean")
     assert p.returncode == 0, out(p)
@@ -738,7 +744,7 @@ def test_e2e_guard_block_exit_code_is_the_only_one_that_blocks(repo, env, tmp_pa
     stub = tmp_path / "stub.py"
     stub.write_text(f"import sys\nsys.exit({BLOCK_GIT})\n")
     hp = repo / ".git" / "hooks" / "pre-commit"
-    hp.write_text(hp.read_text().replace((Path(env["_data"]) / "guard.py").as_posix(), stub.as_posix()), newline="\n")
+    G._write_lf(hp, hp.read_text().replace((Path(env["_data"]) / "guard.py").as_posix(), stub.as_posix()))
     stage(repo, env, "ok.txt", "clean\n")
     assert commit(repo, env, "clean").returncode != 0
 
@@ -757,11 +763,16 @@ def test_e2e_claude_hook_script_realistic_pretooluse_json(repo, env):
 
 # ---- second fix round ------------------------------------------------------
 
-def test_passing_sh_repo_check_runs_under_apostrophe_home_and_writes_marker(repo, env):
-    """Exit 127 (bash could not find the script) used to satisfy the failing-script test; a PASSING one cannot."""
-    assert "'" in str(repo), "temp dir should carry the apostrophe that broke absolute paths"
+def test_passing_sh_repo_check_runs_under_apostrophe_home_and_writes_marker(tmp_path, env):
+    """Exit 127 (bash could not find the script) used to satisfy the failing-script test; a PASSING one cannot.
+    The repo sits in its own apostrophe home: the system temp dir carries an apostrophe only on a machine
+    whose user name has one, so relying on it left the case untested everywhere else."""
+    home = tmp_path / "o'home"
+    env = dict(env, HOME=str(home), USERPROFILE=str(home), COMMIT_GUARD_HOME=str(home))
+    repo = init_repo(home / "repo", env)
+    assert "'" in str(repo), "the repo path must carry the apostrophe that broke absolute paths"
     trust(env, repo)
-    (_checks(repo) / "ok.sh").write_text("echo ran > sh-check-ran.marker\nexit 0\n", newline="\n")
+    G._write_lf((_checks(repo) / "ok.sh"), "echo ran > sh-check-ran.marker\nexit 0\n")
     stage(repo, env, "x.txt", "fine\n")
     p = guard("pre-commit", repo, env)
     assert p.returncode == 0 and out(p) == "", out(p)
@@ -1205,7 +1216,7 @@ def test_install_adds_pre_push_to_an_older_install_without_duplicating(repo, env
     monkeypatch.setattr(G, "INSTALLED_GUARD", Path(env["_data"]) / "guard.py")  # where the subprocess install points
     hooks = repo / ".git" / "hooks"
     for name in ("pre-commit", "commit-msg"):  # what the previous version installed
-        (hooks / name).write_text(G.hook_script(name), newline="\n")
+        G._write_lf((hooks / name), G.hook_script(name))
     before = {n: (hooks / n).read_text() for n in ("pre-commit", "commit-msg")}
     assert not (hooks / "pre-push").exists()
     install(repo, env)
@@ -1220,7 +1231,7 @@ def test_install_chains_existing_pre_push_and_guard_still_gets_stdin(repo, env, 
     bare = _remote(tmp_path, env)
     sh(["git", "remote", "add", "origin", str(bare)], repo, env)
     h = repo / ".git" / "hooks" / "pre-push"
-    h.write_text("#!/bin/sh\ncat > /dev/null\necho local-pre-push-ran >&2\nexit 0\n", newline="\n")
+    G._write_lf(h, "#!/bin/sh\ncat > /dev/null\necho local-pre-push-ran >&2\nexit 0\n")
     h.chmod(0o755)
     install(repo, env)
     assert (repo / ".git" / "hooks" / "pre-push.local").exists()
@@ -1234,7 +1245,7 @@ def test_install_chains_existing_pre_push_and_guard_still_gets_stdin(repo, env, 
 
 def test_uninstall_removes_pre_push_and_restores_the_displaced_one(repo, env):
     h = repo / ".git" / "hooks" / "pre-push"
-    h.write_text("#!/bin/sh\nexit 0\n", newline="\n")
+    G._write_lf(h, "#!/bin/sh\nexit 0\n")
     h.chmod(0o755)
     install(repo, env)
     p = guard("uninstall", repo, env, str(repo))

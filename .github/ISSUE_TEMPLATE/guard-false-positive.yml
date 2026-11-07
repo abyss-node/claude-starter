@@ -1,0 +1,46 @@
+name: 'Commit guard false positive'
+description: 'The commit guard blocked or flagged something it should not have'
+title: "[guard-false-positive] "
+labels: ["guard-false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Run `python scripts/report.py --kind guard-false-positive --step "<what you were doing>" --error-file <log>`
+        from your claude-starter checkout. It redacts home paths, usernames, emails, IPs and secrets and prints a
+        pre-filled link to this form, so you can also paste its output into the fields below. Nothing is sent
+        unless you send it. Read the result before submitting: redaction is best effort.
+  - type: textarea
+    id: step
+    attributes:
+      label: 'What I was doing'
+      description: 'What you were committing or pushing, and the rule id the guard printed (for example email or openai-key).'
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: 'Error output'
+      description: 'The "Error output" section of the report (the last ~200 lines are enough).'
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 'Environment'
+      description: 'The "Environment" section of the report (tool and version, kit version, OS, Python).'
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 'Why this is a false positive'
+      description: 'Describe the kind of value that was flagged WITHOUT pasting it if it could be real.'
+  - type: checkboxes
+    id: redaction-check
+    attributes:
+      label: 'Before sending'
+      options:
+        - label: I have checked this report contains no secrets or private paths
+          required: true

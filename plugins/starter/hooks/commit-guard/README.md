@@ -37,7 +37,7 @@ are judged, so pushing old history is not blamed. `"require_record": false` in t
 the agent to `git commit --amend`; never blocks) for the `Bash` and `PowerShell` tools, only when the command matches
 `git *commit*`. It acts only when the command really runs `git commit`; text that merely mentions it is ignored.
 
-`run.sh` launches `guard.py` with the first working Python 3.8+ (`python3`, `python`, `py`) and passes the exit code
+`run.sh` launches `guard.py` with the first working Python 3.9+ (`python3`, `python`, `py`) and passes the exit code
 through unchanged (exit 2 is what blocks). If no Python is found it prints one line to stderr and lets the commit
 through: a missing interpreter never blocks you. Hook commands run through `sh`, so on Windows you need Git for
 Windows (Claude Code's normal setup).

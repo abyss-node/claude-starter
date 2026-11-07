@@ -706,6 +706,12 @@ def cmd_pre_push(args: list[str]) -> int:
 # install / uninstall (per repo, opt-in)
 # --------------------------------------------------------------------------
 
+def _write_lf(path, text: str) -> None:
+    """Write text with LF line endings. Path.write_text(newline=) needs Python 3.10."""
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+
+
 def hook_script(name: str) -> str:
     guard = INSTALLED_GUARD.as_posix()
     if name == "pre-push":
@@ -802,7 +808,7 @@ def cmd_install(path: str, uninstall: bool = False) -> int:
     for name, t, local, displace in plan:
         if displace:
             t.rename(local)
-        t.write_text(hook_script(name), encoding="utf-8", newline="\n")
+        _write_lf(t, hook_script(name))
         t.chmod(t.stat().st_mode | 0o111)
         print(f"installed {t}" + (f" (previous hook kept as {local.name} and chained)" if displace else ""))
     return 0

@@ -1,11 +1,70 @@
 # claude-starter
 
-A Claude Code plugin that packages one person's working setup so a beginner can
-start from something that has already been debugged. It is opinionated: it
-assumes you want claims of "done" checked, commits that say what was verified,
-and a small configuration.
+## If you are an AI agent asked to set this up
+
+Follow these steps in order. Run each command yourself. Full steps: `AGENTS.md`.
+
+1. Tell the user which tool and which model you are.
+2. Run `git --version` and `python --version` (3.9 or newer; also try `python3`, and `py` on Windows). If either is missing, tell the user how to install it for their OS, then stop.
+3. Clone to a stable place: `git clone https://github.com/abyss-node/claude-starter ~/.claude-starter`. If it exists, run `git -C ~/.claude-starter pull`. On Windows, prefer PowerShell: `git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"`, or `git -C "$HOME\.claude-starter" pull` if it exists. In Git Bash, a user name with an apostrophe can make `~` paths misresolve (to `C:\c\Users\...`); the installer warns when that happened.
+4. Run `python ~/.claude-starter/scripts/install.py --detect` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --detect`). Pick `--tool` from the table below: your own tool (use `auto` only if you are unsure). Ask the user: `starter` (recommended; short rules, a small setup) or `full` (adds rules for choosing models and coordinating many agents). Run `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --dry-run` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --dry-run`), show the user the plan, and get a yes.
+5. Run the same command with `--yes` instead of `--dry-run`: `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --yes` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --yes`). Claude Code takes no `--tier`.
+6. If it exits non-zero, do not improvise a manual install. Show the user the report path and issue link it printed, and ask if they want to send it. Nothing is sent unless they say yes.
+7. If it succeeds, relay the notes it printed, tell the user to restart their tool, then walk them through `ONBOARDING.md`. For Claude Code, the user then runs `/starter:setup` inside it.
+8. Never claim a step you did not run. Say what the installer checked (last column below).
+
+| Tool | `--tool` | What the installer checks |
+|---|---|---|
+| Claude Code | `claude` | Verified against the real tool (`claude plugin list`). Uses the `claude plugin` CLI. |
+| OpenCode | `opencode` | Verified: OpenCode itself loads the agents, skills and commands. |
+| Codex | `codex` | Rules verified with `codex execpolicy`; agents and skills checked structurally only. |
+| Cursor | `cursor` | Structural only. Add `--project <repo>` to write rules (no global rules file). |
+| Copilot | `copilot` | Structural only. |
+| Antigravity | `antigravity` | Structural only. |
+| Junie | `junie` | Structural only. |
+| Anything else | `generic` | Not checked. Needs `--config-dir <dir>`; then follow `PORTING.md`. |
+
+Structural only means the files parse and carry the fields the tool's docs require. The real tool has not loaded them.
+
+---
+
+A starter kit for working with an AI coding agent. It packages one person's working setup so a beginner can start from something that has already been debugged. It is opinionated: it assumes you want claims of "done" checked, commits that say what was verified, and a small configuration. It is built as a Claude Code plugin and installs into other tools through generated adapters.
 
 ## Install
+
+The easy way: give your AI coding agent the link `https://github.com/abyss-node/claude-starter` and say "set this up for me". The agent follows the steps at the top of this page.
+
+To do it yourself, you need `git` and Python 3.9 or newer.
+
+macOS or Linux:
+
+```
+git clone https://github.com/abyss-node/claude-starter ~/.claude-starter
+python3 ~/.claude-starter/scripts/install.py --detect
+python3 ~/.claude-starter/scripts/install.py --tool opencode --tier starter --dry-run
+python3 ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes
+```
+
+Windows PowerShell (use `py` if `python` is not found). On Windows, use these rather than Git Bash: when the user name contains an apostrophe, Git Bash can leave `~` paths unconverted, and Windows then reads them as `C:\c\Users\...`:
+
+```
+git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"
+python "$HOME\.claude-starter\scripts\install.py" --detect
+python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --dry-run
+python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes
+```
+
+Swap `opencode` for your tool (see the table above). Choose `--tier starter` or `--tier full`; start with starter. `--dry-run` prints the plan and changes nothing. The installer backs up every file it changes, merges JSON settings without replacing your values, and checks the result afterwards. To update later: `git -C ~/.claude-starter pull` (PowerShell: `git -C "$HOME\.claude-starter" pull`), then run the install again; an install that is already current changes nothing. A successful install prints both commands for bash and for PowerShell, with every flag it used.
+
+Optional: `--guard-repo <path>` also installs the commit guard as git hooks in that repo (repeat it for more repos).
+
+### Local or small models
+
+Some local models cannot run the setup. Tested: qwen2.5-coder 7B through Ollama in OpenCode printed its tool calls as text instead of calling the tools, so nothing ran. If yours does that, run the three installer commands above yourself (`--detect`, `--dry-run`, then `--yes`). The installer does the same work either way.
+
+### Claude Code, by hand
+
+Inside Claude Code you can skip the installer and run:
 
 ```
 /plugin marketplace add abyss-node/claude-starter
@@ -13,22 +72,11 @@ and a small configuration.
 /starter:setup
 ```
 
-`/starter:setup` walks you through the rest. Read `ONBOARDING.md` first if you
-are new to Claude Code.
+`/starter:setup` walks you through the rest. Read `ONBOARDING.md` first if you are new to Claude Code. The installer's `--tool claude` does the first two lines for you.
 
-### Not using Claude Code?
+### A tool the installer does not support
 
-OpenCode, Codex, Cursor, Gemini CLI or another agent tool, or a non-Claude
-model: clone this repo, start your tool inside the clone, and tell it:
-
-```
-Set this kit up for me.
-```
-
-Most tools read `AGENTS.md` on start, which points the agent at `PORTING.md`. It
-translates each piece into your tool's own format and walks you through
-`ONBOARDING.md`. If your tool does not read `AGENTS.md`, say "Read AGENTS.md and
-set this kit up for me" instead.
+Use `--tool generic --config-dir <dir>` and then follow `PORTING.md`. That is the last resort: the installer cannot check that your tool loads the result, so you have to.
 
 ## What is inside
 
@@ -46,9 +94,27 @@ set this kit up for me" instead.
 | `data-pipeline-guardrails` skill | Checks while writing jobs and scrapers that save data and may be re-run | Re-runs that duplicate rows, and scrapers that save a block page as data |
 | `llm-app-guardrails` skill | Checks while writing code that calls a model API | Prompt injection, API keys in the browser, runaway cost, no evals |
 
+## Something broke?
+
+If the installer fails, the commit guard flags something it should not, or an agent or skill from this kit does something wrong, build a report:
+
+```
+python ~/.claude-starter/scripts/report.py --kind install-failure --step "what you were doing" --tool opencode --error-file error.txt
+```
+
+PowerShell:
+
+```
+python "$HOME\.claude-starter\scripts\report.py" --kind install-failure --step "what you were doing" --tool opencode --error-file error.txt
+```
+
+`--kind` is `install-failure`, `guard-false-positive` or `agent-misbehaved`. Use `--error "text"` instead of `--error-file` for a short error. The report is redacted (secrets, personal data, your user name, host name and home path) and saved to a file in the current folder, or where `--out` says. Nothing is sent unless you choose: add `--submit` to file a public issue with the `gh` CLI after a confirmation, or open https://github.com/abyss-node/claude-starter/issues and paste the saved file. Redaction removes common secrets and personal details, but it cannot be complete: read the report before you send it. It becomes public if you post it, and the tool shows it to you first for that reason. A failed install already saves a report and prints a pre-filled issue link.
+
 ## More
 
 - `ONBOARDING.md`: a first-hour walkthrough.
+- `AGENTS.md`: the full steps for an agent setting this up.
 - `plugins/starter/ADDONS.md`: optional add-ons and when each is worth installing.
 - `MODELS.md`: the one place that names models, with a review date. Rules and agents describe roles, so a new model release means editing this file only.
-- `PORTING.md`: using this kit on another tool (OpenCode, Codex and others) or a non-Claude model. An agent that isn't Claude Code follows it to translate each piece.
+- `PORTING.md`: the last resort for a tool the installer does not support.
+- `adapters/`: the generated per-tool files the installer copies. Do not edit them; `python scripts/build_adapters.py` rebuilds them.

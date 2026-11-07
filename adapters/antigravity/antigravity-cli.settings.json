@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "command(git status)",
+      "command(git branch --show-current)"
+    ]
+  }
+}

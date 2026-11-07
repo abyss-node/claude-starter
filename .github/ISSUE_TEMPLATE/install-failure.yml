@@ -1,0 +1,46 @@
+name: 'Install failure'
+description: 'The kit or an adapter failed to install or load in your tool'
+title: "[install-failure] "
+labels: ["install-failure"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Run `python scripts/report.py --kind install-failure --step "<what you were doing>" --error-file <log>`
+        from your claude-starter checkout. It redacts home paths, usernames, emails, IPs and secrets and prints a
+        pre-filled link to this form, so you can also paste its output into the fields below. Nothing is sent
+        unless you send it. Read the result before submitting: redaction is best effort.
+  - type: textarea
+    id: step
+    attributes:
+      label: 'What I was doing'
+      description: 'Which tool, which command, which step failed.'
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: 'Error output'
+      description: 'The "Error output" section of the report (the last ~200 lines are enough).'
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 'Environment'
+      description: 'The "Environment" section of the report (tool and version, kit version, OS, Python).'
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 'Anything else'
+      description: 'Optional. What you already tried, or what you expected to happen.'
+  - type: checkboxes
+    id: redaction-check
+    attributes:
+      label: 'Before sending'
+      options:
+        - label: I have checked this report contains no secrets or private paths
+          required: true

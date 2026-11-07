@@ -1,10 +1,34 @@
-# Porting: using this on another tool or another model
+# Porting: the last resort for tools the installer does not support
 
-This kit is built for Claude Code running Claude models. The ideas in it are not
-tied to either. If you, the agent reading this, are a different tool (OpenCode,
-Codex CLI, Cursor, Gemini CLI, Aider, or anything else) or a non-Claude model,
-translate each piece into your own conventions before installing it. Do not copy
-Claude-specific files into place unchanged and assume they work.
+Try the installer first. `python ~/.claude-starter/scripts/install.py --detect`
+lists the tools it supports: Claude Code, OpenCode, Codex, Cursor, Copilot,
+Antigravity and Junie. For those, follow `AGENTS.md` and do not hand-translate.
+Hand translation is slower and breaks things; a live test of it left a tool's
+config broken while the agent reported success.
+
+Use this file only if your tool is not on that list, or you are a non-Claude
+model in a tool the kit has no adapter for (Gemini CLI, Aider, or anything else).
+You, the agent reading this, translate the pieces yourself and then prove that
+the tool loads them.
+
+## Start from the generic adapter
+
+Do not translate from `plugins/starter/` if you can avoid it. Start from the
+generic adapter, which has already been rewritten into plain, tool-neutral files
+(skills, agents, commands and a rules file):
+
+```
+python ~/.claude-starter/scripts/install.py --tool generic --tier starter --config-dir <dir> --dry-run
+```
+
+Pick `<dir>` as your tool's own config folder, or a scratch folder you then copy
+from. Show the user the plan, get a yes, then run it with `--yes`. In PowerShell
+write the script path as `"$HOME\.claude-starter\scripts\install.py"`. The
+installer backs up what it changes and does not check your tool's format: that is
+your job, below.
+
+Then adjust only what your tool needs: paths, file names, frontmatter fields and
+tool names. If the generic files do not fit at all, fall back to the table below.
 
 ## Rules for the agent doing the translation
 
@@ -20,10 +44,23 @@ Claude-specific files into place unchanged and assume they work.
   what is lost and suggest the nearest substitute.
 - **Same safety rules as `/starter:setup`.** Back up any file before changing it,
   never overwrite without asking, and show what you changed at the end.
+- **Prove it loads. This step is mandatory.** After translating, show that your
+  tool loads the config, and fix every error before you report. Use your tool's
+  own list, validate or debug command (for example one that lists agents, skills
+  or commands, or prints the resolved config), or start the tool
+  non-interactively and read its output. Check that the read-only agents are
+  still read-only as the tool sees them. A file that exists is not a file that
+  loads.
+- **If you cannot prove it, say so.** Report "installed but unverified" and name
+  what you could not check. Do not write "done" or "installed successfully".
 - **Report the translation.** Finish with a table of each piece, where it went,
-  what changed, and what has no equivalent.
+  what changed, what has no equivalent, and for each piece whether it was proven
+  loaded or is unverified.
 
 ## Piece by piece
+
+Source paths are inside your clone of this repo. Generic-adapter equivalents are in
+`adapters/generic/`.
 
 | Piece | Source in this repo | Translate to |
 |---|---|---|
@@ -31,8 +68,8 @@ Claude-specific files into place unchanged and assume they work.
 | Skills | `plugins/starter/skills/*/SKILL.md` | Your tool's skills folder, if it loads `SKILL.md` skills (a shared format several tools now use). If it does not, fold the checks into a rules file scoped to the matching work, or keep them as reference docs the rules point to. |
 | Agents | `plugins/starter/agents/*.md` | Your tool's subagent format. Keep the prompt body unchanged. Translate the frontmatter: `tools` to your tool's permission fields, keeping the read-only agents read-only (that restriction is the point of `verifier` and `consultant`); `model` and `effort` per the model mapping below. With no subagent support, turn each one into a command or prompt the user runs in a fresh session. |
 | Commands | `plugins/starter/commands/*.md` | Your tool's custom command or prompt format. `checkpoint` and `lanes` carry over. `setup` writes Claude Code settings, so rewrite it for your tool's config, or skip it and do its steps by hand. |
-| Commit guard | `plugins/starter/hooks/commit-guard/` | Use the git-hook path, which works with any tool: from a clone of this repo, run `python plugins/starter/hooks/commit-guard/guard.py install <repo>`. It fires on every commit regardless of who makes it. Do not try to port `hooks.json`; it is Claude Code's hook protocol. |
-| Settings | `plugins/starter/templates/settings.starter.json` | Your tool's permission config. Carry over only the read-only git allowlist, and turn off any automatic AI co-author line in commits, since the commit guard flags it. |
+| Commit guard | `plugins/starter/hooks/commit-guard/` | Use the git-hook path, which works with any tool: `python ~/.claude-starter/scripts/install.py --tool generic --tier starter --config-dir <dir> --guard-repo <repo>` or, from a clone of this repo, `python plugins/starter/hooks/commit-guard/guard.py install <repo>`. It fires on every commit regardless of who makes it. Do not try to port `hooks.json`; it is Claude Code's hook protocol. |
+| Settings | `plugins/starter/templates/settings.starter.json` | Your tool's permission config. Carry over only the read-only git allowlist, and turn off any automatic AI co-author line in commits, since the commit guard flags it. Merge into an existing config; never replace it. |
 | Packaging | `.claude-plugin/` | Claude Code only. Install the pieces above directly. |
 
 ## Model mapping
@@ -69,3 +106,10 @@ serves.
 - **Verification matters more, not less.** The less you know about a model, the
   less its "done" is worth. Re-running the tests is the one part of this kit that
   does not depend on the model at all.
+
+## If it goes wrong
+
+If your translation breaks the tool or the config, restore from the backups you
+made, then build a report with
+`python ~/.claude-starter/scripts/report.py --kind agent-misbehaved --step "porting to <tool>" --tool <tool> --error-file <file>`.
+It is redacted and sends nothing unless the user adds `--submit` and agrees.

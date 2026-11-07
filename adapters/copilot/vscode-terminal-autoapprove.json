@@ -1,0 +1,14 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "/^git status$/": true,
+    "/^git diff$/": true,
+    "/^git diff --stat$/": true,
+    "/^git diff --staged$/": true,
+    "/^git diff --cached$/": true,
+    "/^git log --oneline$/": true,
+    "/^git branch$/": true,
+    "/^git branch --show-current$/": true,
+    "/^ruff format --check$/": true,
+    "/^ruff format --check \\.$/": true
+  }
+}

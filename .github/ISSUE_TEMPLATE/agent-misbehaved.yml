@@ -1,0 +1,46 @@
+name: 'Agent misbehaved'
+description: 'A kit agent, command or skill did something wrong or ignored its instructions'
+title: "[agent-misbehaved] "
+labels: ["agent-misbehaved"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Run `python scripts/report.py --kind agent-misbehaved --step "<what you were doing>" --error-file <log>`
+        from your claude-starter checkout. It redacts home paths, usernames, emails, IPs and secrets and prints a
+        pre-filled link to this form, so you can also paste its output into the fields below. Nothing is sent
+        unless you send it. Read the result before submitting: redaction is best effort.
+  - type: textarea
+    id: step
+    attributes:
+      label: 'What I was doing'
+      description: 'Which agent, command or skill, and what you asked it to do.'
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: 'Error output'
+      description: 'The "Error output" section of the report (the last ~200 lines are enough).'
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 'Environment'
+      description: 'The "Environment" section of the report (tool and version, kit version, OS, Python).'
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 'What it did versus what you expected'
+      description: 'Optional but the most useful part: what you expected, and what it did instead.'
+  - type: checkboxes
+    id: redaction-check
+    attributes:
+      label: 'Before sending'
+      options:
+        - label: I have checked this report contains no secrets or private paths
+          required: true
