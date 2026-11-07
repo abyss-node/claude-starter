@@ -1,6 +1,6 @@
 {
   "name": "starter",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Opinionated Claude Code starter: verification agents, a commit guard, checkpoint and lanes commands.",
   "author": {
     "name": "Arnuv"

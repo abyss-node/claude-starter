@@ -36,4 +36,5 @@ are new to Claude Code.
 
 - `ONBOARDING.md`: a first-hour walkthrough.
 - `plugins/starter/ADDONS.md`: optional add-ons and when each is worth installing.
+- `MODELS.md`: the one place that names models, with a review date. Rules and agents describe roles, so a new model release means editing this file only.
 - `PORTING.md`: using this kit on another tool (OpenCode, Codex and others) or a non-Claude model. An agent that isn't Claude Code follows it to translate each piece.

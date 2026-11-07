@@ -13,8 +13,11 @@ planner/orchestrator/reviewer and delegate execution to subagents at the cheapes
 model that does the task well.
 
 **The tier ceiling.** Capability runs from the largest model your plan offers
-down to the smallest, today `opus` > `sonnet` > `haiku`, with any larger tier
-above them. Delegate at or below your own tier; never spawn execution above it. A
+down to the smallest. The current ranking lives in one place, `MODELS.md` in the
+starter repo (https://github.com/abyss-node/claude-starter/blob/main/MODELS.md),
+because releases reorder it every few weeks and a ranking copied into rules goes
+stale silently. If its review date is more than a month old, say so and check
+the provider's current model list before relying on it. Delegate at or below your own tier; never spawn execution above it. A
 session that reaches upward is asking a subagent to make the judgment the session
 was chosen to make, and the result arrives as a claim the orchestrator cannot
 evaluate.
@@ -24,7 +27,9 @@ available plans and verifies, a solid general one implements, the cheapest
 reliable one does lookups. `PORTING.md` in the starter repo has the full mapping.
 
 Name tiers by alias (`opus`, `sonnet`, `haiku`), never by a dated model ID: an
-alias follows the next release, a pinned ID quietly keeps you on the old one.
+alias follows the next release within its family, a pinned ID quietly keeps you
+on the old one. An alias does not notice a new tier above it or a reordering;
+that is what `MODELS.md` is for.
 
 The one exception is verification, below — it escapes the ceiling deliberately.
 

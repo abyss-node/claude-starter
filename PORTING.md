@@ -37,8 +37,11 @@ Claude-specific files into place unchanged and assume they work.
 
 ## Model mapping
 
-The rules and agents name Claude tiers: `opus` > `sonnet` > `haiku`, plus an
-`effort` level. On another model family, map by role, not by name:
+The rules and agents name Claude tiers by alias (`opus`, `sonnet`, `haiku`) plus
+an `effort` level. `MODELS.md` holds the current ranking and its review date; it
+changes with model releases, so check it rather than trusting any copy. On
+another model family, map by role, not by name, and record the result in the
+same table:
 
 - **Top tier** (`opus`): the most capable model available to the user. It plans,
   judges and verifies.
