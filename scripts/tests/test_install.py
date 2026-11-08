@@ -219,6 +219,23 @@ def test_json_merge_keeps_bom_and_crlf_and_says_so(tmp_path):
     assert "re-serialised" in s.detail and "BOM" in s.detail and "CRLF" in s.detail
 
 
+def test_json_merges_into_opencode_first_run_jsonc_stub(tmp_path):
+    # OpenCode writes this stub on first run; skipping it left every fresh install without perms.
+    stub = tmp_path / "opencode.jsonc"
+    stub.write_text('{\n  "$schema": "https://opencode.ai/config.json"\n}\n', encoding="utf-8")
+    s = install.plan_json(OC_PERMS, tmp_path / "opencode.json")
+    assert s.status == "merge" and s.dest == stub
+    merged = json.loads(s.payload)
+    assert merged["$schema"] == "https://opencode.ai/config.json"
+    assert install.contains(merged, json.loads(OC_PERMS.read_text(encoding="utf-8")))
+
+
+def test_json_still_skips_a_jsonc_with_comments(tmp_path):
+    (tmp_path / "opencode.jsonc").write_text('{\n  // mine\n  "theme": "dark"\n}\n', encoding="utf-8")
+    s = install.plan_json(OC_PERMS, tmp_path / "opencode.json")
+    assert s.status == "skipped" and "by hand" in s.detail
+
+
 # ---- 13. misconverted kit path -------------------------------------------------
 
 def test_installer_warns_when_running_from_a_misconverted_path(monkeypatch, capsys):

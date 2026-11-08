@@ -281,10 +281,22 @@ def plan_json(src: Path, dest: Path, union: tuple[str, ...] = ()) -> Step:
     s = Step(f"settings ({src.name})", dest, "json", src=src)
     jsonc = dest.with_suffix(".jsonc")
     if not dest.exists() and jsonc.exists():
-        s.status = "skipped"
-        s.detail = (f"you use {jsonc.name}; merge {src.relative_to(ROOT).as_posix()} into it by hand "
-                    "(comments are not parsed safely here)")
-        return s
+        text, problem = decode_text(jsonc.read_bytes())
+        plain = not problem
+        if plain:
+            try:
+                json.loads(text.lstrip("﻿"))
+            except json.JSONDecodeError:
+                plain = False
+        if not plain:
+            s.status = "skipped"
+            s.detail = (f"you use {jsonc.name}; merge {src.relative_to(ROOT).as_posix()} into it by hand "
+                        "(comments are not parsed safely here)")
+            return s
+        # A .jsonc with no comments or trailing commas is plain JSON. OpenCode writes exactly
+        # such a one-line $schema stub on first run, so a fresh install merges into it.
+        dest = jsonc
+        s = Step(f"settings ({src.name})", dest, "json", src=src)
     problem = blocked_parent(dest)
     if problem:
         s.status, s.detail = "failed", problem + "; nothing written"
