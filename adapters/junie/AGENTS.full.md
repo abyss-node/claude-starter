@@ -55,6 +55,19 @@ attempt costs more in review rounds and attention than the tokens a step up
 would have spent. If you hit your limits often, step every rung below back down
 one level rather than rewriting the ladder.
 
+**Pacing the week.** Most plans have two limits, and each binds differently:
+- The weekly limit: keep to roughly an even pace (about a seventh of it a day)
+  until the last day before the reset, then spend what is left. Unused quota
+  is wasted at the reset. Don't overshoot either, since a cap hit mid-task strands the
+  work. On the last day, size work to the remaining percentage with a margin of
+  about 5%, and don't start a large multi-agent run that the remainder cannot finish.
+- The short rolling window (five hours on Claude plans): this caps bursts. Dense
+  parallel fan-outs hit it well before the weekly limit. Above about 80% of the
+  window, finish the current step and write a handoff rather than spawn more.
+The agent usually cannot read either percentage. Ask the user for their reset day,
+time and timezone once, and for both percentages every few days and before any
+large run late in the week or late in a window.
+
 Pick the model by capability:
 - `opus` — hard design or algorithmic work, gnarly debugging, independent review
   voices, verification/judging of other agents' work, and any implementation
