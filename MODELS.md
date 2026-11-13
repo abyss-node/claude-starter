@@ -1,6 +1,6 @@
 # Model tiers
 
-**Reviewed: 2026-11-07.** Review monthly, and whenever a provider ships a new
+**Reviewed: 2026-11-13.** Review monthly, and whenever a provider ships a new
 model. This is the only file in the kit that names specific models. Rules,
 agents and skills describe roles, so a new release means editing this file and
 nothing else.
@@ -13,10 +13,10 @@ instead of the table where they differ. Then offer to update this file.
 
 | Role | What it does | Claude Code alias | Resolves to (at review) |
 |---|---|---|---|
-| Top | Hardest judgment: design, gnarly debugging, verification | Fable by model ID if your plan offers it, else `opus` | Fable 5.1 (`claude-fable-5-1`), else Opus 5.5 |
+| Top | Hardest judgment: design, gnarly debugging, verification | Fable by model ID if your plan offers it, else `opus` | Fable 5.2 (`claude-fable-5-2`), else Opus 5.5 |
 | Upper | Hard implementation, independent review voices, verifier default | `opus` | Opus 5.5 (`claude-opus-5-5`) |
-| Middle | Standard features, refactors with a clear spec, tests | `sonnet` | Sonnet 5.5 (`claude-sonnet-5-5`) |
-| Bottom | Lookups, boilerplate, formatting, one-file scripts | `haiku` | Haiku 5.5 (`claude-haiku-5-5`) |
+| Middle | Standard features, refactors with a clear spec, tests, boilerplate, one-file scripts | `sonnet` | Sonnet 5.5 (`claude-sonnet-5-5`) |
+| Bottom | Lookups and formatting | `haiku` | Haiku 5.5 (`claude-haiku-5-5`) |
 
 Aliases follow new releases within a family on their own. What they miss is a
 new tier above them or a change in which family is best for a role. Those are

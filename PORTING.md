@@ -82,9 +82,10 @@ same table:
 
 - **Top tier** (`opus`): the most capable model available to the user. It plans,
   judges and verifies.
-- **Middle tier** (`sonnet`): a solid general model for routine implementation.
+- **Middle tier** (`sonnet`): a solid general model for routine implementation,
+  boilerplate and one-file scripts.
 - **Bottom tier** (`haiku`): the cheapest model that follows instructions
-  reliably, for lookups and boilerplate.
+  reliably, for lookups and formatting.
 - **Effort**: map to the model's reasoning-effort or thinking setting where it
   has one. Drop it where it has none.
 

@@ -49,21 +49,28 @@ cheap model under-thinks a subtle edge case and gets escalated a tier when one
 more effort step would have done, and an expensive model burns xhigh on a routine
 suite re-run that returns the same verdict at high.
 
+**Budget sets the floor, not the ladder.** This ladder is pitched for generous usage
+limits, the setting the full rules are written for. Under tighter
+limits a cheap retry beats a costly first attempt; with headroom, a wrong first
+attempt costs more in review rounds and attention than the tokens a step up
+would have spent. If you hit your limits often, step every rung below back down
+one level rather than rewriting the ladder.
+
 Pick the model by capability:
 - `opus` — hard design or algorithmic work, gnarly debugging, independent review
-  voices, verification/judging of other agents' work
+  voices, verification/judging of other agents' work, and any implementation
+  where a wrong "done" is expensive
 - `sonnet` — standard feature implementation, multi-file mechanical edits, test
-  writing, refactors with clear specs
-- `haiku` — trivial/lookup tasks, boilerplate, formatting, one-file scripts, doc
-  stubs
+  writing, refactors with clear specs, boilerplate, one-file scripts
+- `haiku` — pure lookups and formatting only
 
 Then pick effort by the task's shape, not the model's:
-- `low` — spec is complete and the output is mechanical
-- `medium` — spec is clear but holds judgment calls
-- `high` — edge cases, ambiguity, or debugging with no root cause yet
-- `xhigh` — design decisions, adversarial review, or anything where a wrong
-  "done" is expensive (money, auth, migrations, a contract another component
-  consumes)
+- `low` — pure lookups and formatting
+- `medium` — spec is complete and the output is mechanical
+- `high` — the default: spec is clear but holds judgment calls
+- `xhigh` — edge cases, ambiguity, debugging with no root cause yet, design
+  decisions, adversarial review, or anything where a wrong "done" is expensive
+  (money, auth, migrations, a contract another component consumes)
 - `max` — one hard problem at a time, never across a fan-out, where it
   multiplies by every agent
 
@@ -85,8 +92,9 @@ executes; orchestration is not an end in itself.
 - Never spawn a subagent without a written spec it can verify itself against
   (acceptance criteria or a test command)
 - Verification is never delegated to the agent that did the work — a separate
-  reviewer (the `verifier` agent, or `opus` at high effort; xhigh under the xhigh
-  triggers above) checks out and re-runs ground truth. This reviewer ignores the
+  reviewer (the `verifier` agent invoked at xhigh effort, or `opus` at xhigh;
+  the agent's own file pins high, the floor that suits smaller plans) checks out
+  and re-runs ground truth. This reviewer ignores the
   tier ceiling: any session may reach for `opus` to verify or to supply an
   independent review voice. Economizing here defeats the purpose, since an
   unverified claim of done is the exact failure the rule exists to prevent.
