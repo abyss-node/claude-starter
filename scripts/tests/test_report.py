@@ -257,7 +257,9 @@ def test_non_tty_submit_without_yes_does_not_call_gh(ident, monkeypatch):
     msgs = []
     assert report.submit_issue(_rendered(), yes=False, out=msgs.append) is None
     assert not [c for c in fake.calls if c and c[0] == "gh"]
-    assert any("--yes" in m for m in msgs)
+    text = "\n".join(msgs)
+    assert "show the user the report" in text and "ask before sending" in text
+    assert "only after the user has said yes" in text
 
 
 def test_non_tty_cli_submit_sends_nothing_and_prints_url(ident, monkeypatch, tmp_path, capsys):

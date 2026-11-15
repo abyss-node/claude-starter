@@ -2,16 +2,20 @@
 
 ## If you are an AI agent asked to set this up
 
-Follow these steps in order. Run each command yourself. Full steps: `AGENTS.md`.
+Follow these steps in order. Run each command yourself, except where a step says to stop and ask. Full steps: `AGENTS.md`.
 
 1. Tell the user which tool and which model you are.
 2. Run `git --version` and `python --version` (3.9 or newer; also try `python3`, and `py` on Windows). If either is missing, tell the user how to install it for their OS, then stop.
 3. Clone to a stable place: `git clone https://github.com/abyss-node/claude-starter ~/.claude-starter`. If it exists, run `git -C ~/.claude-starter pull`. On Windows, prefer PowerShell: `git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"`, or `git -C "$HOME\.claude-starter" pull` if it exists. In Git Bash, a user name with an apostrophe can make `~` paths misresolve (to `C:\c\Users\...`); the installer warns when that happened.
-4. Run `python ~/.claude-starter/scripts/install.py --detect` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --detect`). Pick `--tool` from the table below: your own tool (use `auto` only if you are unsure). Ask the user: `starter` (recommended; short rules, a small setup) or `full` (adds rules for choosing models and coordinating many agents). Run `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --dry-run` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --dry-run`), show the user the plan, and get a yes.
-5. Run the same command with `--yes` instead of `--dry-run`: `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --yes` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --yes`). Claude Code takes no `--tier`.
-6. If it exits non-zero, do not improvise a manual install. Show the user the report path and issue link it printed, and ask if they want to send it. Nothing is sent unless they say yes.
-7. If it succeeds, relay the notes it printed, tell the user to restart their tool, then walk them through `ONBOARDING.md`. For Claude Code, the user then runs `/starter:setup` inside it.
-8. Never claim a step you did not run. Say what the installer checked (last column below).
+4. Run `python ~/.claude-starter/scripts/install.py --detect` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --detect`). Pick `--tool` from the table below: your own tool (use `auto` only if you are unsure). Do not pick a tier yourself.
+5. STOP AND ASK. Run `python ~/.claude-starter/scripts/install.py --tool <tool> --tier starter --dry-run` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier starter --dry-run`; use `--tier full` in the command if the user picks full; Claude Code takes no `--tier`, so leave it out) and show the user the plan. Ask: `starter` (recommended; short rules, a small setup) or `full` (adds rules for choosing models and coordinating many agents), and whether to add the commit guard to a repo (`--guard-repo <path>`). Then END YOUR TURN and wait for the user's reply. Do not run anything else, and do not use an async or optional question tool and carry on. This approval is required, not an optional clarification.
+6. Only after the user has answered, run the same command with `--yes` instead of `--dry-run`: `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --yes` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --yes`). Claude Code takes no `--tier`.
+7. If it exits non-zero, stop and do not improvise a manual install. What it left depends on the exit code:
+   - Exit 1, the install failed: it saved a redacted report and printed the path and an issue link (or said on stderr that it could not build one). Show the user both and ask if they want to send it. Nothing is sent unless they say yes.
+   - Exit 3, it cannot write to the tool's global config (a sandboxed session, for example the Codex app): nothing was written and no report was saved. The refusal is on stderr, after the plan on stdout. Show the user the whole refusal, including the commands it gives for their own terminal, and end your turn. Never install into the project folder instead, and never hand-copy files.
+   - Exit 2, the command was wrong (for example `--tool auto` found several tools): nothing was written and no report was saved. Fix the command as the stderr message says, then go back to step 5.
+8. If it succeeds (exit 0), relay the installer's final "=== For you (the person at the keyboard) ===" block to the user word for word. The restart and the new-chat check come from it.
+9. Never claim a step you did not run. Say what the installer checked (last column below).
 
 | Tool | `--tool` | What the installer checks |
 |---|---|---|
@@ -32,7 +36,7 @@ A starter kit for working with an AI coding agent. It packages one person's work
 
 ## Install
 
-The easy way: give your AI coding agent the link `https://github.com/abyss-node/claude-starter` and say "set this up for me". The agent follows the steps at the top of this page.
+The easy way: give your AI coding agent the link `https://github.com/abyss-node/claude-starter` and say "Set this up for me. Ask me starter or full, show me the plan, and wait for my yes before installing anything." The agent follows the steps at the top of this page.
 
 To do it yourself, you need `git` and Python 3.9 or newer.
 
@@ -108,7 +112,7 @@ PowerShell:
 python "$HOME\.claude-starter\scripts\report.py" --kind install-failure --step "what you were doing" --tool opencode --error-file error.txt
 ```
 
-`--kind` is `install-failure`, `guard-false-positive` or `agent-misbehaved`. Use `--error "text"` instead of `--error-file` for a short error. The report is redacted (secrets, personal data, your user name, host name and home path) and saved to a file in the current folder, or where `--out` says. Nothing is sent unless you choose: add `--submit` to file a public issue with the `gh` CLI after a confirmation, or open https://github.com/abyss-node/claude-starter/issues and paste the saved file. Redaction removes common secrets and personal details, but it cannot be complete: read the report before you send it. It becomes public if you post it, and the tool shows it to you first for that reason. A failed install already saves a report and prints a pre-filled issue link.
+`--kind` is `install-failure`, `guard-false-positive` or `agent-misbehaved`. Use `--error "text"` instead of `--error-file` for a short error. The report is redacted (secrets, personal data, your user name, host name and home path) and saved to a file in the current folder, or where `--out` says. Nothing is sent unless you choose: add `--submit` to file a public issue with the `gh` CLI after a confirmation, or open https://github.com/abyss-node/claude-starter/issues and paste the saved file. Redaction removes common secrets and personal details, but it cannot be complete: read the report before you send it. It becomes public if you post it, and the tool shows it to you first for that reason. A failed install (exit 1) already saves a report and prints a pre-filled issue link. An installer that refuses because it cannot write to the tool's config (exit 3) saves none, since nothing failed; it prints the commands to run in your own terminal instead.
 
 ## More
 

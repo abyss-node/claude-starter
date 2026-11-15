@@ -2,12 +2,15 @@
 
 This repo is a starter kit for working with an AI coding agent: rules, review
 agents, commands, guardrail skills and a commit guard. A user can give you only
-the link `https://github.com/abyss-node/claude-starter` and say "set this up for
-me". Do the steps below. They are the single full version; the top of `README.md`
-carries a short copy.
+the link `https://github.com/abyss-node/claude-starter` and say "Set this up for
+me. Ask me starter or full, show me the plan, and wait for my yes before
+installing anything." Do the steps below. They are the single full version; the
+top of `README.md` carries a short copy.
 
 You need to read and write files and run shell commands. If you cannot, explain
 the steps to the user instead of claiming you did them.
+
+Run each command yourself, except where a step says to stop and ask.
 
 ## Steps
 
@@ -31,47 +34,66 @@ the steps to the user instead of claiming you did them.
    apostrophe can make `~` paths misresolve: Git Bash leaves `/c/Users/...`
    unconverted and Windows reads it as `C:\c\Users\...`. The installer warns
    when it is running from such a path; re-clone with the PowerShell command.
-4. **Detect, choose, preview.**
+4. **Detect and pick the tool.**
    - Run `python ~/.claude-starter/scripts/install.py --detect` (PowerShell:
      `python "$HOME\.claude-starter\scripts\install.py" --detect`). It lists the
      supported tools it finds and changes nothing.
    - Pick `--tool` = your own tool: `claude`, `opencode`, `codex`, `cursor`,
      `copilot`, `antigravity`, `junie`, or `generic`. Use `auto` only if you are
      unsure; it refuses when several tools are present.
-   - Ask the user which tier. Recommend `starter`.
-     - `starter`: a short rules file, a few agents and the commit guard. Right for
-       most people.
-     - `full`: also rules for choosing a model and effort per task and for
-       coordinating several agents. Worth it on a plan that runs many agents at once.
-   - Claude Code takes no `--tier`: `/starter:setup` asks it later.
-   - Ask whether to install the commit guard git hooks in a repo they use. If
-     yes, add `--guard-repo <path>`.
+   - Do not pick a tier or a commit-guard repo yourself.
+5. **Preview, ask, and stop.** This approval is required, not an optional
+   clarification.
    - Run the install with `--dry-run`, for example
      `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --dry-run`
      (PowerShell:
      `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --dry-run`).
-     Show the user the plan and get a yes before going on.
-5. **Install for real.** Run the same command with `--yes` in place of
-   `--dry-run`:
+     Use `--tier full` in the command if the user picks full. Claude Code takes
+     no `--tier`: leave it out; `/starter:setup` asks it later.
+   - Show the user the plan. Ask which tier, and recommend `starter`:
+     - `starter`: a short rules file and a few agents. Right for most people.
+       (Claude Code also gets the commit guard as a plugin hook; other tools get
+       it only through the question below.)
+     - `full`: also rules for choosing a model and effort per task and for
+       coordinating several agents. Worth it on a plan that runs many agents at once.
+   - Ask whether to install the commit guard git hooks in a repo they use. If
+     yes, add `--guard-repo <path>`.
+   - Then END YOUR TURN and wait for the user's reply. Do not run another
+     command, and do not use an async or optional question tool and carry on.
+6. **Install for real, only after the user's yes.** Run the same command with
+   `--yes` in place of `--dry-run`:
    `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes`
    (PowerShell:
    `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes`).
    The installer checks every target first and writes nothing if one fails, backs
    up each file it changes, merges JSON settings without replacing the user's
-   values, and checks the result. It ends by printing the commands that repeat
-   the install later, for bash and for PowerShell.
-6. **If it exits non-zero, stop.** Do not improvise a manual install and do not
-   hand-edit the tool's config. The installer has already saved a redacted
-   report and printed its path and an issue link. Show both to the user, tell
-   them to read the file first, and ask whether they want to send it. Nothing
-   is sent unless they say yes. A cause you can name and fix without touching the
-   tool's config (the `claude` command not on PATH, for example) is worth fixing,
-   then re-run from step 4.
-7. **If it succeeds,** relay the notes it printed, including anything it says is
-   not installed or is left to the user. Tell the user to restart their tool.
-   Then walk them through `ONBOARDING.md` one step at a time. Claude Code users
-   run `/starter:setup` inside Claude Code first.
-8. **Never claim a step you did not run.** End by saying what the installer
+   values, and checks the result. It ends with the
+   `=== For you (the person at the keyboard) ===` block (step 8); the commands
+   that repeat the install later, for bash and for PowerShell, print just above
+   it.
+7. **If it exits non-zero, stop.** Do not improvise a manual install and do not
+   hand-edit the tool's config. What the installer left depends on the exit code:
+   - **Exit 1: the install failed.** The installer saved a redacted report and
+     printed its path and an issue link (or said on stderr that it could not
+     build one). Show both to the user, tell them to read the file first, and
+     ask whether they want to send it. Nothing is sent unless they say yes. A
+     cause you can name and fix without touching the tool's config (the `claude`
+     command not on PATH, for example) is worth fixing, then re-run from step 5.
+   - **Exit 3: it cannot write to the tool's global config.** A sandboxed
+     session (for example the Codex app) gets this. Nothing was written and no
+     report was saved, on purpose: nothing failed. The refusal is printed to
+     stderr, after the plan on stdout. Show the user the whole refusal,
+     including the commands it gives for their own terminal, and end your turn.
+     Never install into the project folder instead, and never hand-copy files:
+     either would reach only this project or session, never the global config.
+   - **Exit 2: the command was wrong** (for example `--tool auto` found several
+     tools). Nothing was written and no report was saved. Fix the command as the
+     message on stderr says, then re-run from step 5.
+8. **If it succeeds (exit 0),** relay the installer's final
+   `=== For you (the person at the keyboard) ===` block to the user word for
+   word, including anything it says is not installed or is left to the user. The
+   restart and the new-chat check come from it.
+9. **Never claim a step you did not run.** End by saying what the installer
    checked, using the table below, and what it did not.
 
 ## Local or small models
@@ -90,7 +112,7 @@ installer does the same work either way.
 | OpenCode | `opencode` | Verified: OpenCode itself loads the agents, skills and commands | Restart OpenCode afterwards. |
 | Codex | `codex` | Rules verified with `codex execpolicy`; agents and skills structural only | The installer notes that read-only agents are by instruction only. |
 | Cursor | `cursor` | Structural only | No global rules file. Add `--project <repo>` to write the rules to that repo's `AGENTS.md`, or paste them in Cursor Settings as the installer says. |
-| Copilot | `copilot` | Structural only | The installer prints a VS Code settings snippet to merge by hand. |
+| Copilot | `copilot` | Structural only | The installer names a VS Code settings file whose entries you merge by hand. |
 | Antigravity | `antigravity` | Structural only | Rules file has a size cap; the installer checks it. |
 | Junie | `junie` | Structural only | |
 | Anything else | `generic` | Not checked | Needs `--config-dir <dir>`. Then follow `PORTING.md`. |

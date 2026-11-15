@@ -1,6 +1,7 @@
 """Installer behaviour: preflight, merges that keep the user's bytes, the printed update commands and
 what the console shows. Every install runs in a throwaway HOME (see test_adapters.sandbox_env)."""
 import argparse
+import errno
 import json
 import os
 import re
@@ -254,7 +255,7 @@ def test_load_check_output_is_redacted_before_printing(monkeypatch, capsys):
     args = argparse.Namespace(tool="opencode", tier="starter", config_dir=None, project=None, guard_repo=[])
     lines = ["`opencode agent list` exited 1:", f"config: OPENROUTER_API_KEY={SECRET}",
              "token sk-ant-" + "abcdefghijklmnop"]
-    install.finish_run("opencode", "starter", [], False, lines, "FAILED", [], args)
+    install.finish_run("opencode", "starter", [], False, lines, "FAILED", [], args, [])
     out = capsys.readouterr()
     assert SECRET not in out.out + out.err and "abcdefghijklmnop" not in out.out + out.err
     assert "<redacted:" in out.out
@@ -266,7 +267,7 @@ def test_generic_install_says_read_only_by_instruction_only(tmp_path):
     r = run_install(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
                     "--yes")
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "READ-ONLY BY INSTRUCTION ONLY" in r.stdout
+    assert "READ-ONLY BY INSTRUCTION ONLY" in "\n".join(for_you_tail(r.stdout))
 
 
 def test_auto_with_nothing_detected_names_the_next_step(monkeypatch, capsys):
@@ -394,6 +395,455 @@ def test_tool_notes_are_redacted_on_the_console(monkeypatch, capsys):
     args = argparse.Namespace(tool="claude", tier=None, config_dir=None, project=None, guard_repo=[])
     s = install.Step("plugin starter@claude-starter", Path("cfg"), "cli", status="installed",
                      notes=[f"warning: env ANTHROPIC_API_KEY={SECRET} ignored"])
-    install.finish_run("claude", None, [s], True, [], "passed", [], args)
+    install.finish_run("claude", None, [s], True, [], "passed", [], args, [])
     out = capsys.readouterr()
     assert SECRET not in out.out + out.err and "<redacted:" in out.out, out.out
+
+
+# ---- the run ends with the "For you" block ----------------------------------------------
+# Tests below strip the Codex agent markers: the suite may itself run inside a Codex session.
+
+MARKERS = (*install.CODEX_MARKERS, "CLAUDECODE")
+
+
+def clean_env(tmp_path: Path) -> dict:
+    env = sandbox_env(tmp_path)
+    for k in [k for k in env if k.startswith("CODEX_") or k in MARKERS]:
+        del env[k]
+    return env
+
+
+def run_clean(tmp_path: Path, *args: str, extra: dict = None) -> subprocess.CompletedProcess:
+    env = clean_env(tmp_path)
+    env.update(extra or {})
+    return subprocess.run([sys.executable, str(SCRIPTS / "install.py"), *args], env=env,
+                          stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8",
+                          errors="replace", timeout=600)
+
+
+@pytest.fixture
+def sandboxed(tmp_path, monkeypatch):
+    """An in-process run with HOME in tmp_path, no relocation variables and no agent markers."""
+    home = tmp_path / "home"
+    home.mkdir()
+    for k in [k for k in os.environ if k.startswith("CODEX_") or k in MARKERS or k in (
+            "COPILOT_HOME", "CURSOR_CONFIG_DIR", "CLAUDE_CONFIG_DIR", "OPENCODE_CONFIG_DIR",
+            "XDG_CONFIG_HOME", "COMMIT_GUARD_DIR")]:
+        monkeypatch.delenv(k)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    monkeypatch.setattr(install, "report_failure", lambda *a, **k: pytest.fail(f"report_failure{a}"))
+    return home
+
+
+def tree(root: Path) -> dict:
+    """Every file and folder under root (a folder maps to None), so an empty folder left behind shows."""
+    return {p.relative_to(root).as_posix(): (p.read_bytes() if p.is_file() else None)
+            for p in sorted(root.rglob("*"))}
+
+
+def for_you_tail(stdout: str) -> list:
+    """The lines after the For-you header, checked to be the last thing printed."""
+    lines = stdout.rstrip("\n").split("\n")
+    assert lines.count(install.FOR_YOU) == 1, stdout[-3000:]
+    i = lines.index(install.FOR_YOU)
+    tail = lines[i + 1:]
+    assert tail, stdout[-2000:]
+    stray = [ln for ln in tail if not re.match(r"\d+\. |   ", ln)]
+    assert not stray, f"output after the For-you items: {stray}"
+    assert "update later (PowerShell" in "\n".join(lines[:i]), "footer must come before the For-you block"
+    return tail
+
+
+def test_every_tool_must_say_what_its_user_does_next():
+    for missing in ("after", "next_steps"):
+        kw = {"after": install.no_notes, "next_steps": install.next_generic}
+        del kw[missing]
+        with pytest.raises(TypeError):
+            install.Tool(None, (), **kw)
+    for name, tool in [*install.TOOLS.items(), ("claude", install.CLAUDE)]:
+        args = argparse.Namespace(tool=name, tier="starter", config_dir=None, project=None, guard_repo=[])
+        assert tool.next_steps(Path("cfg"), args), name
+
+
+NEEDS_LOADER = {"opencode": "opencode"}
+
+
+@pytest.mark.parametrize("tool", sorted(install.TOOLS))
+def test_successful_install_ends_with_the_for_you_block(tmp_path, tool):
+    if tool in NEEDS_LOADER and not shutil.which(NEEDS_LOADER[tool]):
+        pytest.skip(f"{tool} not installed; its install needs its loader")
+    extra = {"XDG_CONFIG_HOME": str(tmp_path / "home" / ".config")}
+    cfg = ("--config-dir", str(tmp_path / "cfg")) if tool == "generic" else ()
+    r = run_clean(tmp_path, "--tool", tool, "--tier", "starter", *cfg, "--yes", extra=extra)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    tail = "\n".join(for_you_tail(r.stdout))
+    assert "Commit guard: NOT installed in any repo" in tail and "--guard-repo <your-repo> --yes" in tail
+    assert "PowerShell:" in tail
+    # An agent relays only this block, so no item may lean on text printed before it.
+    assert not re.search(r"\b(above|earlier)\b", tail, re.I), tail
+    # The block reports the guard as NOT installed, so no item in it may say the guard checks anything.
+    assert not ba.GUARD_CLAIM.search(tail), tail
+    if tool == "codex":
+        assert "Quit and restart Codex, or open a new chat" in tail
+        assert f'`codex debug prompt-input "x"` in a terminal and look for "{install.RULES_MARK}"' in tail
+        assert '"claude-starter"' not in tail
+        assert "what rules are you following?" in tail
+        assert "Limits of this install:\n   - Agents are READ-ONLY BY INSTRUCTION ONLY" in tail
+    if tool == "cursor":
+        assert "The rules are NOT installed" in tail
+        assert f"paste the whole of {install.ADAPTERS / 'cursor' / 'AGENTS.starter.md'}" in tail
+        for shell in ("bash", "PowerShell"):
+            assert re.search(shell + r": +python .*install\.py'? --tool cursor --tier starter --project <your-repo> "
+                             r"--yes$", tail, re.M), (shell, tail)
+    if tool == "copilot":
+        assert str(install.ADAPTERS / "copilot" / "vscode-terminal-autoapprove.json") in tail
+        assert "Preferences: Open User Settings (JSON)" in tail
+    if tool == "opencode":
+        assert "Restart opencode" in tail
+    for name in ("RULES ARE NOT INSTALLED YET", "READ-ONLY BY INSTRUCTION ONLY", "No git allow rule"):
+        assert r.stdout.count(name) <= 1, f"{name!r} printed outside the For-you block too"
+
+
+def test_caveats_are_the_last_for_you_item_and_print_nowhere_else(capsys):
+    args = argparse.Namespace(tool="generic", tier="starter", config_dir=Path("cfg"), project=None, guard_repo=[])
+    s = install.Step("agent verifier", Path("cfg") / "agents" / "verifier.md", "file", status="installed")
+    install.finish_run("generic", "starter", [s], True, [], "n/a", ["caveat one", "caveat two\nsecond line"],
+                       args, ["do this next"])
+    out = capsys.readouterr().out
+    tail = for_you_tail(out)
+    assert tail[0] == "1. do this next" and tail[1].startswith("2. Commit guard: NOT installed")
+    assert tail[-4:] == ["3. Limits of this install:", "   - caveat one", "   - caveat two", "     second line"]
+    assert out.count("caveat one") == 1
+
+
+def test_no_caveats_means_no_limits_item(capsys):
+    args = argparse.Namespace(tool="generic", tier="starter", config_dir=Path("cfg"), project=None, guard_repo=[])
+    install.finish_run("generic", "starter", [], True, [], "n/a", [], args, ["do this next"])
+    assert "Limits of this install" not in capsys.readouterr().out
+
+
+def test_cursor_project_command_in_for_you_runs_once_the_repo_is_filled_in(tmp_path):
+    repo = tmp_path / "it's my repo"
+    args = argparse.Namespace(tool="cursor", tier="full", config_dir=None, project=None, guard_repo=[])
+    item = install.next_cursor(Path("cfg"), args)[1]
+    lines = [ln.strip() for ln in item.split("\n") if ln.strip().startswith(("bash:", "PowerShell:"))]
+    assert len(lines) == 2, item
+    for line, split, quote, form in ((lines[0], shlex.split, shlex.quote, repo.as_posix()),
+                                     (lines[1], _ps_split, install._ps_quote, str(repo))):
+        cmd = line.split(":", 1)[1].strip().replace("<your-repo>", quote(form))
+        argv = split(cmd)
+        assert argv[0] == "python" and Path(argv[1]) == install.ROOT / "scripts" / "install.py"
+        assert argv[-1] == "--yes"
+        assert _flags(argv) == {"--tool": ["cursor"], "--tier": ["full"], "--project": [form]}
+
+
+def test_codex_self_check_marker_is_only_in_the_block_the_installer_writes():
+    assert install.RULES_MARK == "BEGIN claude-starter rules"
+    assert install.RULES_MARK in install.BEGIN and install.BEGIN_RX.match(install.BEGIN)
+    # Codex also loads the AGENTS.md of the folder it runs in; the kit's own must not carry the marker,
+    # or the check passes inside the clone with nothing installed.
+    skip = {"tmp", ".git", ".claude", "node_modules"}
+    loaded = [p for p in install.ROOT.rglob("AGENTS*.md") if p.name in ("AGENTS.md", "AGENTS.override.md")
+              and not skip & set(p.relative_to(install.ROOT).parts)]
+    assert install.ROOT / "AGENTS.md" in loaded
+    for p in loaded:
+        assert install.RULES_MARK not in p.read_text(encoding="utf-8"), p
+
+
+@pytest.mark.skipif(not shutil.which("codex"), reason="codex not installed")
+def test_codex_self_check_tells_installed_from_not_installed(tmp_path):
+    """The For-you self-check, run for real: the marker shows only once the rules are installed, while
+    "claude-starter" alone shows inside the kit's clone with nothing installed."""
+    codex = tmp_path / "home" / ".codex"
+    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", extra={"CODEX_HOME": str(codex)})
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    empty, elsewhere = tmp_path / "empty-codex-home", tmp_path / "elsewhere"
+    empty.mkdir()
+    elsewhere.mkdir()
+
+    def prompt(home: Path, cwd: Path) -> str:
+        env = clean_env(tmp_path)
+        env["CODEX_HOME"] = str(home)
+        p = subprocess.run([shutil.which("codex"), "debug", "prompt-input", "x"], cwd=str(cwd), env=env,
+                           stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=180)
+        assert p.returncode == 0, p.stdout[-2000:] + p.stderr[-2000:]
+        return p.stdout
+
+    assert install.RULES_MARK in prompt(codex, elsewhere)
+    in_clone = prompt(empty, install.ROOT)
+    assert "claude-starter" in in_clone and install.RULES_MARK not in in_clone
+
+
+def test_for_you_names_the_guarded_repo(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+    r = run_clean(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                  "--guard-repo", str(repo), "--yes")
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    tail = "\n".join(for_you_tail(r.stdout))
+    assert f"Commit guard: installed as git hooks in {repo.resolve()}" in tail
+    assert "NOT installed" not in tail
+
+
+class FakeClaude:
+    """Stands in for `claude plugin ...`: an empty install that the plugin install then enables."""
+
+    def __init__(self):
+        self.calls = []
+        self.installed = False
+
+    def __call__(self, cmd, env, cwd):
+        a = cmd[2:]
+        self.calls.append(a)
+        if a[:2] == ["marketplace", "list"]:
+            return 0, "[]"
+        if a[:1] == ["list"]:
+            return 0, json.dumps([{"id": "starter@claude-starter", "enabled": True}] if self.installed else [])
+        if a[:1] == ["install"]:
+            self.installed = True
+        return 0, ""
+
+
+def _claude(monkeypatch, tmp_path):
+    fake = FakeClaude()
+    monkeypatch.setattr(install, "_run", fake)
+    real_which = shutil.which
+    monkeypatch.setattr(install.shutil, "which", lambda b, *a, **k: "claude" if b == "claude" else real_which(b))
+    return fake
+
+
+def test_claude_install_ends_with_the_for_you_block(sandboxed, tmp_path, monkeypatch, capsys):
+    fake = _claude(monkeypatch, tmp_path)
+    assert install.run(["--tool", "claude", "--config-dir", str(tmp_path / "claude-cfg"), "--yes"]) == 0
+    assert ["install", "starter@claude-starter", "--json"] in fake.calls
+    tail = "\n".join(for_you_tail(capsys.readouterr().out))
+    assert "Next: open Claude Code and run /starter:setup" in tail
+    assert "Commit guard: NOT installed in any repo. Inside Claude Code" in tail
+    assert "--tier" not in tail
+
+
+# ---- a destination that cannot be written: refuse the whole install --------------------
+
+def _block_writes_under(monkeypatch, blocked: Path):
+    """Make every file creation under `blocked` fail the way a sandbox does (EACCES)."""
+    real_open = os.open
+
+    def guarded(path, flags, *a, **k):
+        if str(path).startswith(str(blocked)) and flags & os.O_CREAT:
+            raise PermissionError(errno.EACCES, "Access is denied", str(path))
+        return real_open(path, flags, *a, **k)
+    monkeypatch.setattr(os, "open", guarded)
+
+
+def test_unwritable_codex_home_refuses_and_writes_nothing(sandboxed, tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("CODEX_THREAD_ID", "thread-1")
+    blocked = sandboxed / ".codex"
+    _block_writes_under(monkeypatch, blocked)
+    before = tree(tmp_path)
+    assert install.run(["--tool", "codex", "--tier", "starter", "--yes"]) == install.UNWRITABLE == 3
+    assert tree(tmp_path) == before  # not even the folders the probe made, nor ~/.agents/skills
+    out = capsys.readouterr()
+    assert install.FOR_YOU not in out.out
+    err = out.err
+    assert str(blocked) in err and "PermissionError" in err and "Access is denied" in err
+    assert "nothing was written" in err.lower()
+    assert "Codex sandbox (CODEX_THREAD_ID is set)" in err
+    assert "not your tool's global config" in err and "your own terminal" in err
+    assert re.search(r"PowerShell: python .*install\.py'? --tool codex --tier starter --yes", err), err
+    assert "If you are an AI agent: do not work around this" in err
+
+
+def test_unwritable_without_codex_markers_says_so_plainly(sandboxed, tmp_path, monkeypatch, capsys):
+    _block_writes_under(monkeypatch, sandboxed / ".agents")
+    before = tree(tmp_path)
+    assert install.run(["--tool", "cursor", "--tier", "starter", "--yes"]) == 3
+    assert tree(tmp_path) == before
+    err = capsys.readouterr().err
+    assert "sandboxed agent session, or a folder you cannot write to" in err and "Codex sandbox" not in err
+    assert str(sandboxed / ".agents" / "skills") in err
+
+
+def test_unwritable_guard_repo_refuses_the_whole_install(sandboxed, tmp_path, monkeypatch, capsys):
+    # Codex keeps <writable root>/.git read-only, so the hooks can fail where the config would not.
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+    _block_writes_under(monkeypatch, repo / ".git")
+    before = tree(tmp_path)
+    assert install.run(["--tool", "codex", "--tier", "starter", "--guard-repo", str(repo), "--yes"]) == 3
+    assert tree(tmp_path) == before
+    assert str(repo / ".git" / "hooks") in capsys.readouterr().err
+
+
+def test_probe_leaves_no_trace(tmp_path):
+    deep = tmp_path / "a" / "b" / "c"
+    assert install.probe_dir(deep) is None
+    assert not (tmp_path / "a").exists()
+    (tmp_path / "x").mkdir()
+    assert install.probe_dir(tmp_path / "x") is None
+    assert list((tmp_path / "x").iterdir()) == []
+
+
+@pytest.mark.skipif(not shutil.which("icacls"), reason="needs Windows icacls")
+def test_really_unwritable_folder_refuses_on_windows(tmp_path):
+    """No monkeypatching: an ACL that denies writing, as the Codex Windows sandbox applies."""
+    codex = tmp_path / "home" / ".codex"
+    codex.mkdir(parents=True)
+    deny = subprocess.run(["icacls", str(codex), "/deny", "*S-1-1-0:(OI)(CI)(W)"], capture_output=True)
+    assert deny.returncode == 0, deny.stdout + deny.stderr
+    try:
+        before = tree(tmp_path / "home")
+        r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+        after = tree(tmp_path / "home")
+    finally:
+        subprocess.run(["icacls", str(codex), "/remove:d", "*S-1-1-0"], capture_output=True)
+    assert r.returncode == 3, r.stdout[-2000:] + r.stderr
+    assert after == before
+    assert str(codex) in r.stderr and "PermissionError" in r.stderr
+
+
+@pytest.mark.skipif(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0),
+                    reason="needs POSIX permissions and a non-root user")
+def test_really_unwritable_folder_refuses_on_posix(tmp_path):
+    home = tmp_path / "home"
+    home.mkdir()
+    home.chmod(0o500)
+    try:
+        r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+        left = sorted(p.name for p in home.iterdir())
+    finally:
+        home.chmod(0o700)
+    assert r.returncode == 3, r.stdout[-2000:] + r.stderr
+    assert left == [] and str(home / ".codex") in r.stderr
+
+
+def test_a_write_that_fails_mid_apply_still_reports(sandboxed, tmp_path, monkeypatch, capsys):
+    reported = []
+    monkeypatch.setattr(install, "report_failure", lambda text, *a, **k: reported.append(text))
+    real = Path.write_bytes
+
+    def flaky(self, data):
+        if self.name == "verifier.md":
+            raise PermissionError(errno.EACCES, "Access is denied", str(self))
+        return real(self, data)
+    monkeypatch.setattr(Path, "write_bytes", flaky)
+    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"), "--yes"])
+    out = capsys.readouterr()
+    assert rc == 1 and "FAILED: 1 piece(s) failed" in out.err
+    assert reported and "verifier" in reported[0] and "Access is denied" in reported[0]
+    assert install.FOR_YOU not in out.out
+
+
+# ---- the dry run and the no-terminal run end by telling an agent to stop ------------------
+
+TIER_ASK = "ask which tier (starter or full) and whether to add the commit guard to a repo"
+
+
+@pytest.mark.parametrize("tool", ["codex", "cursor", "generic"])
+def test_dry_run_ends_with_the_agent_stop_line(tmp_path, tool):
+    cfg = ("--config-dir", str(tmp_path / "cfg")) if tool == "generic" else ()
+    r = run_clean(tmp_path, "--tool", tool, "--tier", "starter", *cfg, "--dry-run")
+    assert r.returncode == 0, r.stdout[-2000:] + r.stderr
+    lines = r.stdout.rstrip("\n").split("\n")
+    assert lines[-2:] == ["dry run: nothing written.",
+                          "If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK
+                          + ", and end your turn. Run with --yes only after they reply."]
+    assert tree(tmp_path / "home") == {}
+
+
+def test_claude_dry_run_stop_line_has_no_tier(sandboxed, tmp_path, monkeypatch, capsys):
+    _claude(monkeypatch, tmp_path)
+    assert install.run(["--tool", "claude", "--config-dir", str(tmp_path / "claude-cfg"), "--dry-run"]) == 0
+    last = capsys.readouterr().out.rstrip("\n").split("\n")[-1]
+    assert last == ("If you are an AI agent: stop here. Show the user this plan, ask whether to add the commit "
+                    "guard to a repo, and end your turn. Run with --yes only after they reply.")
+
+
+STOP_WITH_TIER = ("If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK
+                  + ", and end your turn. Run with --yes only after they reply.")
+YES_COMMAND = re.compile(r"install\.py\S*\s.*--yes")  # a ready-to-run apply command, in either shell
+
+
+def test_no_terminal_run_ends_on_the_stop_line_with_no_yes_command(tmp_path):
+    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter")  # stdin is DEVNULL
+    assert r.returncode == 0, r.stdout[-2000:] + r.stderr
+    lines = r.stdout.rstrip("\n").split("\n")
+    assert lines[-2:] == ["no terminal and no --yes: dry run only, nothing written.", STOP_WITH_TIER]
+    assert not [ln for ln in (r.stdout + r.stderr).split("\n") if YES_COMMAND.search(ln)], r.stdout[-2000:]
+    assert "Re-run with --yes" not in r.stdout + r.stderr
+    assert tree(tmp_path / "home") == {}
+
+
+def _confirm_args(tool="codex", **kw):
+    base = dict(tool=tool, tier=None if tool == "claude" else "starter", config_dir=None, project=None,
+                guard_repo=[], dry_run=False, yes=False)
+    base.update(kw)
+    return argparse.Namespace(**base)
+
+
+@pytest.mark.parametrize("tool", ["codex", "claude"])
+def test_confirm_no_terminal_branch(monkeypatch, capsys, tool):
+    monkeypatch.setattr(sys, "stdin", type("NoTty", (), {"isatty": lambda self: False})())
+    args = _confirm_args(tool)
+    assert install.confirm(args) == 0
+    out = capsys.readouterr().out
+    assert "Re-run with --yes" not in out
+    assert out.rstrip("\n").split("\n")[-1] == install.agent_stop_line(args)
+    assert not [ln for ln in out.split("\n") if YES_COMMAND.search(ln)], out
+    assert (TIER_ASK in out) is (tool != "claude")
+
+
+def test_confirm_eof_on_a_tty_takes_the_no_terminal_branch(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "stdin", type("Tty", (), {"isatty": lambda self: True})())
+
+    def eof(prompt):
+        raise EOFError
+    monkeypatch.setattr("builtins.input", eof)
+    assert install.confirm(_confirm_args()) == 0
+    assert "If you are an AI agent: stop here." in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("answer,want", [("y", None), ("yes", None), ("n", 1), ("", 1)])
+def test_confirm_interactive_branch_is_unchanged(monkeypatch, capsys, answer, want):
+    monkeypatch.setattr(sys, "stdin", type("Tty", (), {"isatty": lambda self: True})())
+    prompts = []
+    monkeypatch.setattr("builtins.input", lambda p: prompts.append(p) or answer)
+    assert install.confirm(_confirm_args()) == want
+    assert prompts == ["\nApply this plan? [y/N] "]
+    out = capsys.readouterr().out
+    assert ("aborted; nothing written." in out) is (want == 1)
+    assert "If you are an AI agent" not in out
+
+
+def test_confirm_yes_and_dry_run(capsys):
+    assert install.confirm(_confirm_args(yes=True)) is None
+    assert install.confirm(_confirm_args(dry_run=True)) == 0
+    assert capsys.readouterr().out.rstrip("\n").endswith("Run with --yes only after they reply.")
+
+
+# ---- Codex's AGENTS.override.md hides the kit's rules -----------------------------------
+
+@pytest.mark.parametrize("content,warned", [(b"my own rules\n", True), (b"", False), (None, False)])
+def test_codex_override_file_is_warned_about(tmp_path, content, warned):
+    codex = tmp_path / "home" / ".codex"
+    codex.mkdir(parents=True)
+    if content is not None:
+        (codex / "AGENTS.override.md").write_bytes(content)
+    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr  # a warning, never a refusal
+    tail = "\n".join(for_you_tail(r.stdout))
+    assert ("AGENTS.override.md is not empty" in tail) is warned
+    assert ("rules will not load" in r.stdout) is warned
+
+
+def test_cursor_attribution_warning_says_the_guard_needs_guard_repo(tmp_path):
+    """Cursor's guard caveat once said "the commit guard will flag" the trailer in a run whose For-you
+    block said the guard was NOT installed in any repo."""
+    (tmp_path / "cli-config.json").write_text(json.dumps({"attribution": {"attributeCommitsToAgent": True}}),
+                                              encoding="utf-8")
+    warning = [ln for ln in install.notes_cursor(tmp_path, None) if ln.startswith("WARNING")]
+    assert len(warning) == 1
+    assert "--guard-repo" in warning[0] and "Made with Cursor" in warning[0]

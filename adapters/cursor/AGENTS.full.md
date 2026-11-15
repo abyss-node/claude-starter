@@ -195,13 +195,21 @@ for what was only reasoned about. A chat summary dies with the session and a com
 outlives it. A commit guard once shipped as "done" and needed three more fix
 rounds, each found only by re-running ground truth; the trailers are where that
 difference gets written down. The record says what was done and checked, never
-who or what wrote it: no co-author or "generated with" lines. The `starter`
-commit guard, installed as git hooks, checks this on every commit (see its
-README for warn and block modes).
+who or what wrote it: no co-author or "generated with" lines. Where the commit guard is installed as git hooks (installer `--guard-repo`), it
+checks this on every commit (see its README for warn and block modes). Where it
+is not installed, nothing checks it but you.
 
 **Report the actual state, not the ceremonial name for it.** If the deploy job is
 a stub, "released" means "an image was published" — say that. A convenient
 summary is a lie the next session acts on.
+
+## Confirm before anything outward-facing or irreversible
+
+Ask before pushing, deploying, publishing, sending a message, opening a PR,
+deleting files or branches, force-pushing, rewriting history, or touching a
+shared database. A local edit is undone with git; a sent email, a public post or
+a dropped table is not, and the person who answers for it is the user, not the
+session. Approval for one such action does not carry over to the next.
 
 ## Lanes
 

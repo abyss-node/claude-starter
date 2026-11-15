@@ -205,6 +205,14 @@ in an `AGENTS.md` in each repo so they follow it too.
 a stub, "released" means "an image was published" — say that. A convenient
 summary is a lie the next session acts on.
 
+## Confirm before anything outward-facing or irreversible
+
+Ask before pushing, deploying, publishing, sending a message, opening a PR,
+deleting files or branches, force-pushing, rewriting history, or touching a
+shared database. A local edit is undone with git; a sent email, a public post or
+a dropped table is not, and the person who answers for it is the user, not the
+session. Approval for one such action does not carry over to the next.
+
 ## Lanes
 
 **Editing is lane-bound. Reading is not.** In a repo with more than one stack,

@@ -124,7 +124,14 @@ class Rewriter:
                              + "\n".join(f"  {d!r}" for d in dead))
 
 
-# Claude-only names that must not survive into any adapter.
+# A sentence saying the commit guard checks commits, with no condition. Inside Claude Code the plugin's
+# hook does check; any other tool has the guard only in repos passed to the installer's --guard-repo.
+# A Codex checkpoint skill once said "The commit guard checks for this" after an install whose own
+# output said the guard was not installed in any repo.
+GUARD_CLAIM = re.compile(r"(?<![\w`])(?:[Tt]he|plugin's)\s+(?:`starter`\s+)?commit\s+guard\s+"
+                         r"(?:checks|is\s+the\s+check)\b")
+
+# Claude-only names and claims that must not survive into any adapter.
 FIELD = "Claude frontmatter field"
 TOOL_NAME = "Claude Code tool name"
 FORBIDDEN = [
@@ -141,6 +148,7 @@ FORBIDDEN = [
     # Never allowed, even where a tool has its own `tools:`/`model:` field: the Claude spellings.
     (re.compile(r"^tools:\s*[A-Z]\w*(\s*,\s*[A-Z]\w*)+\s*$", re.M), "Claude `tools:` string"),
     (re.compile(r"^model:\s*(opus|sonnet|haiku|fable)\b", re.M), "Claude model alias"),
+    (GUARD_CLAIM, "unconditional commit guard claim (true only inside Claude Code)"),
 ]
 
 
@@ -218,8 +226,16 @@ def common_rewrites(cmd: Callable[[str], str], tool_config: str) -> list[tuple[s
         ("The `starter`\nplugin's commit guard checks this on agent commits (see its README for warn and\n"
          "block modes). If you also use non-Claude coding tools, put the same trailer rule\n"
          "in an `AGENTS.md` in each repo so they follow it too.",
-         "The `starter`\ncommit guard, installed as git hooks, checks this on every commit (see its\n"
-         "README for warn and block modes)."),
+         "Where the commit guard is installed as git hooks (installer `--guard-repo`), it\n"
+         "checks this on every commit (see its README for warn and block modes). Where it\n"
+         "is not installed, nothing checks it but you."),
+        ("The `starter` commit guard checks this;",
+         "Where the commit guard is installed (installer `--guard-repo`) it checks this;"),
+        ("The commit guard checks for this, and a chat summary dies with the session\n"
+         "   while a commit outlives it.",
+         "Where the commit guard is installed as git hooks (installer `--guard-repo`),\n"
+         "   it checks for this; elsewhere nothing does. A chat summary dies with the\n"
+         "   session while a commit outlives it."),
         ("`/starter:checkpoint` writes", f"{cmd('checkpoint')} writes"),
         ("`/starter:lanes` sets this up", f"{cmd('lanes')[0].upper()}{cmd('lanes')[1:]} sets this up"),
         ("Claude Code's session scratchpad, where available", "your tool's session scratchpad, where available"),

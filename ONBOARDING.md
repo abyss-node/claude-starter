@@ -1,5 +1,7 @@
 # Onboarding: working with Claude Code the way Arnuv does
 
+Not using Claude Code? The questions below about Claude plans and Claude models do not apply to you; skip them. The rest does.
+
 ## For Claude: how to run this walkthrough
 
 You are guiding someone who may be new to Claude Code through this file. The
@@ -11,7 +13,8 @@ sections after this one are written for them; this section is for you.
   (https://github.com/abyss-node/claude-starter/blob/main/AGENTS.md) instead of
   translating anything by hand. Do not install Claude-specific files unchanged.
   Only if your tool is not one the installer supports, use `PORTING.md` as the
-  last resort. Everything below still applies; only the install steps change.
+  last resort. Everything below still applies except the Claude plan and model
+  questions; only the install steps change.
 - **One step at a time.** Cover one section, then stop and check in: ask whether
   it made sense and whether they want to go on, go deeper, or skip ahead. Never
   paste the whole file back at them.
