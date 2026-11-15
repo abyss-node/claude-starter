@@ -60,6 +60,8 @@ python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter
 
 Swap `opencode` for your tool (see the table above). Choose `--tier starter` or `--tier full`; start with starter. `--dry-run` prints the plan and changes nothing. The installer backs up every file it changes, merges JSON settings without replacing your values, and checks the result afterwards. To update later, ask your agent to run `starter-update` (see Updating below); an install that is already current changes nothing. A successful install prints both commands for bash and for PowerShell, with every flag it used.
 
+After installing, ask for the walkthrough: type `/starter:onboard` in Claude Code (after `/starter:setup`), `/onboard` in OpenCode, `$onboard` in Codex, `/onboard` in Cursor, Copilot, Antigravity and Junie, or run `commands/onboard.md` elsewhere. It shows your tool's own copy one step at a time, and each step ends with the command for the next. It needs the clone at `~/.claude-starter`.
+
 The commit guard needs an answer with `--yes`: `--guard-repo <path>` installs it as git hooks in that repo (repeat it for more repos), and `--no-guard` installs it in none. With neither, the install exits 2 and writes nothing, so a question nobody asked never turns into a permanent no.
 
 ### Updating
@@ -86,7 +88,7 @@ Inside Claude Code you can skip the installer and run:
 /starter:setup
 ```
 
-`/starter:setup` walks you through the rest. Read `ONBOARDING.md` first if you are new to Claude Code. The installer's `--tool claude` does the first two lines for you.
+`/starter:setup` walks you through the rest. If you are new to Claude Code, read `ONBOARDING.md`; `/starter:onboard` shows it one step at a time, but only from a clone. The installer's `--tool claude` does the first two lines for you.
 
 ### A tool the installer does not support
 
@@ -126,7 +128,7 @@ python "$HOME\.claude-starter\scripts\report.py" --kind install-failure --step "
 
 ## More
 
-- `ONBOARDING.md`: a first-hour walkthrough.
+- `ONBOARDING.md`: the first-hour walkthrough for Claude Code. Every other tool's copy is `adapters/<tool>/ONBOARDING.md`; the `onboard` command prints yours one step at a time. All are generated from `core/onboarding/`.
 - `AGENTS.md`: the full steps for an agent setting this up.
 - `plugins/starter/ADDONS.md`: optional add-ons and when each is worth installing.
 - `MODELS.md`: the one place that names models, with a review date. Rules and agents describe roles, so a new model release means editing this file only.

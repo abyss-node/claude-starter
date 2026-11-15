@@ -93,6 +93,7 @@ jobs:
           test "$(find "$C/skills" -name SKILL.md | wc -l)" -eq 4
           test -f "$C/commands/checkpoint.md"
           test -f "$C/commands/lanes.md"
+          test -f "$C/commands/onboard.md"
           opencode debug skill | python -c '
           import json, sys
           names = {s["name"] for s in json.load(sys.stdin)}
@@ -102,7 +103,7 @@ jobs:
           opencode debug config | python -c '
           import json, sys
           cmds = set(json.load(sys.stdin).get("command") or {})
-          assert {"checkpoint", "lanes"} <= cmds, f"commands loaded: {cmds}"
+          assert {"checkpoint", "lanes", "onboard"} <= cmds, f"commands loaded: {cmds}"
           print("commands loaded:", sorted(cmds))'
           for a in verifier code-reviewer consultant; do
             opencode debug agent "$a" | python -c '
@@ -201,10 +202,10 @@ jobs:
           opencode debug config | python -c '
           import json, sys
           cmds = set(json.load(sys.stdin).get("command") or {})
-          assert {"checkpoint", "lanes", "starter-update"} <= cmds, f"commands loaded: {cmds}"
+          assert {"checkpoint", "lanes", "onboard", "starter-update"} <= cmds, f"commands loaded: {cmds}"
           print("commands loaded:", sorted(cmds))'
 
-      - name: The launcher passes the installer's exit code through (Windows)
+      - name: The launcher passes the installer's exit code through, and onboard runs (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
@@ -214,4 +215,13 @@ jobs:
           if ($LASTEXITCODE -ne 2) { Write-Error "nothing installed: expected exit 2, got $LASTEXITCODE"; exit 1 }
           python scripts/starter.py update --offline --to not-a-sha
           if ($LASTEXITCODE -eq 0) { Write-Error "a bad --to exited 0"; exit 1 }
+          # onboard under a home whose path holds an apostrophe, which misresolves ~ paths in Git Bash
+          $env:HOME = "$env:RUNNER_TEMP\it's home"; $env:USERPROFILE = $env:HOME
+          New-Item -ItemType Directory -Force $env:HOME | Out-Null
+          python scripts/starter.py onboard 1
+          if ($LASTEXITCODE -ne 2) { Write-Error "onboard with no record: expected exit 2, got $LASTEXITCODE"; exit 1 }
+          $out = python scripts/starter.py onboard 1 --tool codex
+          if ($LASTEXITCODE -ne 0) { Write-Error "onboard 1 --tool codex exited $LASTEXITCODE"; exit 1 }
+          $last = $out | Select-Object -Last 1
+          if ($last -ne 'Next: type `$onboard 2 --tool codex` to go on.') { Write-Error "onboard ended with: $last"; exit 1 }
           exit 0

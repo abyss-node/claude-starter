@@ -1,0 +1,76 @@
+# Leaks of core/terms.json vocabulary that were in the build when the two-way term check was added:
+# Claude words left in the other tools' rewritten copies (the agents' model-pin comments and the full
+# rules' model ladder). The build fails on a leak not listed here and on a line it no longer needs, so
+# this file only shrinks: when a fix removes a leak, lower its count or delete its line.
+# count<TAB>tool/file<TAB>pattern<TAB>match
+1	antigravity/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	antigravity/AGENTS.full.md	\bClaude\b	Claude
+2	antigravity/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	antigravity/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	antigravity/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	antigravity/config/agents/code-reviewer.md	\bClaude\b	Claude
+1	antigravity/config/agents/code-reviewer.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	antigravity/config/agents/consultant.md	\bClaude\b	Claude
+1	antigravity/config/agents/consultant.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	antigravity/config/agents/verifier.md	\bClaude\b	Claude
+1	antigravity/config/agents/verifier.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	codex/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	codex/AGENTS.full.md	\bClaude\b	Claude
+2	codex/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	codex/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	codex/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	codex/agents/code-reviewer.toml	\bClaude\b	Claude
+1	codex/agents/code-reviewer.toml	`(opus|sonnet|haiku|fable)`	`opus`
+1	codex/agents/consultant.toml	\bClaude\b	Claude
+1	codex/agents/consultant.toml	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	codex/agents/verifier.toml	\bClaude\b	Claude
+1	codex/agents/verifier.toml	`(opus|sonnet|haiku|fable)`	`opus`
+1	copilot/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	copilot/AGENTS.full.md	\bClaude\b	Claude
+2	copilot/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	copilot/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	copilot/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	copilot/agents/code-reviewer.agent.md	\bClaude\b	Claude
+1	copilot/agents/code-reviewer.agent.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	copilot/agents/consultant.agent.md	\bClaude\b	Claude
+1	copilot/agents/consultant.agent.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	copilot/agents/verifier.agent.md	\bClaude\b	Claude
+1	copilot/agents/verifier.agent.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	cursor/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	cursor/AGENTS.full.md	\bClaude\b	Claude
+2	cursor/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	cursor/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	cursor/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	cursor/agents/code-reviewer.md	\bClaude\b	Claude
+1	cursor/agents/code-reviewer.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	cursor/agents/consultant.md	\bClaude\b	Claude
+1	cursor/agents/consultant.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	cursor/agents/verifier.md	\bClaude\b	Claude
+1	cursor/agents/verifier.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	generic/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	generic/AGENTS.full.md	\bClaude\b	Claude
+2	generic/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	generic/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	generic/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	junie/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	junie/AGENTS.full.md	\bClaude\b	Claude
+2	junie/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	junie/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	junie/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	junie/agents/code-reviewer.md	\bClaude\b	Claude
+1	junie/agents/code-reviewer.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	junie/agents/consultant.md	\bClaude\b	Claude
+1	junie/agents/consultant.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	junie/agents/verifier.md	\bClaude\b	Claude
+1	junie/agents/verifier.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	opencode/AGENTS.full.md	\b(Claude plans?|Max/Team|Max or Team|Pro plans?|Max \d+x)\b	Claude plans
+2	opencode/AGENTS.full.md	\bClaude\b	Claude
+2	opencode/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`haiku`
+4	opencode/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`opus`
+2	opencode/AGENTS.full.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	opencode/agents/code-reviewer.md	\bClaude\b	Claude
+1	opencode/agents/code-reviewer.md	`(opus|sonnet|haiku|fable)`	`opus`
+1	opencode/agents/consultant.md	\bClaude\b	Claude
+1	opencode/agents/consultant.md	`(opus|sonnet|haiku|fable)`	`sonnet`
+1	opencode/agents/verifier.md	\bClaude\b	Claude
+1	opencode/agents/verifier.md	`(opus|sonnet|haiku|fable)`	`opus`

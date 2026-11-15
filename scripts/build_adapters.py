@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
-"""Generate adapters/<tool>/ from the Claude Code sources in plugins/starter/.
+"""Generate every tool's copy of the kit: adapters/<tool>/, and Claude Code's generated files.
 
-Every non-Claude tool gets a ready-to-install copy of the kit, produced by code
-rather than by a model translating files by hand. A hand translation once copied
-Claude agent frontmatter (`tools: Read, Grep, Glob, Bash`) into OpenCode, which
-made OpenCode's whole configuration invalid, and still reported success.
+Every tool gets a ready-to-install copy of the kit, produced by code rather than by a model
+translating files by hand. A hand translation once copied Claude agent frontmatter
+(`tools: Read, Grep, Glob, Bash`) into OpenCode, which made OpenCode's whole configuration
+invalid, and still reported success.
 
-    python scripts/build_adapters.py            # regenerate adapters/
-    python scripts/build_adapters.py --check    # exit 1 if adapters/ differs from a fresh build
+    python scripts/build_adapters.py            # regenerate every generated file
+    python scripts/build_adapters.py --check    # exit 1 if any differs from a fresh build
     python scripts/build_adapters.py --tool opencode
 
-Adding a tool: write one `emit_<tool>(src) -> dict[relpath, text]` function and
-add it to EMITTERS. The shared pieces (Sources, Rewriter, lint) do the rest.
+Two sources feed it. `core/` holds what is written once for every tool: commands in
+core/commands/, the onboarding walkthrough in core/onboarding/, the plans in core/plans.json,
+rendered per tool with the words in scripts/vocab.py. `plugins/starter/` holds the Claude Code
+sources the other tools get through literal rewrites (Rewriter). Claude Code's own build is only
+the files rendered from core/ (emit_claude); the rest of plugins/starter/ is hand-written.
 
-Each emitter's rewrites must all fire: a rewrite that matches nothing means the
-source changed under it, and the build stops instead of shipping a stale
-translation. After rewriting, FORBIDDEN patterns (Claude-only names) must be
-gone from every emitted file, so a new Claude-ism in the sources fails the build
-until an emitter handles it. Output is deterministic: sorted, UTF-8, LF only.
+Each tool's build is a manifest: a dict of paths to text. A write or --check touches only manifest
+paths, and deletes only inside adapters/<tool>/, which is generated whole, so a hand-written plugin
+file beside a generated one is never removed.
+
+Each emitter's rewrites must all fire: a rewrite that matches nothing means the source changed
+under it, and the build stops instead of shipping a stale translation. Then two checks run over
+every manifest. CONTENT_LINTS catch Claude-only frontmatter and claims in other tools' output. The
+two-way term check (core/terms.json) fails when one tool's output holds another tool's vocabulary,
+in either direction. Output is deterministic: sorted, UTF-8, LF only.
 """
 from __future__ import annotations
 
@@ -25,16 +32,22 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
 ROOT = Path(__file__).resolve().parent.parent
 PLUGIN = ROOT / "plugins" / "starter"
+CORE = ROOT / "core"
 OUT = ROOT / "adapters"
+sys.path.insert(0, str(ROOT / "scripts"))
+from vocab import STEP_HEADING, VOCAB, next_line, walkthrough_path  # noqa: E402
 
-# Commands that carry over. `setup` writes Claude Code settings; scripts/install.py replaces it.
-PORTED_COMMANDS = ("checkpoint", "lanes", "starter-update")
+# Commands that carry over. `setup` writes Claude Code settings; scripts/install.py replaces it. A
+# command whose source is in core/commands/ is rendered for Claude Code too (emit_claude); the others
+# are read from plugins/starter/commands/.
+PORTED_COMMANDS = ("checkpoint", "lanes", "onboard", "starter-update")
 TIERS = ("starter", "full")
 
 # Built-in commands per tool, which a ported command must never be named. A custom command can replace
@@ -47,6 +60,34 @@ BUILTIN_COMMANDS: dict[str, tuple[str, ...]] = {
                  "init", "models", "new", "clear", "redo", "sessions", "resume", "continue", "themes",
                  "thinking", "undo", "update"),
 }
+
+
+# Tokens a command in core/commands/ may hold, per tool. A tool whose command copy is its own (vocab
+# shared_commands False) names itself to the launcher, so the walkthrough it prints is always its own even
+# when the install record lists another tool: a Claude Code plugin installed by hand writes no record, and
+# a copy that asked the record once printed OpenCode's walkthrough inside Claude Code. The copy shared in
+# ~/.agents/skills cannot name a tool; it renders the same text for every tool sharing it, so it stays
+# byte-identical, and the user adds `--tool` only where the record does not name exactly one tool.
+def command_tokens(tool: str) -> dict[str, str]:
+    if VOCAB[tool].shared_commands:
+        return {"tool_arg": "", "tool_choice": ", and add `--tool <id>` only if they typed it"}
+    return {"tool_arg": f" --tool {tool}", "tool_choice": ""}
+
+
+def render_command(text: str, tool: str, where: str) -> str:
+    """`text` with each {{token}} of command_tokens(tool) replaced. Anything else in braces stops the build."""
+    known = command_tokens(tool)
+
+    def sub(m: re.Match) -> str:
+        if m.group(1) in known:
+            return known[m.group(1)]
+        raise SystemExit(f"{where}: unknown token {m.group(0)} (a command knows "
+                         f"{', '.join('{{' + k + '}}' for k in sorted(known))})")
+
+    out = TOKEN.sub(sub, text)
+    if "{{" in out or "}}" in out:
+        raise SystemExit(f"{where}: a malformed token is left in the {tool} output")
+    return out
 
 
 def check_builtin_collisions(names, builtins: dict[str, tuple[str, ...]] = BUILTIN_COMMANDS) -> None:
@@ -90,8 +131,11 @@ class Sources:
     rules: dict[str, str]          # tier -> text
     skills: dict[str, str]         # name -> full SKILL.md (frontmatter is the shared SKILL.md format)
     agents: dict[str, Doc]
-    commands: dict[str, Doc]
+    commands: dict[str, Doc]       # as written; commands_for() renders the core ones for a tool
     bash_allow: list[str]          # read-only shell commands from settings.starter.json
+    core_commands: dict[str, str]  # name -> core/commands/<name>.md as written, for Claude Code's copy
+    onboarding: dict[str, dict[str, str]]  # core/onboarding/<folder> -> step name -> text
+    plans: dict[str, list[dict]]   # tool -> its plans, from core/plans.json
 
 
 def load_sources() -> Sources:
@@ -102,9 +146,13 @@ def load_sources() -> Sources:
         meta, body = split_frontmatter(read(p), str(p))
         agents[p.stem] = Doc(meta, body)
     check_builtin_collisions(PORTED_COMMANDS)
+    in_core = {p.stem: read(p) for p in sorted((CORE / "commands").glob("*.md"))}
+    stray = sorted(set(in_core) - set(PORTED_COMMANDS))
+    if stray:
+        raise SystemExit(f"core/commands/: {', '.join(stray)} not in PORTED_COMMANDS, so no tool would get it")
     commands = {}
     for name in PORTED_COMMANDS:
-        p = PLUGIN / "commands" / f"{name}.md"
+        p = CORE / "commands" / f"{name}.md" if name in in_core else PLUGIN / "commands" / f"{name}.md"
         meta, body = split_frontmatter(read(p), str(p))
         commands[name] = Doc(meta, body)
     settings = json.loads(read(PLUGIN / "templates" / "settings.starter.json"))
@@ -114,7 +162,13 @@ def load_sources() -> Sources:
         if not m:
             raise SystemExit(f"settings.starter.json: no adapter mapping for permission {entry!r}")
         bash_allow.append(m.group(1).replace(":*", " *"))
-    return Sources(rules, skills, agents, commands, bash_allow)
+    return Sources(rules, skills, agents, commands, bash_allow, in_core, load_onboarding(), load_plans())
+
+
+def commands_for(src: Sources, tool: str) -> dict[str, Doc]:
+    """The ported commands for `tool`: those from core/commands/ with their tokens rendered."""
+    return {n: Doc(d.meta, render_command(d.body, tool, f"core/commands/{n}.md") if n in src.core_commands
+                   else d.body) for n, d in src.commands.items()}
 
 
 # --------------------------------------------------------------------------
@@ -150,19 +204,10 @@ class Rewriter:
 GUARD_CLAIM = re.compile(r"(?<![\w`])(?:[Tt]he|plugin's)\s+(?:`starter`\s+)?commit\s+guard\s+"
                          r"(?:checks|is\s+the\s+check)\b")
 
-# Claude-only names and claims that must not survive into any adapter.
+# Claude-only frontmatter and claims that must not survive into any other tool's output. These are about
+# what a file says, not whose words it uses, so they are lints here rather than rows in core/terms.json.
 FIELD = "Claude frontmatter field"
-TOOL_NAME = "Claude Code tool name"
-FORBIDDEN = [
-    (re.compile(r"/starter:"), "plugin-namespaced command"),
-    (re.compile(r"CLAUDE(\.starter|\.full)?\.md"), "Claude Code rules file name"),
-    (re.compile(r"Claude Code"), "Claude Code reference"),
-    (re.compile(r"\.claude/"), "Claude Code config folder"),
-    (re.compile(r"(?<![\w-])/plugin\b"), "Claude Code /plugin command"),
-    (re.compile(r"settings\.json"), "Claude Code settings file"),
-    (re.compile(r"CLAUDE_PLUGIN_ROOT|AskUserQuestion"), "Claude Code runtime name"),
-    (re.compile(r"`(Read|Grep|Glob|Bash|Edit|Write)`"), TOOL_NAME),
-    (re.compile(r"\b(Max/Team|Max or Team|Pro plans?)\b"), "Claude subscription plan"),
+CONTENT_LINTS = [
     (re.compile(r"^(tools|model|effort|allowed-tools):", re.M), FIELD),
     # Never allowed, even where a tool has its own `tools:`/`model:` field: the Claude spellings.
     (re.compile(r"^tools:\s*[A-Z]\w*(\s*,\s*[A-Z]\w*)+\s*$", re.M), "Claude `tools:` string"),
@@ -171,23 +216,325 @@ FORBIDDEN = [
 ]
 
 
-def lint(tool: str, files: dict[str, str], fields: tuple[str, ...] = (),
-         exempt: tuple[str, ...] = ()) -> None:
-    """`fields`: frontmatter fields this tool really has (e.g. its own `tools:` list).
-    `exempt`: FORBIDDEN descriptions that are this tool's own vocabulary (Junie's tool groups are
-    literally named Read, Grep, Glob, Bash)."""
+def lint(tool: str, files: dict[str, str], fields: tuple[str, ...] = ()) -> None:
+    """`fields`: frontmatter fields this tool really has (e.g. its own `tools:` list)."""
     problems = []
     for rel, text in files.items():
-        for rx, what in FORBIDDEN:
-            if what in exempt:
-                continue
+        for rx, what in CONTENT_LINTS:
             for m in rx.finditer(text):
                 if what == FIELD and m.group(1) in fields:
                     continue
                 line = text.count("\n", 0, m.start()) + 1
                 problems.append(f"  {tool}/{rel}:{line}: {what}: {m.group(0)!r}")
     if problems:
-        raise SystemExit(f"{tool}: Claude-only names left after rewriting:\n" + "\n".join(problems))
+        raise SystemExit(f"{tool}: Claude-only content left after rewriting:\n" + "\n".join(problems))
+
+
+# --------------------------------------------------------------------------
+# Two-way term check: core/terms.json says which tools own which words
+# --------------------------------------------------------------------------
+# A one-way deny list ran only on non-Claude output, so nothing stopped another tool's words reaching
+# Claude Code, and a Codex user's onboarding asked which Claude plan they had. Each row now names the
+# tools a word belongs to, and a match in any other tool's build fails.
+
+@dataclass(frozen=True)
+class Term:
+    pattern: str
+    rx: re.Pattern
+    owners: tuple[str, ...]
+    why: str
+    allow: tuple[str, ...]
+
+
+# `{{commands}}` in a terms.json pattern stands for any ported command's name, so a command added to
+# PORTED_COMMANDS is covered by the command-syntax rows without anyone remembering to add it there.
+COMMANDS_TOKEN = "{{commands}}"
+
+
+def load_terms(path: Path | None = None) -> list[Term]:
+    path = path or CORE / "terms.json"
+    rows = json.loads(read(path))["rows"]
+    names = "(?:" + "|".join(re.escape(n) for n in PORTED_COMMANDS) + ")"
+    terms, seen = [], set()
+    for i, row in enumerate(rows):
+        where = f"{path.name} row {i + 1}"
+        if set(row) != {"pattern", "owners", "why", "allow"}:
+            raise SystemExit(f"{where}: keys must be pattern, owners, why and allow, not {sorted(row)}")
+        unknown = [o for o in row["owners"] if o not in VOCAB]
+        if not row["owners"] or unknown or len(set(row["owners"])) != len(row["owners"]):
+            raise SystemExit(f"{where}: owners must be distinct tools from scripts/vocab.py; unknown: {unknown}")
+        bad_allow = [a for a in row["allow"] if not re.fullmatch(r"\S+:\d+", a)]
+        if bad_allow:
+            raise SystemExit(f"{where}: allow entries are <path>:<line>, not {bad_allow}")
+        if row["pattern"] in seen:
+            raise SystemExit(f"{where}: pattern {row['pattern']!r} is listed twice")
+        seen.add(row["pattern"])
+        try:
+            rx = re.compile(row["pattern"].replace(COMMANDS_TOKEN, names))
+        except re.error as e:
+            raise SystemExit(f"{where}: pattern {row['pattern']!r} does not compile: {e}") from None
+        terms.append(Term(row["pattern"], rx, tuple(row["owners"]), row["why"], tuple(row["allow"])))
+    return terms
+
+
+def load_baseline(path: Path | None = None) -> dict[tuple[str, str, str], int]:
+    path = path or CORE / "terms.baseline"
+    return parse_baseline(read(path), path.name)
+
+
+def parse_baseline(text: str, name: str = "terms.baseline") -> dict[tuple[str, str, str], int]:
+    """`count<TAB>tool/file<TAB>pattern<TAB>match` per line; # starts a comment."""
+    out: dict[tuple[str, str, str], int] = {}
+    for n, ln in enumerate(text.split("\n"), 1):
+        if not ln.strip() or ln.startswith("#"):
+            continue
+        parts = ln.split("\t")
+        if len(parts) != 4 or not parts[0].isdigit() or int(parts[0]) < 1 or parts[1].split("/", 1)[0] not in VOCAB:
+            raise SystemExit(f"{name}:{n}: expected count<TAB>tool/file<TAB>pattern<TAB>match, got {ln!r}")
+        key = (parts[1], parts[2], parts[3])
+        if key in out:
+            raise SystemExit(f"{name}:{n}: {key} is listed twice")
+        out[key] = int(parts[0])
+    return out
+
+
+def term_hits(built: dict[str, dict[str, str]], terms: list[Term]):
+    """(tool, file, line, term, matched text) for every word in a build its tool does not own."""
+    for t in sorted(built):
+        for rel, text in sorted(built[t].items()):
+            for term in terms:
+                if t in term.owners:
+                    continue
+                for m in term.rx.finditer(text):
+                    yield t, rel, text.count("\n", 0, m.start()) + 1, term, m.group(0)
+
+
+def check_terms(built: dict[str, dict[str, str]], terms: list[Term],
+                baseline: dict[tuple[str, str, str], int], full: bool) -> None:
+    """Fail on any word a build's tool does not own, unless an `allow` names its place or the baseline
+    still lists it. A baseline line the build no longer needs fails too, so the baseline only shrinks;
+    on a full build (`full`) so does an allow that matches nothing."""
+    seen: Counter = Counter()
+    lines: dict[tuple[str, str, str], list[str]] = {}
+    used = set()
+    for t, rel, ln, term, match in term_hits(built, terms):
+        spot = f"{t}/{rel}:{ln}"  # an allow is a suffix of it: `<file>:<line>` in every build, or `<tool>/...`
+        allowed = next((a for a in term.allow if ("/" + spot).endswith("/" + a)), None)
+        if allowed:
+            used.add((term.pattern, allowed))
+            continue
+        key = (f"{t}/{rel}", term.pattern, match)
+        seen[key] += 1
+        lines.setdefault(key, []).append(
+            f"  {t}/{rel}:{ln}: {term.why}: {match!r} (a word of {', '.join(term.owners)} only)")
+    problems = []
+    for key, n in sorted(seen.items()):
+        if n > baseline.get(key, 0):
+            problems += lines[key] + ([f"    (core/terms.baseline allows {baseline[key]} of these)"]
+                                      if key in baseline else [])
+    for key, n in sorted(baseline.items()):
+        if key[0].split("/", 1)[0] in built and seen.get(key, 0) < n:
+            problems.append(f"  core/terms.baseline lists {n} of {key[2]!r} ({key[1]}) in {key[0]}, the build has "
+                            f"{seen.get(key, 0)}: lower or delete that line (the baseline may only shrink)")
+    if full:
+        for term in terms:
+            problems += [f"  core/terms.json: allow {a!r} for {term.pattern!r} matches nothing; remove it"
+                         for a in term.allow if (term.pattern, a) not in used]
+    if problems:
+        raise SystemExit("two-way term check (core/terms.json) failed:\n" + "\n".join(problems))
+
+
+# --------------------------------------------------------------------------
+# Onboarding: core/onboarding/ rendered per tool, one step per section
+# --------------------------------------------------------------------------
+# common/ holds the steps every tool shares. Every other step is tool-specific: default/ has a version
+# that names no tool, and core/onboarding/<tool>/ may replace it. Claude Code and OpenCode replace every
+# one: their walkthroughs were Claude-specific and OpenCode-specific from the start, and a fallback that
+# names no tool would hide a missing page behind text that looks complete.
+ONBOARDING = CORE / "onboarding"
+FULL_OVERLAY = ("claude", "opencode")
+STEP_FILE = re.compile(r"(\d\d)-[a-z0-9]+(?:-[a-z0-9]+)*\.md")
+TOKEN = re.compile(r"\{\{([^{}]*)\}\}")
+PLAN_KEYS = {"id", "label", "meter", "meter_cmd", "meter_cmd_confirmed", "pay_past_limit", "provider"}
+METER = {"share": "a usage limit that resets", "usd": "billed per token",
+         "free": "runs on your own machine, free per token"}
+PAY = {"possible": " Past the limit: paid credits, if you turn them on, or wait for the reset.",
+       "unknown": " Whether you can pay past the limit is unconfirmed; plan on waiting for the reset.",
+       "n/a": ""}
+GENERATED = ("<!-- Generated by scripts/build_adapters.py from core/onboarding/. Edit those files and rebuild; "
+             "CI fails when this copy differs from a fresh build. -->")
+
+
+def load_onboarding(root: Path | None = None) -> dict[str, dict[str, str]]:
+    root = root or ONBOARDING
+    if not root.is_dir():
+        raise SystemExit(f"{root}: missing; every tool's onboarding walkthrough is rendered from it")
+    folders: dict[str, dict[str, str]] = {}
+    for d in sorted(root.iterdir()):
+        if not d.is_dir() or (d.name not in ("common", "default") and d.name not in VOCAB):
+            raise SystemExit(f"core/onboarding/{d.name}: only common/, default/ and one folder per tool "
+                             f"({', '.join(sorted(VOCAB))}) belong here")
+        steps = {}
+        for p in sorted(d.iterdir()):
+            if not p.is_file() or not STEP_FILE.fullmatch(p.name):
+                raise SystemExit(f"core/onboarding/{d.name}/{p.name}: not a step file (NN-name.md)")
+            steps[p.name[:-3]] = read(p)
+        folders[d.name] = steps
+    return folders
+
+
+def onboarding_steps(tool: str, folders: dict[str, dict[str, str]]) -> list[tuple[str, str, str]]:
+    """(step name, folder it comes from, text) for each step of `tool`'s walkthrough, in order."""
+    common, default = folders.get("common", {}), folders.get("default", {})
+    both = sorted(set(common) & set(default))
+    if both:
+        raise SystemExit(f"core/onboarding/: {', '.join(both)} in both common/ and default/; a step has one home")
+    for t, own in folders.items():
+        stray = sorted(set(own) - set(default)) if t not in ("common", "default") else []
+        if stray:
+            raise SystemExit(f"core/onboarding/{t}/: {', '.join(stray)} has no default/ version, so it is not a "
+                             "tool-specific step; add one to default/, or move it to common/")
+    own = folders.get(tool, {})
+    if tool in FULL_OVERLAY:
+        missing = sorted(set(default) - set(own))
+        if missing:
+            raise SystemExit(f"core/onboarding/{tool}/ lacks {', '.join(m + '.md' for m in missing)}: {tool} has "
+                             "its own version of every tool-specific step, with no fallback to default/")
+    names = sorted(set(common) | set(default))
+    numbers = [n[:2] for n in names]
+    if len(set(numbers)) != len(numbers):
+        raise SystemExit(f"core/onboarding/: two steps share a number: {', '.join(names)}")
+    if not names:
+        raise SystemExit("core/onboarding/: no steps")
+    return [(n, "common", common[n]) if n in common else (n, tool, own[n]) if n in own else (n, "default", default[n])
+            for n in names]
+
+
+def load_plans(path: Path | None = None) -> dict[str, list[dict]]:
+    path = path or CORE / "plans.json"
+    data = json.loads(read(path))
+    out = {}
+    for tool, rows in data.items():
+        if tool.startswith("_"):
+            continue
+        if tool not in VOCAB:
+            raise SystemExit(f"{path.name}: {tool!r} is not a tool in scripts/vocab.py")
+        ids = [r.get("id") for r in rows]
+        if not rows or len(set(ids)) != len(ids):
+            raise SystemExit(f"{path.name}: {tool} needs at least one plan, each with its own id")
+        for r in rows:
+            where = f"{path.name}: {tool} plan {r.get('id')!r}"
+            if set(r) != PLAN_KEYS:
+                raise SystemExit(f"{where}: keys must be {', '.join(sorted(PLAN_KEYS))}")
+            if r["meter"] not in METER or r["pay_past_limit"] not in PAY:
+                raise SystemExit(f"{where}: meter is one of {sorted(METER)} and pay_past_limit one of {sorted(PAY)}")
+            if not (r["meter_cmd"] is None or isinstance(r["meter_cmd"], str) and r["meter_cmd"]):
+                raise SystemExit(f"{where}: meter_cmd is a command or null")
+            if not (isinstance(r["meter_cmd_confirmed"], bool) if r["meter_cmd"] else r["meter_cmd_confirmed"] is None):
+                raise SystemExit(f"{where}: meter_cmd_confirmed is true or false when meter_cmd is a command, "
+                                 "and null when it is null")
+            if not all(isinstance(r[k], str) and r[k] for k in ("id", "label", "provider")):
+                raise SystemExit(f"{where}: id, label and provider are non-empty strings")
+        out[tool] = rows
+    return out
+
+
+def plan_list(tool: str, plans: dict[str, list[dict]], where: str) -> str:
+    if tool not in plans:
+        raise SystemExit(f"{where}: {{{{plans}}}} is used, but core/plans.json has no plans for {tool}")
+    several = len({r["provider"] for r in plans[tool]}) > 1
+    out = []
+    for r in plans[tool]:
+        s = f"- **{r['label']}**" + (f" (provider `{r['provider']}`)" if several else "") + f": {METER[r['meter']]}"
+        if r["meter_cmd"]:
+            what = "how much is left" if r["meter"] == "share" else "what you spent"
+            s += (f"; `{r['meter_cmd']}` shows {what}." if r["meter_cmd_confirmed"]
+                  else f"; `{r['meter_cmd']}` may show {what}, which is unconfirmed.")
+        elif r["meter"] == "share":
+            s += "; no command in the tool shows how much is left."
+        elif r["meter"] == "usd":
+            s += "; your provider's usage page shows what you spent."
+        else:
+            s += "."
+        out.append(s + PAY[r["pay_past_limit"]])
+    return "\n".join(out)
+
+
+def render_tokens(text: str, tool: str, plans: dict[str, list[dict]], where: str) -> str:
+    """Replace {{rules_file}}, {{tool}}, {{cmd:<ported command>}} and {{plans}} with `tool`'s words.
+    Anything else in braces stops the build, so a misspelt token never ships as literal text."""
+    v = VOCAB[tool]
+
+    def sub(m: re.Match) -> str:
+        key = m.group(1)
+        if key == "rules_file":
+            return v.rules_file
+        if key == "tool":
+            return tool
+        if key == "plans":
+            return plan_list(tool, plans, where)
+        if key.startswith("cmd:") and key[4:] in PORTED_COMMANDS:
+            return v.cmd(key[4:])
+        raise SystemExit(f"{where}: unknown token {m.group(0)} (known: {{{{rules_file}}}}, {{{{tool}}}}, "
+                         f"{{{{plans}}}}, {{{{cmd:<one of {', '.join(PORTED_COMMANDS)}>}}}})")
+
+    out = TOKEN.sub(sub, text)
+    if "{{" in out or "}}" in out:
+        raise SystemExit(f"{where}: a malformed token is left in the {tool} output")
+    return out
+
+
+def render_step(text: str, tool: str, plans: dict[str, list[dict]], where: str) -> tuple[str, str]:
+    """(title, body) of one step file: a `# Title` line, then the body. Outside a code fence the body may
+    not hold a level 1 or 2 heading or a line starting `Next:`, which belong to the walkthrough around it.
+    A line that opens a step (vocab.STEP_HEADING) is refused even inside a fence, in the source and in the
+    rendered text: the launcher splits on it without regard to fences. {{rules_file}} must end a clause,
+    because a tool's rules file may be a long phrase (Cursor's is) that swallows the words after it."""
+    first, _, rest = text.partition("\n")
+    if not first.startswith("# ") or not first[2:].strip():
+        raise SystemExit(f"{where}: the first line must be `# <title>`")
+    body = rest.strip("\n")
+    fence = False
+    for n, ln in enumerate(body.split("\n"), 2):
+        if STEP_HEADING.match(ln):
+            raise SystemExit(f"{where}:{n}: a step may not hold a line that opens a step (`## Step N of M:`), even "
+                             "in a code block: the launcher splits the walkthrough on it")
+        if ln.startswith("```"):
+            fence = not fence
+        elif not fence and (ln.startswith(("# ", "## ")) or ln.startswith("Next:")):
+            raise SystemExit(f"{where}:{n}: a step may not hold a `#`/`##` heading or a `Next:` line")
+    for m in TOKEN.finditer(text):
+        if m.group(1) == "rules_file" and text[m.end():m.end() + 1] not in (".", ";", ":", ")"):
+            raise SystemExit(f"{where}:{text.count(chr(10), 0, m.start()) + 1}: {{{{rules_file}}}} must end a "
+                             "clause (be followed by . ; : or ), not by more words): a tool's rules file can be "
+                             "a long phrase, and words after it read as part of it")
+    if not body:
+        raise SystemExit(f"{where}: empty step")
+    title, out = render_tokens(first[2:].strip(), tool, plans, where), render_tokens(body, tool, plans, where)
+    if STEP_HEADING.search(out):
+        raise SystemExit(f"{where}: a token renders a line that opens a step (`## Step N of M:`) in the {tool} "
+                         "output; the launcher splits the walkthrough on it")
+    return title, out
+
+
+def walkthrough(tool: str, src: Sources) -> str:
+    """The whole walkthrough for `tool`: a short head for a reader of the file, then each step under a
+    `## Step N of M:` heading and ending with the command that comes next (vocab.next_line). The
+    launcher prints one step at a time from this file."""
+    v = VOCAB[tool]
+    steps = onboarding_steps(tool, src.onboarding)
+    how = (f"Type {v.cmd('onboard')} there and your agent shows it one step at a time" if v.typed is not None
+           else f"Give your agent {v.cmd('onboard')} and it shows this one step at a time")
+    head = [GENERATED, "", "# Onboarding: your first hour with this kit", "",
+            f"This copy is for {v.name}. {how}; you can also read it all here."]
+    if tool == "claude":
+        others = ", ".join(f"[{t}]({walkthrough_path(t)})" for t in sorted(VOCAB) if t != "claude")
+        head += ["", f"Not using Claude Code? Every other tool has its own copy: {others}."]
+    parts = ["\n".join(head)]
+    for i, (name, folder, text) in enumerate(steps, 1):
+        title, body = render_step(text, tool, src.plans, f"core/onboarding/{folder}/{name}.md")
+        parts.append(f"## Step {i} of {len(steps)}: {title}\n\n{body}\n\n{next_line(tool, i, len(steps))}")
+    return "\n\n".join(parts) + "\n"
 
 
 def yaml_str(s: str) -> str:
@@ -278,10 +625,9 @@ def common_rewrites(cmd: Callable[[str], str], tool_config: str) -> list[tuple[s
     ]
 
 
-def finish(tool: str, rw: Rewriter, files: dict[str, str], fields: tuple[str, ...] = (),
-           exempt: tuple[str, ...] = ()) -> dict[str, str]:
+def finish(tool: str, rw: Rewriter, files: dict[str, str], fields: tuple[str, ...] = ()) -> dict[str, str]:
     rw.assert_all_fired(tool)
-    lint(tool, files, fields, exempt)
+    lint(tool, files, fields)
     return files
 
 
@@ -313,7 +659,7 @@ def emit_opencode(src: Sources) -> dict[str, str]:
               " to a model. To pin one, add `model: provider/model-id`.",
               "permission:"] + [f"  {k}: deny" for k in deny] + ["---", "", ""]
         files[f"agents/{name}.md"] = "\n".join(fm) + rw(doc.body)
-    for name, doc in src.commands.items():
+    for name, doc in commands_for(src, "opencode").items():
         fm = ["---", f"description: {yaml_str(rw(doc.meta['description']))}", "---", "", ""]
         files[f"commands/{name}.md"] = "\n".join(fm) + rw(doc.body)
     perm = {"$schema": "https://opencode.ai/config.json",
@@ -349,7 +695,7 @@ def emit_generic(src: Sources) -> dict[str, str]:
             "",
         ]
         files[f"agents/{name}.md"] = "\n".join(head) + rw(doc.body)
-    for name, doc in src.commands.items():
+    for name, doc in commands_for(src, "generic").items():
         head = [f"<!-- Prompt: {rw(doc.meta['description'])}. Paste it, or point your tool at this"
                 " file; replace $ARGUMENTS with your input. -->", ""]
         files[f"commands/{name}.md"] = "\n".join(head) + rw(doc.body)
@@ -414,6 +760,8 @@ NEUTRAL_COMMAND_DIR = [
 SKILL_TARGET = ("Target: $ARGUMENTS",
                 "Target: the part of the repo the user named when invoking this skill (the whole repo if\n"
                 "they named none).")
+# A skill gets no $ARGUMENTS; onboard's first step already says to use what the user typed after its name.
+ONBOARD_ARGS = ("The user typed: $ARGUMENTS\n\n", "")
 CONSULTANT_HOLDS = "you hold `Read`, `Grep` and `Glob` and\nnothing else, deliberately."
 CODEX_SHELL_FLAGS = "shell tools disabled by feature flags; not verified that Codex honours [features] in agent files"
 VERIFIER_HOLDS = "you hold `Read`, `Grep`, `Glob` and\n`Bash`, and no way to edit, deliberately."
@@ -422,12 +770,12 @@ NO_PIN = ("No model is pinned, so the agent runs on the session's model. The Cla
           "{effort} effort; MODELS.md maps that role to a model.")
 
 
-def skill_files(src: Sources, rw: Rewriter, command_fm: list[str] | None,
+def skill_files(src: Sources, tool: str, rw: Rewriter, command_fm: list[str] | None,
                 prefix: str = "skills") -> dict[str, str]:
-    """The guardrail skills, plus checkpoint/lanes as user-invoked skills when `command_fm` is given."""
+    """The guardrail skills, plus the ported commands as user-invoked skills when `command_fm` is given."""
     files = {f"{prefix}/{n}/SKILL.md": rw(t) for n, t in src.skills.items()}
     if command_fm is not None:
-        for n, doc in src.commands.items():
+        for n, doc in commands_for(src, tool).items():
             if n in src.skills:
                 raise SystemExit(f"command {n!r} and skill {n!r} would share one skill folder")
             fm = ["---", f"name: {n}", f"description: {yaml_str(rw(doc.meta['description']))}",
@@ -480,7 +828,7 @@ def emit_codex(src: Sources) -> dict[str, str]:
                   + NEUTRAL_COMMAND_DIR + [
         (RULES_CONSULTANT, "It can only read and search (its\nshell tools are disabled by feature flags, "
                            "and it does not edit, by instruction),"),
-        SKILL_TARGET,
+        SKILL_TARGET, ONBOARD_ARGS,
         (CONSULTANT_HOLDS, "you read and search files and\nnothing else, deliberately: your shell "
                            "tools are disabled by feature flags,\nand you do not edit (by instruction only; "
                            "Codex cannot enforce that for an\nagent)."),
@@ -488,7 +836,7 @@ def emit_codex(src: Sources) -> dict[str, str]:
                          "instruction only; Codex cannot\nenforce that for an agent)."),
     ])
     files = rules_files(src, rw)
-    files.update(skill_files(src, rw, ["disable-model-invocation: true", "user-invocable: true"]))
+    files.update(skill_files(src, "codex", rw, ["disable-model-invocation: true", "user-invocable: true"]))
     for name in src.commands:
         # The SKILL.md stays byte-identical across the tools sharing ~/.agents/skills, so Codex's own policy
         # goes in this Codex-only file beside it; no other tool emits the path.
@@ -547,14 +895,14 @@ def emit_cursor(src: Sources) -> dict[str, str]:
     installer prints how to paste the rules into Settings > Rules, or writes a project AGENTS.md."""
     rw = Rewriter(common_rewrites(lambda n: f"`/{n}`", "`.cursor/` and `~/.cursor/`") + NEUTRAL_COMMAND_DIR + [
         (RULES_CONSULTANT, "It runs read-only and only reads and\nsearches,"),
-        SKILL_TARGET,
+        SKILL_TARGET, ONBOARD_ARGS,
         (CONSULTANT_HOLDS, "you run in Cursor's read-only\nmode and use only reading and searching, "
                            "deliberately."),
         (VERIFIER_HOLDS, "you run in Cursor's read-only\nmode: you can read, search and run commands that "
                          "change nothing, and you cannot\nedit, deliberately."),
     ])
     files = rules_files(src, rw)
-    files.update(skill_files(src, rw, ["disable-model-invocation: true", "user-invocable: true"]))
+    files.update(skill_files(src, "cursor", rw, ["disable-model-invocation: true", "user-invocable: true"]))
     for name, doc in src.agents.items():
         denied(name, doc)
         fm = ["---", f"name: {name}", f"description: {yaml_str(rw(doc.meta['description']))}",
@@ -580,12 +928,12 @@ def emit_copilot(src: Sources) -> dict[str, str]:
     terminal auto-approve snippet."""
     rw = Rewriter(common_rewrites(lambda n: f"`/{n}`", "`~/.copilot/` and `.github/`") + NEUTRAL_COMMAND_DIR + [
         (RULES_CONSULTANT, "It holds `read` and `search` and nothing\nelse,"),
-        SKILL_TARGET,
+        SKILL_TARGET, ONBOARD_ARGS,
         (CONSULTANT_HOLDS, "you hold `read` and `search` and\nnothing else, deliberately."),
         (VERIFIER_HOLDS, "you hold `read`, `search` and\n`execute`, and no way to edit, deliberately."),
     ])
     files = rules_files(src, rw)
-    files.update(skill_files(src, rw, ["disable-model-invocation: true", "user-invocable: true"]))
+    files.update(skill_files(src, "copilot", rw, ["disable-model-invocation: true", "user-invocable: true"]))
     for name, doc in src.agents.items():
         denied(name, doc)
         tools, _ = map_tools(name, doc, COPILOT_TOOLS)
@@ -619,7 +967,7 @@ def emit_antigravity(src: Sources) -> dict[str, str]:
                 "run.\n\n")
     rw = Rewriter(common_rewrites(lambda n: f"`/{n}`", "`~/.gemini/`") + NEUTRAL_COMMAND_DIR + [
         (RULES_CONSULTANT, "It holds `view_file` and `grep_search` and\nnothing else,"),
-        SKILL_TARGET,
+        SKILL_TARGET, ONBOARD_ARGS,
         (CONSULTANT_HOLDS, "you hold `view_file` and\n`grep_search` and nothing else, deliberately."),
         (VERIFIER_HOLDS, "you hold `view_file` and\n`grep_search`, and no way to edit or to run commands."),
     ])
@@ -629,7 +977,7 @@ def emit_antigravity(src: Sources) -> dict[str, str]:
         if size > ANTIGRAVITY_RULES_CAP:
             raise SystemExit(f"antigravity: the {tier} rules are {size} bytes; Antigravity reads at most "
                              f"{ANTIGRAVITY_RULES_CAP} bytes per rules file")
-    files.update(skill_files(src, rw, [], prefix="config/skills"))
+    files.update(skill_files(src, "antigravity", rw, [], prefix="config/skills"))
     for name, doc in src.agents.items():
         denied(name, doc)
         tools, missing = map_tools(name, doc, ANTIGRAVITY_TOOLS)
@@ -658,7 +1006,7 @@ def emit_junie(src: Sources) -> dict[str, str]:
         ("$ARGUMENTS", "$prompt"),
     ])
     files = rules_files(src, rw)
-    files.update(skill_files(src, rw, None))
+    files.update(skill_files(src, "junie", rw, None))
     for name, doc in src.agents.items():
         denied(name, doc)
         tools, _ = map_tools(name, doc, JUNIE_TOOLS)
@@ -667,7 +1015,7 @@ def emit_junie(src: Sources) -> dict[str, str]:
               "# " + NO_PIN.format(model=doc.meta.get("model", "?"), effort=doc.meta.get("effort", "?")),
               "---", "", ""]
         files[f"agents/{name}.md"] = "\n".join(fm) + rw(doc.body)
-    for name, doc in src.commands.items():
+    for name, doc in commands_for(src, "junie").items():
         fm = ["---", f"description: {yaml_str(rw(doc.meta['description']))}"]
         if "$ARGUMENTS" in doc.body:
             fm.append("allowPromptArgument: true")
@@ -675,7 +1023,7 @@ def emit_junie(src: Sources) -> dict[str, str]:
     keep, _ = prefix_allow(src)
     allow = {"rules": {"executables": {"rules": [{"prefix": c, "action": "allow"} for c in keep]}}}
     files["junie.allowlist.json"] = json.dumps(allow, indent=2) + "\n"
-    return finish("junie", rw, files, fields=("tools",), exempt=(TOOL_NAME,))
+    return finish("junie", rw, files, fields=("tools",))
 
 
 EMITTERS: dict[str, Callable[[Sources], dict[str, str]]] = {
@@ -688,6 +1036,60 @@ EMITTERS: dict[str, Callable[[Sources], dict[str, str]]] = {
     "junie": emit_junie,
 }
 
+# The plugin mixes generated and hand-written files, so a generated one says where its source is.
+CLAUDE_GENERATED = ("<!-- Generated by scripts/build_adapters.py from core/commands/{n}.md. Edit that file and "
+                    "rebuild. -->")
+
+
+def emit_claude(src: Sources) -> dict[str, str]:
+    """Claude Code: the plugin commands whose source is in core/commands/, frontmatter as written there.
+    Paths are relative to the repo root; every other plugin file is hand-written and not in this manifest.
+
+    Claude Code may run a command file on its own unless its frontmatter sets disable-model-invocation
+    (https://code.claude.com/docs/en/slash-commands, read 2026-11-15), and the Codex, Cursor and Copilot
+    copies of a ported command already set it, so a core command without it stops the build. Tokens are
+    rendered for Claude Code (render_command)."""
+    files = {}
+    for name, text in src.core_commands.items():
+        where = f"core/commands/{name}.md"
+        fm, sep, body = render_command(text, "claude", where).partition("\n---\n")
+        if not text.startswith("---\n") or not sep:
+            raise SystemExit(f"{where}: no frontmatter")
+        if src.commands[name].meta.get("disable-model-invocation") != "true":
+            raise SystemExit(f"{where}: needs `disable-model-invocation: true`, so Claude Code runs it only when "
+                             "the user types it, as Codex, Cursor and Copilot do")
+        files[f"plugins/starter/commands/{name}.md"] = (f"{fm}\n---\n\n{CLAUDE_GENERATED.format(n=name)}\n\n"
+                                                        + body.lstrip("\n"))
+    return files
+
+
+BUILDS = ("claude", *sorted(EMITTERS))  # every tool with a build; vocab.VOCAB names the same set
+# Where each tool's build puts a ported command. Antigravity reads its own config/skills, not the shared
+# ~/.agents/skills, so a check of the shared copies alone would miss it. Claude Code's build holds only
+# the commands rendered from core/; its other commands are hand-written plugin files.
+COMMAND_PATHS = {
+    "claude": "plugins/starter/commands/{n}.md",
+    "opencode": "commands/{n}.md", "generic": "commands/{n}.md", "junie": "commands/{n}.md",
+    "codex": "skills/{n}/SKILL.md", "cursor": "skills/{n}/SKILL.md", "copilot": "skills/{n}/SKILL.md",
+    "antigravity": "config/skills/{n}/SKILL.md",
+}
+
+
+def check_commands_everywhere(built: dict[str, dict[str, str]], core_commands) -> None:
+    """Every build ships every ported command. A tool once had starter-update in every build but its own."""
+    problems = []
+    for t, files in sorted(built.items()):
+        names = sorted(core_commands) if t == "claude" else PORTED_COMMANDS
+        problems += [f"  {t}: no {COMMAND_PATHS[t].format(n=n)}" for n in names
+                     if COMMAND_PATHS[t].format(n=n) not in files]
+    if problems:
+        raise SystemExit("a ported command is missing from a build:\n" + "\n".join(problems))
+
+
+def out_path(tool: str, rel: str) -> str:
+    """Where a build's file goes, relative to the repo root."""
+    return rel if tool == "claude" else f"adapters/{tool}/{rel}"
+
 
 # --------------------------------------------------------------------------
 # Build / check
@@ -695,12 +1097,14 @@ EMITTERS: dict[str, Callable[[Sources], dict[str, str]]] = {
 
 def index(tools: list[str], built: dict[str, dict[str, str]]) -> str:
     lines = ["# adapters (generated)", "",
-             "Do not edit files here. They are generated from `plugins/starter/` by",
+             "Do not edit files here. They are generated from `core/` and `plugins/starter/` by",
              "`python scripts/build_adapters.py`, and CI fails when they drift from a fresh build.",
              "Install one with `python scripts/install.py --tool <tool> --tier <starter|full>`;",
              "`python scripts/install.py --help` lists every flag. To have an AI agent do it for you,",
              "give it the repo link and see `AGENTS.md` at the repo root. `generic` is the starting",
-             "point for a tool the installer does not support (`--config-dir` is required; see `PORTING.md`).", "",
+             "point for a tool the installer does not support (`--config-dir` is required; see `PORTING.md`).",
+             "Each tool's `ONBOARDING.md` is its onboarding walkthrough; the installer does not copy it, and",
+             "the `onboard` command prints it one step at a time from here.", "",
              "| Tool | Files |", "|---|---|"]
     for t in tools:
         lines.append(f"| `{t}` | {len(built[t])} |")
@@ -721,18 +1125,49 @@ def check_shared_skills(built: dict[str, dict[str, str]]) -> None:
             seen.setdefault(rel, (t, text))
 
 
-def build_all(tools: list[str]) -> dict[str, str]:
-    src = load_sources()
-    built = {t: EMITTERS[t](src) for t in tools}
+def check_vocab_matches_builds() -> None:
+    """scripts/vocab.py names the same tools as the builds, and says a tool's commands are shared exactly
+    when its build puts them in the shared ~/.agents/skills. A tool marked shared that is not would ask the
+    install record for its tool, which is how a Claude Code user was once shown OpenCode's walkthrough."""
+    if set(VOCAB) != set(BUILDS):
+        raise SystemExit(f"scripts/vocab.py names {sorted(VOCAB)} but the builds are {sorted(BUILDS)}")
+    wrong = [t for t in BUILDS
+             if VOCAB[t].shared_commands != (t in SHARED_SKILLS_TOOLS and COMMAND_PATHS[t].startswith("skills/"))]
+    if wrong:
+        raise SystemExit(f"scripts/vocab.py: shared_commands is wrong for {', '.join(wrong)}; it is True exactly "
+                         f"for the tools whose commands are skills in the shared ~/.agents/skills")
+
+
+def build_tools(tools: list[str], src: Sources | None = None) -> dict[str, dict[str, str]]:
+    """Each tool's manifest (path relative to its output folder -> text), checked: shared skills agree,
+    every build has every ported command, and the two-way term check passes."""
+    check_vocab_matches_builds()
+    src = src or load_sources()
+    built = {}
+    for t in tools:
+        files = emit_claude(src) if t == "claude" else EMITTERS[t](src)
+        files["ONBOARDING.md"] = walkthrough(t, src)
+        if t != "claude":
+            lint(t, {"ONBOARDING.md": files["ONBOARDING.md"]})
+        built[t] = files
     check_shared_skills(built)
+    check_commands_everywhere(built, src.core_commands)
+    check_terms(built, load_terms(), load_baseline(), full=set(tools) == set(BUILDS))
+    return built
+
+
+def build_all(tools: list[str]) -> dict[str, str]:
+    """Every file the build writes, by path relative to the repo root."""
+    built = build_tools(tools)
     out: dict[str, str] = {}
     for t in tools:
         for rel, text in built[t].items():
             if "\r" in text:
                 raise SystemExit(f"{t}/{rel}: CR in output")
-            out[f"{t}/{rel}"] = text if text.endswith("\n") else text + "\n"
-    if tools == sorted(EMITTERS):
-        out["README.md"] = index(tools, built)
+            out[out_path(t, rel)] = text if text.endswith("\n") else text + "\n"
+    adapter_tools = [t for t in tools if t != "claude"]
+    if adapter_tools == sorted(EMITTERS):
+        out["adapters/README.md"] = index(adapter_tools, built)
     return dict(sorted(out.items()))
 
 
@@ -740,11 +1175,11 @@ def existing(scope: list[Path]) -> dict[str, bytes]:
     found = {}
     for base in scope:
         if base.is_file():
-            found[base.relative_to(OUT).as_posix()] = base.read_bytes()
+            found[base.relative_to(ROOT).as_posix()] = base.read_bytes()
         elif base.is_dir():
             for p in sorted(base.rglob("*")):
                 if p.is_file():
-                    found[p.relative_to(OUT).as_posix()] = p.read_bytes()
+                    found[p.relative_to(ROOT).as_posix()] = p.read_bytes()
     return found
 
 
@@ -752,14 +1187,16 @@ def main(argv: list[str] | None = None) -> int:
     for stream in (sys.stdout, sys.stderr):  # tool output carries non-ASCII; never crash printing it
         stream.reconfigure(errors="replace")
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 if adapters/ differs from a fresh build")
-    ap.add_argument("--tool", choices=sorted(EMITTERS), action="append",
-                    help="limit to one tool (repeatable); default all")
+    ap.add_argument("--check", action="store_true", help="exit 1 if a generated file differs from a fresh build")
+    ap.add_argument("--tool", choices=BUILDS, action="append", help="limit to one tool (repeatable); default all")
     args = ap.parse_args(argv)
-    tools = sorted(set(args.tool)) if args.tool else sorted(EMITTERS)
+    tools = sorted(set(args.tool)) if args.tool else list(BUILDS)
     want = {k: v.encode("utf-8") for k, v in build_all(tools).items()}
-    scope = [OUT / t for t in tools] + ([OUT / "README.md"] if "README.md" in want else [])
+    # Only adapters/<tool>/ is generated whole, so only there can a file be extra; elsewhere the build
+    # owns exactly the paths in its manifest.
+    scope = [OUT / t for t in tools if t != "claude"] + ([OUT / "README.md"] if "adapters/README.md" in want else [])
     have = existing(scope)
+    have.update({k: (ROOT / k).read_bytes() for k in want if k not in have and (ROOT / k).is_file()})
 
     missing = sorted(set(want) - set(have))
     extra = sorted(set(have) - set(want))
@@ -768,21 +1205,21 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         if missing or extra or changed:
             for k in missing:
-                print(f"missing:  adapters/{k}")
+                print(f"missing:  {k}")
             for k in extra:
-                print(f"extra:    adapters/{k}")
+                print(f"extra:    {k}")
             for k in changed:
-                print(f"differs:  adapters/{k}")
-            print(f"adapters/ is out of date ({len(missing)} missing, {len(extra)} extra, {len(changed)} differ). "
-                  "Run: python scripts/build_adapters.py", file=sys.stderr)
+                print(f"differs:  {k}")
+            print(f"generated files are out of date ({len(missing)} missing, {len(extra)} extra, {len(changed)} "
+                  "differ). Run: python scripts/build_adapters.py", file=sys.stderr)
             return 1
-        print(f"adapters/ up to date ({len(want)} files, tools: {', '.join(tools)})")
+        print(f"generated files up to date ({len(want)} files, tools: {', '.join(tools)})")
         return 0
 
     for k in extra:
-        (OUT / k).unlink()
+        (ROOT / k).unlink()
     for k in missing + changed:
-        p = OUT / k
+        p = ROOT / k
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(want[k])
     for d in sorted((p for p in OUT.rglob("*") if p.is_dir()), key=lambda p: len(p.parts), reverse=True):

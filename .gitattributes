@@ -1,2 +1,4 @@
 *.sh text eol=lf
 adapters/** text eol=lf
+ONBOARDING.md text eol=lf
+plugins/starter/commands/onboard.md text eol=lf
