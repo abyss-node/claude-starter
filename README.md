@@ -6,10 +6,10 @@ Follow these steps in order. Run each command yourself, except where a step says
 
 1. Tell the user which tool and which model you are.
 2. Run `git --version` and `python --version` (3.9 or newer; also try `python3`, and `py` on Windows). If either is missing, tell the user how to install it for their OS, then stop.
-3. Clone to a stable place: `git clone https://github.com/abyss-node/claude-starter ~/.claude-starter`. If it exists, run `git -C ~/.claude-starter pull`. On Windows, prefer PowerShell: `git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"`, or `git -C "$HOME\.claude-starter" pull` if it exists. In Git Bash, a user name with an apostrophe can make `~` paths misresolve (to `C:\c\Users\...`); the installer warns when that happened.
+3. Clone to a stable place: `git clone https://github.com/abyss-node/claude-starter ~/.claude-starter`. If it exists, the kit is already installed: follow Updating in `AGENTS.md` instead. Pull it only when `~/.claude-starter/scripts/starter.py` is missing (a clone from v0.3.x or earlier), as Updating says. On Windows, prefer PowerShell: `git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"`. In Git Bash, a user name with an apostrophe can make `~` paths misresolve (to `C:\c\Users\...`); the installer warns when that happened.
 4. Run `python ~/.claude-starter/scripts/install.py --detect` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --detect`). Pick `--tool` from the table below: your own tool (use `auto` only if you are unsure). Do not pick a tier yourself.
-5. STOP AND ASK. Run `python ~/.claude-starter/scripts/install.py --tool <tool> --tier starter --dry-run` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier starter --dry-run`; use `--tier full` in the command if the user picks full; Claude Code takes no `--tier`, so leave it out) and show the user the plan. Ask: `starter` (recommended; short rules, a small setup) or `full` (adds rules for choosing models and coordinating many agents), and whether to add the commit guard to a repo (`--guard-repo <path>`). Then END YOUR TURN and wait for the user's reply. Do not run anything else, and do not use an async or optional question tool and carry on. This approval is required, not an optional clarification.
-6. Only after the user has answered, run the same command with `--yes` instead of `--dry-run`: `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --yes` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --yes`). Claude Code takes no `--tier`.
+5. STOP AND ASK. Run `python ~/.claude-starter/scripts/install.py --tool <tool> --tier starter --dry-run` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier starter --dry-run`; use `--tier full` in the command if the user picks full; Claude Code takes no `--tier`, so leave it out) and show the user the plan. Ask: `starter` (recommended; short rules, a small setup) or `full` (adds rules for choosing models and coordinating many agents), and whether to add the commit guard to a repo (`--guard-repo <path>`, or `--no-guard` for none). Then END YOUR TURN and wait for the user's reply. Do not run anything else, and do not use an async or optional question tool and carry on. This approval is required, not an optional clarification.
+6. Only after the user has answered, run the same command with `--yes` instead of `--dry-run`, plus their commit guard answer: `python ~/.claude-starter/scripts/install.py --tool <tool> --tier <starter|full> --yes --no-guard` (PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool <tool> --tier <starter|full> --yes --no-guard`). If they want the guard, put `--guard-repo <path>` in place of `--no-guard`; `--yes` with neither exits 2. Claude Code takes no `--tier`.
 7. If it exits non-zero, stop and do not improvise a manual install. What it left depends on the exit code:
    - Exit 1, the install failed: it saved a redacted report and printed the path and an issue link (or said on stderr that it could not build one). Show the user both and ask if they want to send it. Nothing is sent unless they say yes.
    - Exit 3, it cannot write to the tool's global config (a sandboxed session, for example the Codex app): nothing was written and no report was saved. The refusal is on stderr, after the plan on stdout. Show the user the whole refusal, including the commands it gives for their own terminal, and end your turn. Never install into the project folder instead, and never hand-copy files.
@@ -46,7 +46,7 @@ macOS or Linux:
 git clone https://github.com/abyss-node/claude-starter ~/.claude-starter
 python3 ~/.claude-starter/scripts/install.py --detect
 python3 ~/.claude-starter/scripts/install.py --tool opencode --tier starter --dry-run
-python3 ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes
+python3 ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes --no-guard
 ```
 
 Windows PowerShell (use `py` if `python` is not found). On Windows, use these rather than Git Bash: when the user name contains an apostrophe, Git Bash can leave `~` paths unconverted, and Windows then reads them as `C:\c\Users\...`:
@@ -55,12 +55,22 @@ Windows PowerShell (use `py` if `python` is not found). On Windows, use these ra
 git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"
 python "$HOME\.claude-starter\scripts\install.py" --detect
 python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --dry-run
-python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes
+python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes --no-guard
 ```
 
-Swap `opencode` for your tool (see the table above). Choose `--tier starter` or `--tier full`; start with starter. `--dry-run` prints the plan and changes nothing. The installer backs up every file it changes, merges JSON settings without replacing your values, and checks the result afterwards. To update later: `git -C ~/.claude-starter pull` (PowerShell: `git -C "$HOME\.claude-starter" pull`), then run the install again; an install that is already current changes nothing. A successful install prints both commands for bash and for PowerShell, with every flag it used.
+Swap `opencode` for your tool (see the table above). Choose `--tier starter` or `--tier full`; start with starter. `--dry-run` prints the plan and changes nothing. The installer backs up every file it changes, merges JSON settings without replacing your values, and checks the result afterwards. To update later, ask your agent to run `starter-update` (see Updating below); an install that is already current changes nothing. A successful install prints both commands for bash and for PowerShell, with every flag it used.
 
-Optional: `--guard-repo <path>` also installs the commit guard as git hooks in that repo (repeat it for more repos).
+The commit guard needs an answer with `--yes`: `--guard-repo <path>` installs it as git hooks in that repo (repeat it for more repos), and `--no-guard` installs it in none. With neither, the install exits 2 and writes nothing, so a question nobody asked never turns into a permanent no.
+
+### Updating
+
+Ask your agent to run `starter-update`: `/starter:starter-update` in Claude Code, `/starter-update` in OpenCode, the `starter-update` skill in Codex, Cursor, Copilot and Antigravity, or `commands/starter-update.md` anywhere else. It replaces the old `git pull` and re-run. It runs `python ~/.claude-starter/scripts/starter.py update` (PowerShell: `python "$HOME\.claude-starter\scripts\starter.py" update`), which fetches the newest release and prints the plan: what changed, each migration, which files change and which edited files are backed up. It changes nothing. The agent shows you the plan and stops; after your yes it runs the apply command the plan printed, which is pinned to that release (`--to <sha>`) and to that plan (`--plan <id>`).
+
+**Updating from v0.3.x or earlier.** Those clones have no `scripts/starter.py`, and those installs have no `starter-update` command. Pull the clone once: `git -C ~/.claude-starter pull --ff-only` (PowerShell: `git -C "$HOME\.claude-starter" pull --ff-only`). That changes only the clone, nothing in your tools. Then ask your agent to follow `~/.claude-starter/plugins/starter/commands/starter-update.md`. Those versions wrote no install record, so `status` reports none; the plan finds the install by its markers and lists it as `adopted`. The update installs the `starter-update` command, so every later update is just `starter-update`.
+
+The plan id proves that a plan was printed, not that you read it. An agent can run the plan and the apply in one go; read the plan before you say yes.
+
+**Update notice (opt-in).** `python ~/.claude-starter/scripts/starter.py notices on` (PowerShell: `python "$HOME\.claude-starter\scripts\starter.py" notices on`) turns on a one-line notice when a newer release is out; `notices off` turns it off. The installer's closing block asks you to choose. It checks the release tags at most once a day, gives up silently after 3 seconds offline, and never updates anything. Claude Code shows it at session start; other tools show it when you run `checkpoint` or `lanes`.
 
 ### Local or small models
 

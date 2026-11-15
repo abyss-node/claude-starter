@@ -121,7 +121,7 @@ def test_powershell_form_really_parses(tmp_path):
 
 def test_install_prints_both_update_forms(tmp_path):
     cfg = tmp_path / "O'Neil cfg"
-    r = run_install(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(cfg), "--yes")
+    r = run_install(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(cfg), "--yes", "--no-guard")
     assert r.returncode == 0, r.stdout + r.stderr
     assert "update later (bash" in r.stdout and "update later (PowerShell" in r.stdout
     assert r.stdout.count("--config-dir") >= 2
@@ -134,7 +134,7 @@ def test_malformed_json_writes_nothing(tmp_path):
     gem.mkdir(parents=True)
     (gem / "settings.json").write_text('{"permissions": {"allow": [,]}}', encoding="utf-8")
     before = snapshot(tmp_path / "home")
-    r = run_install(tmp_path, "--tool", "antigravity", "--tier", "starter", "--yes")
+    r = run_install(tmp_path, "--tool", "antigravity", "--tier", "starter", "--yes", "--no-guard")
     assert r.returncode != 0
     assert snapshot(tmp_path / "home") == before
     assert "preflight" in (r.stdout + r.stderr).lower()
@@ -146,7 +146,7 @@ def test_utf16_json_is_named_and_nothing_written(tmp_path):
     junie.mkdir(parents=True)
     (junie / "allowlist.json").write_bytes('{"rules": {}}'.encode("utf-16"))
     before = snapshot(tmp_path / "home")
-    r = run_install(tmp_path, "--tool", "junie", "--tier", "starter", "--yes")
+    r = run_install(tmp_path, "--tool", "junie", "--tier", "starter", "--yes", "--no-guard")
     assert r.returncode != 0
     assert "UTF-16" in r.stdout + r.stderr
     assert snapshot(tmp_path / "home") == before
@@ -157,7 +157,7 @@ def test_utf16_rules_file_writes_nothing(tmp_path):
     codex.mkdir(parents=True)
     (codex / "AGENTS.md").write_bytes("# mine\r\n".encode("utf-16"))
     before = snapshot(tmp_path / "home")
-    r = run_install(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+    r = run_install(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
     assert r.returncode != 0
     assert "UTF-16" in r.stdout + r.stderr
     assert snapshot(tmp_path / "home") == before
@@ -265,7 +265,7 @@ def test_load_check_output_is_redacted_before_printing(monkeypatch, capsys):
 
 def test_generic_install_says_read_only_by_instruction_only(tmp_path):
     r = run_install(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
-                    "--yes")
+                    "--yes", "--no-guard")
     assert r.returncode == 0, r.stdout + r.stderr
     assert "READ-ONLY BY INSTRUCTION ONLY" in "\n".join(for_you_tail(r.stdout))
 
@@ -475,7 +475,7 @@ def test_successful_install_ends_with_the_for_you_block(tmp_path, tool):
         pytest.skip(f"{tool} not installed; its install needs its loader")
     extra = {"XDG_CONFIG_HOME": str(tmp_path / "home" / ".config")}
     cfg = ("--config-dir", str(tmp_path / "cfg")) if tool == "generic" else ()
-    r = run_clean(tmp_path, "--tool", tool, "--tier", "starter", *cfg, "--yes", extra=extra)
+    r = run_clean(tmp_path, "--tool", tool, "--tier", "starter", *cfg, "--yes", "--no-guard", extra=extra)
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr
     tail = "\n".join(for_you_tail(r.stdout))
     assert "Commit guard: NOT installed in any repo" in tail and "--guard-repo <your-repo> --yes" in tail
@@ -494,8 +494,9 @@ def test_successful_install_ends_with_the_for_you_block(tmp_path, tool):
         assert "The rules are NOT installed" in tail
         assert f"paste the whole of {install.ADAPTERS / 'cursor' / 'AGENTS.starter.md'}" in tail
         for shell in ("bash", "PowerShell"):
-            assert re.search(shell + r": +python .*install\.py'? --tool cursor --tier starter --project <your-repo> "
-                             r"--yes$", tail, re.M), (shell, tail)
+            # the install's guard answer travels with it: without one, the repeat command exits 2
+            assert re.search(shell + r": +python .*install\.py'? --tool cursor --tier starter --no-guard "
+                             r"--project <your-repo> --yes$", tail, re.M), (shell, tail)
     if tool == "copilot":
         assert str(install.ADAPTERS / "copilot" / "vscode-terminal-autoapprove.json") in tail
         assert "Preferences: Open User Settings (JSON)" in tail
@@ -556,7 +557,7 @@ def test_codex_self_check_tells_installed_from_not_installed(tmp_path):
     """The For-you self-check, run for real: the marker shows only once the rules are installed, while
     "claude-starter" alone shows inside the kit's clone with nothing installed."""
     codex = tmp_path / "home" / ".codex"
-    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", extra={"CODEX_HOME": str(codex)})
+    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard", extra={"CODEX_HOME": str(codex)})
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr
     empty, elsewhere = tmp_path / "empty-codex-home", tmp_path / "elsewhere"
     empty.mkdir()
@@ -617,7 +618,7 @@ def _claude(monkeypatch, tmp_path):
 
 def test_claude_install_ends_with_the_for_you_block(sandboxed, tmp_path, monkeypatch, capsys):
     fake = _claude(monkeypatch, tmp_path)
-    assert install.run(["--tool", "claude", "--config-dir", str(tmp_path / "claude-cfg"), "--yes"]) == 0
+    assert install.run(["--tool", "claude", "--config-dir", str(tmp_path / "claude-cfg"), "--yes", "--no-guard"]) == 0
     assert ["install", "starter@claude-starter", "--json"] in fake.calls
     tail = "\n".join(for_you_tail(capsys.readouterr().out))
     assert "Next: open Claude Code and run /starter:setup" in tail
@@ -643,7 +644,7 @@ def test_unwritable_codex_home_refuses_and_writes_nothing(sandboxed, tmp_path, m
     blocked = sandboxed / ".codex"
     _block_writes_under(monkeypatch, blocked)
     before = tree(tmp_path)
-    assert install.run(["--tool", "codex", "--tier", "starter", "--yes"]) == install.UNWRITABLE == 3
+    assert install.run(["--tool", "codex", "--tier", "starter", "--yes", "--no-guard"]) == install.UNWRITABLE == 3
     assert tree(tmp_path) == before  # not even the folders the probe made, nor ~/.agents/skills
     out = capsys.readouterr()
     assert install.FOR_YOU not in out.out
@@ -652,14 +653,14 @@ def test_unwritable_codex_home_refuses_and_writes_nothing(sandboxed, tmp_path, m
     assert "nothing was written" in err.lower()
     assert "Codex sandbox (CODEX_THREAD_ID is set)" in err
     assert "not your tool's global config" in err and "your own terminal" in err
-    assert re.search(r"PowerShell: python .*install\.py'? --tool codex --tier starter --yes", err), err
+    assert re.search(r"PowerShell: python .*install\.py'? --tool codex --tier starter --no-guard --yes", err), err
     assert "If you are an AI agent: do not work around this" in err
 
 
 def test_unwritable_without_codex_markers_says_so_plainly(sandboxed, tmp_path, monkeypatch, capsys):
     _block_writes_under(monkeypatch, sandboxed / ".agents")
     before = tree(tmp_path)
-    assert install.run(["--tool", "cursor", "--tier", "starter", "--yes"]) == 3
+    assert install.run(["--tool", "cursor", "--tier", "starter", "--yes", "--no-guard"]) == 3
     assert tree(tmp_path) == before
     err = capsys.readouterr().err
     assert "sandboxed agent session, or a folder you cannot write to" in err and "Codex sandbox" not in err
@@ -696,7 +697,7 @@ def test_really_unwritable_folder_refuses_on_windows(tmp_path):
     assert deny.returncode == 0, deny.stdout + deny.stderr
     try:
         before = tree(tmp_path / "home")
-        r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+        r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
         after = tree(tmp_path / "home")
     finally:
         subprocess.run(["icacls", str(codex), "/remove:d", "*S-1-1-0"], capture_output=True)
@@ -712,7 +713,7 @@ def test_really_unwritable_folder_refuses_on_posix(tmp_path):
     home.mkdir()
     home.chmod(0o500)
     try:
-        r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+        r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
         left = sorted(p.name for p in home.iterdir())
     finally:
         home.chmod(0o700)
@@ -730,7 +731,7 @@ def test_a_write_that_fails_mid_apply_still_reports(sandboxed, tmp_path, monkeyp
             raise PermissionError(errno.EACCES, "Access is denied", str(self))
         return real(self, data)
     monkeypatch.setattr(Path, "write_bytes", flaky)
-    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"), "--yes"])
+    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"), "--yes", "--no-guard"])
     out = capsys.readouterr()
     assert rc == 1 and "FAILED: 1 piece(s) failed" in out.err
     assert reported and "verifier" in reported[0] and "Access is denied" in reported[0]
@@ -779,7 +780,7 @@ def test_no_terminal_run_ends_on_the_stop_line_with_no_yes_command(tmp_path):
 
 def _confirm_args(tool="codex", **kw):
     base = dict(tool=tool, tier=None if tool == "claude" else "starter", config_dir=None, project=None,
-                guard_repo=[], dry_run=False, yes=False)
+                guard_repo=[], dry_run=False, yes=False, no_guard=True)
     base.update(kw)
     return argparse.Namespace(**base)
 
@@ -818,6 +819,23 @@ def test_confirm_interactive_branch_is_unchanged(monkeypatch, capsys, answer, wa
     assert "If you are an AI agent" not in out
 
 
+@pytest.mark.parametrize("answer", ["--yes", "y"])
+def test_apply_without_a_guard_choice_exits_2(monkeypatch, capsys, answer):
+    """The record keeps the guard answer, so an apply that skipped the question must not become a no."""
+    monkeypatch.setattr(sys, "stdin", type("Tty", (), {"isatty": lambda self: True})())
+    monkeypatch.setattr("builtins.input", lambda p: "y")
+    args = _confirm_args(no_guard=False, yes=answer == "--yes")
+    assert install.confirm(args) == 2
+    assert "--no-guard" in capsys.readouterr().err
+    assert install.confirm(_confirm_args(no_guard=False, yes=True, guard_repo=["r"])) is None
+
+
+def test_yes_with_no_guard_choice_writes_nothing(tmp_path):
+    r = run_clean(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"), "--yes")
+    assert r.returncode == 2, r.stdout[-2000:] + r.stderr
+    assert "--no-guard" in r.stderr and not (tmp_path / "cfg").exists() and tree(tmp_path / "home") == {}
+
+
 def test_confirm_yes_and_dry_run(capsys):
     assert install.confirm(_confirm_args(yes=True)) is None
     assert install.confirm(_confirm_args(dry_run=True)) == 0
@@ -832,7 +850,7 @@ def test_codex_override_file_is_warned_about(tmp_path, content, warned):
     codex.mkdir(parents=True)
     if content is not None:
         (codex / "AGENTS.override.md").write_bytes(content)
-    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes")
+    r = run_clean(tmp_path, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr  # a warning, never a refusal
     tail = "\n".join(for_you_tail(r.stdout))
     assert ("AGENTS.override.md is not empty" in tail) is warned

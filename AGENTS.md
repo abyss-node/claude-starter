@@ -27,8 +27,9 @@ Run each command yourself, except where a step says to stop and ask.
    - macOS or Linux: `git clone https://github.com/abyss-node/claude-starter ~/.claude-starter`
    - PowerShell: `git clone https://github.com/abyss-node/claude-starter "$HOME\.claude-starter"`
 
-   If the folder exists, update it: `git -C ~/.claude-starter pull` (PowerShell:
-   `git -C "$HOME\.claude-starter" pull`).
+   If the folder exists, the kit is already installed: follow Updating, below,
+   instead. Do not pull, except the one time Updating describes for a clone
+   that has no `scripts/starter.py`.
 
    On Windows, prefer the PowerShell commands. In Git Bash, a user name with an
    apostrophe can make `~` paths misresolve: Git Bash leaves `/c/Users/...`
@@ -57,14 +58,17 @@ Run each command yourself, except where a step says to stop and ask.
      - `full`: also rules for choosing a model and effort per task and for
        coordinating several agents. Worth it on a plan that runs many agents at once.
    - Ask whether to install the commit guard git hooks in a repo they use. If
-     yes, add `--guard-repo <path>`.
+     yes, add `--guard-repo <path>`; if no, add `--no-guard`. An install with
+     `--yes` and neither exits 2 and writes nothing, so never leave the question
+     unasked.
    - Then END YOUR TURN and wait for the user's reply. Do not run another
      command, and do not use an async or optional question tool and carry on.
 6. **Install for real, only after the user's yes.** Run the same command with
-   `--yes` in place of `--dry-run`:
-   `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes`
+   `--yes` in place of `--dry-run`, and `--guard-repo <path>` in place of
+   `--no-guard` if they want the commit guard in a repo:
+   `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes --no-guard`
    (PowerShell:
-   `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes`).
+   `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes --no-guard`).
    The installer checks every target first and writes nothing if one fails, backs
    up each file it changes, merges JSON settings without replacing the user's
    values, and checks the result. It ends with the
@@ -95,6 +99,52 @@ Run each command yourself, except where a step says to stop and ask.
    restart and the new-chat check come from it.
 9. **Never claim a step you did not run.** End by saying what the installer
    checked, using the table below, and what it did not.
+
+## Updating
+
+When the user asks to update this kit, run the `starter-update` command
+(`/starter:starter-update` in Claude Code, `/starter-update` in OpenCode, the
+`starter-update` skill elsewhere, or follow `plugins/starter/commands/starter-update.md`).
+It replaces `git pull` and a re-run of the installer. In short:
+
+0. **Once, for a clone from v0.3.x or earlier.** Those clones have no
+   `scripts/starter.py` and no `starter-update` command. If
+   `~/.claude-starter/scripts/starter.py` does not exist, pull the clone once:
+   `git -C ~/.claude-starter pull --ff-only` (PowerShell:
+   `git -C "$HOME\.claude-starter" pull --ff-only`). It changes the clone only,
+   nothing in any tool's config. Then go on with step 1, following
+   `~/.claude-starter/plugins/starter/commands/starter-update.md`: the install
+   has no `starter-update` command until this update adds it.
+1. `python ~/.claude-starter/scripts/starter.py status` (PowerShell:
+   `python "$HOME\.claude-starter\scripts\starter.py" status`) reads the install
+   record and uses no network.
+2. `python ~/.claude-starter/scripts/starter.py update` (PowerShell:
+   `python "$HOME\.claude-starter\scripts\starter.py" update`) fetches the newest
+   release and prints the plan. It writes nothing. Exit codes mean what they
+   mean for the installer (step 7 above). If `status` said no install is
+   recorded, run this anyway: an install made before v0.4.0 has no record, and
+   the plan lists it as `adopted` from its markers. Only if this step says
+   "Nothing to update" is there nothing installed to update.
+3. Show the user the whole plan, ask, and END YOUR TURN.
+4. After their yes, run the apply command the plan printed, exactly as printed,
+   with its `--to <sha>` and `--plan <id>`. If the plan asked about the commit
+   guard, the answer is part of the plan: run step 2 again with
+   `--guard-repo <path>` or `--no-guard` added, as the user answered, show the
+   new plan, and run the apply command it prints. If the plan changed since, it
+   exits 2: show the new plan and ask again.
+
+`--yes` without `--plan <id>` exits 2 when the plan holds a migration, a move,
+a delete or a git step; a plain reinstall still works with `--yes`. The plan id
+proves that a plan was printed, not that the user saw it. Only you can make sure
+they did, so show it in full.
+
+**Update notice.** It is off until the user chooses; the installer's closing
+block asks. `python ~/.claude-starter/scripts/starter.py notices on` turns it on and
+`notices off` turns it off (PowerShell: `python "$HOME\.claude-starter\scripts\starter.py" notices on`).
+When on, `update_check.py` prints at most one line a day when a newer release
+is out, and never updates anything. Claude Code shows it at session start; the
+`checkpoint` and `lanes` commands in other tools run it first. Relay the line;
+do not start an update because of it.
 
 ## Local or small models
 

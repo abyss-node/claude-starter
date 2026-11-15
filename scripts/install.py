@@ -41,6 +41,8 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -48,13 +50,16 @@ import shlex
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Callable
 
+sys.dont_write_bytecode = True  # report and migrations are imported lazily; a plan leaves the clone as it was
 ROOT = Path(__file__).resolve().parent.parent
 ADAPTERS = ROOT / "adapters"
 GUARD = ROOT / "plugins" / "starter" / "hooks" / "commit-guard" / "guard.py"
@@ -79,17 +84,21 @@ STAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
 class Step:
     piece: str
     dest: Path | None
-    kind: str                       # file | rules | json | guard
+    kind: str                       # file | rules | json | guard | cli | delete | move | git
     status: str = ""                # create | update | merge | already installed | skipped | failed | ...
     detail: str = ""
     payload: bytes = b""            # final bytes to write (file/rules/json)
     src: Path | None = None
     notes: list[str] = field(default_factory=list)
     original: object = None         # json: the user's parsed config, checked to survive the merge
+    migration: str | None = None    # the migration ID that planned this step, if any
+    argv: list = field(default_factory=list)  # git: the arguments after `git -C <dest>`; move: [new path]
 
     @property
     def writes(self) -> bool:
-        return self.status in ("create", "update", "merge", "run")
+        # Every planned status that changes something. A status missing here is never applied, probed or
+        # pinned: a migration's `git` step once went unrun while its migration was recorded as applied.
+        return self.status in ("create", "update", "merge", "run", "delete", "move", "git")
 
 
 def backup_path(p: Path) -> Path:
@@ -355,11 +364,38 @@ def guard_data_dir() -> Path:
                 or Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "commit-guard")
 
 
+def guard_hooks_current(repo: Path) -> bool:
+    """True when `guard.py install repo` would change nothing: every hook it writes holds exactly the
+    bytes this kit's guard.py writes (and is executable outside Windows), and the copy the hooks call is
+    this guard.py byte for byte. The hook text comes from guard.py itself, so the two cannot disagree."""
+    try:
+        spec = importlib.util.spec_from_file_location("starter_commit_guard", str(GUARD))
+        g = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(g)  # defines names only; sys.dont_write_bytecode keeps the clone as it was
+        copy = Path(g.INSTALLED_GUARD)
+        if not copy.is_file() or copy.read_bytes() != GUARD.read_bytes():
+            return False
+        hooks = guard_hooks_dir(repo)
+        for name in g.HOOK_NAMES:
+            hook = hooks / name
+            if not hook.is_file() or hook.read_bytes() != g.hook_script(name).encode("utf-8"):
+                return False
+            if os.name != "nt" and not hook.stat().st_mode & 0o111:
+                return False
+    except (OSError, ImportError, SyntaxError, AttributeError):
+        return False
+    return True
+
+
 def plan_guard(repo: str) -> Step:
     p = Path(repo).expanduser().resolve()
     s = Step("commit guard (git hooks)", p, "guard")
     if not (p / ".git").exists():
         s.status, s.detail = "failed", "not a git repository (no .git)"
+        return s
+    if guard_hooks_current(p):
+        # A re-run with the same --guard-repo must write nothing, like every other piece.
+        s.status, s.detail = "already installed", "hooks and the guard.py copy they call are current"
         return s
     s.status = "run"
     s.detail = f"python guard.py install {p} (writes .git/hooks; copies guard.py to {guard_data_dir()})"
@@ -537,9 +573,70 @@ def parse_frontmatter(text: str) -> dict:
     return fm
 
 
+CODEX_SKILL_KEYS = {  # agents/openai.yaml, from https://learn.chatgpt.com/docs/build-skills (2026-11-15)
+    "interface": {"display_name", "short_description", "icon_small", "icon_large", "brand_color", "default_prompt"},
+    "policy": {"allow_implicit_invocation"},
+}
+
+
+def parse_skill_metadata(text: str) -> dict:
+    """The subset of YAML a Codex skill's agents/openai.yaml is written in here: top-level `section:`
+    lines, each holding two-space-indented `key: value` scalars (true/false, a quoted or a plain
+    string), and `# comments`. Raises ValueError on anything else, `dependencies` included: the kit
+    writes none, so one here was not written by it."""
+    out: dict = {}
+    section = None
+    for n, ln in enumerate(text.replace("\r\n", "\n").split("\n"), 1):
+        if not ln.strip() or ln.lstrip().startswith("#"):
+            continue
+        top = re.fullmatch(r"([a-z_]+):\s*", ln)
+        sub = re.fullmatch(r"  ([a-z_]+):\s*(\S.*?)\s*", ln)
+        if top:
+            section = top.group(1)
+            if section not in CODEX_SKILL_KEYS:
+                raise ValueError(f"line {n}: section {section!r} is not one this kit writes "
+                                 f"({', '.join(sorted(CODEX_SKILL_KEYS))})")
+            if section in out:
+                raise ValueError(f"line {n}: duplicate section {section!r}")
+            out[section] = {}
+        elif sub and section:
+            key, raw = sub.groups()
+            if key not in CODEX_SKILL_KEYS[section] or key in out[section]:
+                raise ValueError(f"line {n}: {section}.{key} is unknown or repeated")
+            if raw in ("true", "false"):
+                val: object = raw == "true"
+            elif raw.startswith('"'):
+                try:
+                    val = json.loads(raw)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"line {n}: {section}.{key}: not a valid quoted string ({e.msg})") from None
+            else:
+                val = raw
+            out[section][key] = val
+        else:
+            raise ValueError(f"line {n}: not understood: {ln!r}")
+    return out
+
+
+def check_skill_metadata(p: Path) -> str | None:
+    """A ported command's agents/openai.yaml: it parses, and it keeps Codex from starting the skill."""
+    data = parse_skill_metadata(p.read_text(encoding="utf-8"))
+    if not (p.parent.parent / "SKILL.md").is_file():
+        return f"no SKILL.md beside {p.parent.name}/ in {p.parent.parent}"
+    if any(not isinstance(v, str) for v in data.get("interface", {}).values()):
+        return "interface values must be strings"
+    allow = data.get("policy", {}).get("allow_implicit_invocation")
+    if allow is not False:
+        return (f"policy.allow_implicit_invocation is {allow!r}, expected false (Codex's default is true, "
+                "which lets it start the skill on its own)")
+    return None
+
+
 def check_file(tool: str, s: Step) -> str | None:
     """Return a problem with the installed file, or None."""
     p = s.dest
+    if p.name == "openai.yaml" and p.parent.name == "agents" and p.parent.parent.parent.name == "skills":
+        return check_skill_metadata(p)  # skills/<name>/agents/openai.yaml: Codex's skill metadata, not an agent
     if s.kind == "rules":
         text = p.read_bytes().decode("utf-8").replace("\r\n", "\n")
         b, e = len(BEGIN_RX.findall(text)), len(END_RX.findall(text))
@@ -685,8 +782,10 @@ def notes_codex(cfg: Path, args) -> list[str]:
     return ["Agents are READ-ONLY BY INSTRUCTION ONLY: Codex cannot enforce it (agent files ignore "
             "sandbox_mode). Consultant: shell tools disabled by feature flags (shell_tool and "
             "unified_exec = false); not verified that Codex honours [features] in agent files.",
-            "checkpoint and lanes are skills (Codex prompts are deprecated). Codex documents no "
-            "`disable-model-invocation`, so it may also start them on its own.",
+            "checkpoint, lanes and starter-update are skills (Codex prompts are deprecated). Each one's "
+            "agents/openai.yaml sets policy.allow_implicit_invocation: false, which Codex documents as keeping "
+            "it from starting the skill on its own; run them by name ($checkpoint). Checked structurally, not "
+            "against Codex.",
             "Codex's commit attribution is undocumented since 2026-05-13. Only repos given to "
             "--guard-repo have the commit guard to flag it.",
             f"Allowlist: {cfg / 'rules' / 'claude-starter.rules'} allows only commands checked to stay "
@@ -886,6 +985,23 @@ def apply(s: Step, repo_python: str) -> None:
                 s.status, s.detail = "failed", f"re-parse check failed: {e}"
                 return
             s.status = "installed" if b is None else "merged"
+        elif s.kind == "delete":
+            s.notes.append(f"backup: {make_backup(s.dest)}")
+            s.dest.unlink()
+            s.status = "deleted"
+        elif s.kind == "move":
+            new = Path(s.argv[0])
+            if new.exists():
+                raise RuntimeError(f"{new} exists; nothing moved")
+            new.parent.mkdir(parents=True, exist_ok=True)
+            s.dest.rename(new)
+            s.status = "moved"
+        elif s.kind == "git":
+            r = subprocess.run(["git", "-C", str(s.dest), *s.argv], capture_output=True, timeout=300)
+            s.notes.extend((r.stdout + r.stderr).decode("utf-8", errors="replace").strip().splitlines())
+            s.status = "done" if r.returncode == 0 else "failed"
+            if r.returncode:
+                s.detail = f"git {' '.join(s.argv)} exited {r.returncode}"
         elif s.kind == "guard":
             r = subprocess.run([repo_python, str(GUARD), "install", str(s.dest)], capture_output=True)
             out = (r.stdout + r.stderr).decode("utf-8", errors="replace").strip()
@@ -902,7 +1018,8 @@ def show_plan(steps: list[Step], header: str) -> None:
     for s in steps:
         verb = {"create": "CREATE", "update": "BACKUP+REPLACE", "merge": "BACKUP+MERGE",
                 "run": "RUN", "already installed": "SKIP (already installed)", "manual": "BY HAND",
-                "skipped": "SKIP", "failed": "CANNOT"}.get(s.status, s.status.upper())
+                "skipped": "SKIP", "failed": "CANNOT", "delete": "BACKUP+DELETE", "move": "MOVE",
+                "git": "GIT"}.get(s.status, s.status.upper())
         print(f"  {verb:<26} {s.piece:<34} -> {s.dest}" + (f"\n  {'':<26} {s.detail}" if s.detail else ""))
         for n in redact_lines(s.notes) if s.notes else []:
             print(f"  {'':<26}   note: {n}")
@@ -927,8 +1044,9 @@ def agent_stop_line(args) -> str:
 
 def install_lines(args, tail: str = " --yes") -> list[str]:
     """This install as one command per shell, for a person to run in their own terminal. `tail` takes
-    the place of the closing --yes, to add a flag whose <placeholder> the person fills in."""
-    bash, ps = update_commands(args)
+    the place of the closing --yes, to add a flag whose <placeholder> the person fills in. A tail that
+    adds --guard-repo is itself the guard answer, so --no-guard is left out of that line."""
+    bash, ps = update_commands(args, guard="--guard-repo" not in tail)
     cut = len(" --yes")
     return [f"  bash:       {bash[1][:-cut]}{tail}", f"  PowerShell: {ps[1][:-cut]}{tail}"]
 
@@ -947,7 +1065,7 @@ def confirm(args) -> int | None:
         print(agent_stop_line(args))
         return 0
     if args.yes:
-        return None
+        return guard_choice_missing(args)
     if not sys.stdin.isatty():
         no_terminal(args)
         return 0
@@ -959,12 +1077,24 @@ def confirm(args) -> int | None:
     if answer.strip().lower() not in ("y", "yes"):
         print("aborted; nothing written.")
         return 1
-    return None
+    return guard_choice_missing(args)
+
+
+def guard_choice_missing(args) -> int | None:
+    """2 when an apply names neither --guard-repo nor --no-guard, else None. The record keeps the
+    answer, so an apply that skipped the question would otherwise turn into a permanent no."""
+    if getattr(args, "guard_repo", None) or getattr(args, "no_guard", False):
+        return None
+    print("\nerror: choose the commit guard before applying: add --guard-repo <repo> to install its git hooks "
+          "in a repo, or --no-guard to install without it. Nothing was written.", file=sys.stderr)
+    return 2
 
 
 def piece_name(rel: Path) -> str:
     if rel.name == "SKILL.md":
         return f"skill {rel.parent.name}"
+    if rel.name == "openai.yaml" and rel.parent.name == "agents":
+        return f"skill {rel.parent.parent.name} policy"
     return f"{rel.parent.name.rstrip('s') or 'file'} {rel.name.split('.')[0]}"
 
 
@@ -1002,9 +1132,10 @@ def _ps_quote(s: str) -> str:
     return f"'{s}'"
 
 
-def update_commands(args) -> tuple[list[str], list[str]]:
+def update_commands(args, guard: bool = True) -> tuple[list[str], list[str]]:
     """The commands that repeat this install later, as (bash lines, PowerShell lines): every flag the
-    install used, two separate commands per shell (Windows PowerShell 5.1 has no `&&`)."""
+    install used, two separate commands per shell (Windows PowerShell 5.1 has no `&&`). An apply exits 2
+    without a guard answer, so --no-guard is carried when this run gave it (unless `guard` is False)."""
     words = [("--tool", args.tool)] + ([("--tier", args.tier)] if getattr(args, "tier", None) else [])
     paths = []
     if getattr(args, "config_dir", None):
@@ -1014,23 +1145,31 @@ def update_commands(args) -> tuple[list[str], list[str]]:
     paths += [("--guard-repo", r) for r in getattr(args, "guard_repo", None) or []]
     paths = [(f, Path(v).expanduser().resolve()) for f, v in paths]
     script = ROOT / "scripts" / "install.py"
-    bash_flags = [f"{f} {shlex.quote(v)}" for f, v in words] + [f"{f} {shlex.quote(v.as_posix())}" for f, v in paths]
-    ps_flags = [f"{f} {_ps_quote(v)}" for f, v in words] + [f"{f} {_ps_quote(str(v))}" for f, v in paths]
+    flags = (["--no-guard"] if guard and getattr(args, "no_guard", False) and not getattr(args, "guard_repo", None)
+             else [])
+    bash_flags = ([f"{f} {shlex.quote(v)}" for f, v in words] + [f"{f} {shlex.quote(v.as_posix())}" for f, v in paths]
+                  + flags)
+    ps_flags = [f"{f} {_ps_quote(v)}" for f, v in words] + [f"{f} {_ps_quote(str(v))}" for f, v in paths] + flags
     bash = [f"git -C {shlex.quote(ROOT.as_posix())} pull",
             " ".join(["python", shlex.quote(script.as_posix()), *bash_flags, "--yes"])]
     ps = [f"git -C {_ps_quote(str(ROOT))} pull", " ".join(["python", _ps_quote(str(script)), *ps_flags, "--yes"])]
     return bash, ps
 
 
+def launcher_lines(*words: str) -> tuple[str, str]:
+    """(bash, PowerShell) for `python <kit>/scripts/starter.py <words>`, the clone's own launcher."""
+    script = cmd_root() / "scripts" / "starter.py"
+    return (" ".join(["python", shlex.quote(script.as_posix()), *(shlex.quote(w) for w in words)]),
+            " ".join(["python", _ps_quote(str(script)), *(_ps_quote(w) for w in words)]))
+
+
 def footer(args) -> None:
-    print(f"\nkit location: {ROOT}")
-    bash, ps = update_commands(args)
-    print("update later (bash: macOS, Linux, Git Bash):")
-    for ln in bash:
-        print(f"  {ln}")
+    print(f"\nkit location: {cmd_root()}")
+    bash, ps = launcher_lines("update")
+    print("update later (bash: macOS, Linux, Git Bash); it shows the plan and changes nothing until you say yes:")
+    print(f"  {bash}")
     print("update later (PowerShell):")
-    for ln in ps:
-        print(f"  {ln}")
+    print(f"  {ps}")
 
 
 def install_claude(args) -> int:
@@ -1105,11 +1244,13 @@ def install_claude(args) -> int:
         check = [f"`claude plugin list`: {plugin} " + ("enabled" if ok else f"NOT enabled ({now.get(plugin)})")]
     return finish_run("claude", None, steps, ok, check,
                       "passed (claude plugin list shows it enabled)" if ok else "FAILED",
-                      CLAUDE.after(cfg, args), args, CLAUDE.next_steps(cfg, args))
+                      CLAUDE.after(cfg, args), args, CLAUDE.next_steps(cfg, args),
+                      record=lambda: record_install("claude", None, cfg, steps, args))
 
 
 def finish_run(tool: str, tier: str | None, steps: list[Step], ok_load: bool, load_lines: list[str],
-               verdict: str, after: list[str], args, next_steps: list[str]) -> int:
+               verdict: str, after: list[str], args, next_steps: list[str],
+               record: Callable[[], dict] | None = None) -> int:
     print()
     rows = [("piece", "destination", "status")]
     for s in steps:
@@ -1133,9 +1274,10 @@ def finish_run(tool: str, tier: str | None, steps: list[Step], ok_load: bool, lo
             error += ["load check:", *load_lines]
         report_failure("\n".join(error))
         return 1
+    rec = record() if record else None
     footer(args)
     # Last, so it is what the user and any agent read last; the caveats print nowhere else.
-    print_for_you([*next_steps, guard_status(args), *limits_item(after)])
+    print_for_you([*next_steps, guard_status(args), *notice_item(rec), *limits_item(after)])
     return 0
 
 
@@ -1226,10 +1368,29 @@ def write_targets(steps: list[Step]) -> tuple[list[Path], list[Path]]:
             found = [guard_hooks_dir(s.dest), guard_data_dir()]
         elif s.kind == "cli":
             found = [s.dest]
+        elif s.kind == "git":
+            found = [git_dir(s.dest)]  # git -C <dest> writes into the repo's git dir
+        elif s.kind == "delete":
+            found = [s.dest.parent]  # the backup lands beside it, then it is unlinked
+        elif s.kind == "move":
+            found = [s.dest.parent, Path(s.argv[0]).parent]
         else:
-            found = []
+            raise ValueError(f"{s.piece}: no write target known for step kind {s.kind!r}")
         dirs += [d for d in found if d not in dirs]
     return dirs, files
+
+
+def git_dir(repo: Path) -> Path:
+    """The git dir of the repo at `repo` (its .git folder, or what a .git file points to)."""
+    try:
+        r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"], capture_output=True,
+                           timeout=60)
+        out = r.stdout.decode("utf-8", errors="replace").strip()
+        if r.returncode == 0 and out:
+            return Path(out)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return repo / ".git"
 
 
 def probe_dir(d: Path) -> OSError | None:
@@ -1305,6 +1466,9 @@ def check_writable(steps: list[Step], args) -> int | None:
     """None when every destination can be written, else the exit code after refusing."""
     CTX["step"] = "checking that every destination can be written"
     bad = unwritable(steps)
+    err = probe_dir(record_dir())
+    if err is not None:
+        bad.append((record_dir(), err))
     return refuse_unwritable(bad, args) if bad else None
 
 
@@ -1343,6 +1507,741 @@ def print_for_you(items: list[str]) -> None:
             print(f"   {ln}")
 
 
+# --------------------------------------------------------------------------
+# Install record: ~/.agents/starter/installs.json, one per machine, outside the clone
+# --------------------------------------------------------------------------
+
+RECORD_SCHEMA = 1
+_CMD_ROOT: list = []  # set by --plan-update: commands it prints name the real clone, not the snapshot
+
+
+def cmd_root() -> Path:
+    return _CMD_ROOT[0] if _CMD_ROOT else ROOT
+
+
+def record_dir() -> Path:
+    return home() / ".agents" / "starter"
+
+
+def record_path() -> Path:
+    return record_dir() / "installs.json"
+
+
+def kit_version(root: Path = ROOT) -> str | None:
+    """The kit's version, from its one home, kit.json at the repo root."""
+    try:
+        v = json.loads((root / "kit.json").read_text(encoding="utf-8")).get("version")
+        return v if isinstance(v, str) else None
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def git(root: Path, *a: str, timeout: int = 120) -> tuple[int, str]:
+    """(exit code, stdout) of `git -C root ...`; stderr instead of stdout when it fails."""
+    try:
+        r = subprocess.run(["git", "-C", str(root), *a], capture_output=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return 1, f"{type(e).__name__}: {e}"
+    out = r.stdout if r.returncode == 0 else r.stderr or r.stdout
+    return r.returncode, out.decode("utf-8", errors="replace").strip()
+
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def load_record() -> dict | None:
+    p = record_path()
+    if not p.is_file():
+        return None
+    data = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("schema") != RECORD_SCHEMA:
+        raise RuntimeError(f"{p} has schema {data.get('schema') if isinstance(data, dict) else '?'!r}; "
+                           f"this installer reads schema {RECORD_SCHEMA}")
+    return data
+
+
+def new_record() -> dict:
+    return {"schema": RECORD_SCHEMA, "kit": {"kit_root": None, "remote": None, "version": None, "sha": None},
+            "plan": None, "onboarded_at": None, "scope": None, "notices": {"update": None}, "installs": []}
+
+
+def kit_facts(root: Path, sha: str | None = None) -> dict:
+    rc, remote = git(root, "remote", "get-url", "origin")
+    if sha is None:
+        rc_head, head = git(root, "rev-parse", "HEAD")
+        sha = head if rc_head == 0 else None
+    return {"kit_root": str(root), "remote": remote if rc == 0 else None, "version": kit_version(root), "sha": sha}
+
+
+def save_record(rec: dict) -> bool:
+    """Write the record atomically, after a byte-checked .bak of the old one. False when unchanged."""
+    p = record_path()
+    text = json.dumps(rec, indent=2) + "\n"
+    if p.is_file() and p.read_text(encoding="utf-8") == text:
+        return False
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if p.exists():
+        make_backup(p)
+    tmp = p.with_name(f".{p.name}.{os.getpid()}.tmp")
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+    os.replace(str(tmp), str(p))
+    return True
+
+
+def find_install(rec: dict, tool: str, cfg: Path) -> dict | None:
+    return next((i for i in rec["installs"] if i["tool"] == tool and i["config_dir"] == str(cfg)), None)
+
+
+def recorded_files(steps: list[Step]) -> dict:
+    """dest -> sha256 for whole files the kit owns. Rules and JSON files are shared with the user, so
+    only the kit's part of them is named (the managed block; the merged keys)."""
+    out = {}
+    for s in steps:
+        if s.dest is None or s.status in ("failed", "skipped", "manual"):
+            continue
+        if s.kind == "file" and s.dest.is_file():
+            out[str(s.dest)] = sha256(s.dest.read_bytes())
+        elif s.kind == "rules":
+            out[str(s.dest)] = "managed block"
+        elif s.kind == "json":
+            out[str(s.dest)] = "merged keys"
+    return out
+
+
+def guard_option(args, old: dict | None) -> dict | None:
+    """The guard answer this run gives, merged with the recorded one; None when never asked."""
+    repos = sorted({str(Path(r).expanduser().resolve()) for r in getattr(args, "guard_repo", None) or []}
+                   | set((old or {}).get("repos") or []))
+    if getattr(args, "guard_repo", None):
+        return {"state": "installed", "repos": repos}
+    if getattr(args, "no_guard", False):
+        return {"state": "installed" if repos else "declined", "repos": repos}
+    return old
+
+
+def record_install(tool: str, tier: str | None, cfg: Path, steps: list[Step], args) -> dict:
+    """Add or refresh this install in the record and return the record. A fresh install is at the
+    kit's current layout, so every migration this kit ships counts as applied to it."""
+    rec = load_record() or new_record()
+    rec["kit"] = kit_facts(ROOT)
+    entry = find_install(rec, tool, cfg)
+    if entry is None:
+        entry = {"tool": tool, "tier": tier, "config_dir": str(cfg), "adopted": False,
+                 "migrations_applied": [m.ID for m in load_migrations()], "files": {}, "options": {}}
+        rec["installs"].append(entry)
+    entry["tier"] = tier
+    entry["files"] = recorded_files(steps)
+    if getattr(args, "project", None):
+        entry["project"] = str(Path(args.project).expanduser().resolve())
+    g = guard_option(args, entry["options"].get("guard"))
+    if g is not None:
+        entry["options"]["guard"] = g
+    save_record(rec)
+    return rec
+
+
+def notice_item(rec: dict | None) -> list[str]:
+    """The For-you item that asks about update notices while the record says they were never chosen."""
+    if not rec or (rec.get("notices") or {}).get("update") is not None:
+        return []
+    on_b, on_p = launcher_lines("notices", "on")
+    off_b, off_p = launcher_lines("notices", "off")
+    tools = {i["tool"] for i in rec.get("installs") or []}
+    where = (["a new Claude Code session"] if "claude" in tools else []) + (
+        ["the checkpoint and lanes commands" + (" in your other tools" if "claude" in tools else "")]
+        if tools - {"claude"} else [])
+    return ["\n".join([
+        f"Update notices: choose whether to get one. When on, {' and '.join(where) or 'a new session'} "
+        f"print{'s' if where in ([], ['a new Claude Code session']) else ''} one line when a newer version of the kit is out, at most once "
+        "a day (it never updates anything). Run one of these in your own terminal:",
+        f"  on,  bash:       {on_b}", f"  on,  PowerShell: {on_p}",
+        f"  off, bash:       {off_b}", f"  off, PowerShell: {off_p}"])]
+
+
+def kit_root_mismatch() -> int | None:
+    """2 when the record names a different clone: two clones updating one record would undo each other."""
+    try:
+        rec = load_record()
+    except (OSError, ValueError, RuntimeError):
+        return None
+    root = (rec or {}).get("kit", {}).get("kit_root")
+    if root and Path(root).resolve() != ROOT.resolve():
+        print(f"error: this machine's install record ({record_path()}) belongs to the clone at {root}, not "
+              f"{ROOT}. Run that clone's installer, or remove the record to start again. Nothing was written.",
+              file=sys.stderr)
+        return 2
+    return None
+
+
+# --------------------------------------------------------------------------
+# Migrations: scripts/migrations/NNNN_slug.py (the interface is in scripts/migrations/__init__.py)
+# --------------------------------------------------------------------------
+
+def load_migrations() -> list:
+    here = str(ROOT / "scripts")
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import migrations
+    return migrations.discover(ROOT / "scripts" / "migrations")
+
+
+def migration_ctx(entry: dict) -> SimpleNamespace:
+    return SimpleNamespace(tool=entry["tool"], tier=entry.get("tier"), config_dir=Path(entry["config_dir"]),
+                           home=home(), kit_root=cmd_root(), entry=entry, Step=Step, plan_file=plan_file,
+                           backup_path=backup_path)
+
+
+# --------------------------------------------------------------------------
+# Adoption: installs made before the record existed
+# --------------------------------------------------------------------------
+
+def rules_block(path: Path) -> str | None:
+    try:
+        text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
+    except (OSError, UnicodeDecodeError):
+        return None
+    b, e = BEGIN_RX.search(text), END_RX.search(text)
+    return text[b.end():e.start()].strip("\n") if b and e and e.start() > b.end() else None
+
+
+def git_bytes(*a: str) -> bytes | None:
+    """Raw stdout of `git -C <clone> ...`, None when it fails. The clone, not ROOT: a plan runs from a
+    snapshot that has no .git."""
+    try:
+        r = subprocess.run(["git", "-C", str(cmd_root()), *a], capture_output=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+def release_tags() -> list[str]:
+    """The clone's vX.Y.Z tags, newest first."""
+    out = git_bytes("tag", "--list", "v*", "--sort=-v:refname") or b""
+    return [t for t in out.decode("utf-8", "replace").split() if re.fullmatch(r"v\d+\.\d+\.\d+", t)]
+
+
+def blob_ids(data: bytes) -> set:
+    """Git's blob id of these bytes, as written and with CRLF turned to LF (a checkout may convert)."""
+    return {hashlib.sha1(b"blob %d\0" % len(d) + d).hexdigest() for d in (data, data.replace(b"\r\n", b"\n"))}
+
+
+def adopted_version(name: str, tier: str, block: str | None, tags: list[str]) -> str:
+    """This kit's version when the block is the one it ships, else the newest release tag whose block
+    matches exactly, else the oldest the record can say."""
+    def norm(text: str) -> str:
+        return text.replace("\r\n", "\n").strip("\n")
+    shipped = ADAPTERS / name / f"AGENTS.{tier}.md"
+    if block is not None and shipped.is_file() and block == norm(shipped.read_text(encoding="utf-8")):
+        return kit_version() or "unknown"
+    for t in tags if block is not None else []:
+        data = git_bytes("show", f"{t}:adapters/{name}/AGENTS.{tier}.md")
+        if data is not None and norm(data.decode("utf-8", "replace")) == block:
+            return t[1:]
+    return "<=0.3.1 or edited"
+
+
+def adopted_files(name: str, tool: Tool, cfg: Path, tags: list[str]) -> dict:
+    """dest -> sha256 for each file in a tool's config whose bytes match a file some release tag shipped
+    for that tool, so one no longer shipped is planned as an orphan. A file that matches no shipped
+    bytes is left out, so an edited file is never deleted."""
+    shipped: dict = {}
+    for t in tags:
+        out = git_bytes("ls-tree", "-r", "-z", t, "--", f"adapters/{name}/") or b""
+        for row in filter(None, out.split(b"\0")):
+            meta, _, path = row.decode("utf-8", "replace").partition("\t")
+            fields, parts = meta.split(), Path(path).parts[2:]  # path: adapters/<tool>/...
+            if len(fields) == 3 and fields[1] == "blob" and len(parts) > 1 and parts[0] in tool.dirs:
+                shipped.setdefault(Path(*parts), set()).add(fields[2])
+    files: dict = {}
+    for rel, ids in sorted(shipped.items()):
+        dests = [cfg / rel]
+        if tool.shared_skills and rel.parts[0] == "skills":
+            dests.insert(0, shared_skills_dir() / Path(*rel.parts[1:]))
+        for d in dests:
+            if str(d) not in files and d.is_file() and blob_ids(d.read_bytes()) & ids:
+                files[str(d)] = sha256(d.read_bytes())
+    return files
+
+
+def adopt(rec: dict | None) -> dict:
+    """The record plus every non-Claude install found at a tool's standard config dir that the record
+    lacks, marked adopted. In memory only; an apply writes it."""
+    rec = json.loads(json.dumps(rec)) if rec else new_record()
+    tags: list | None = None
+    for name, tool in TOOLS.items():
+        if tool.config_dir is None:
+            continue  # generic: custom --config-dir installs cannot be found
+        cfg = tool.config_dir()
+        if find_install(rec, name, cfg):
+            continue
+        block = rules_block(cfg / tool.rules_file) if tool.rules_file else None
+        agents = cfg / "agents"
+        has_agents = agents.is_dir() and any(p.name.split(".")[0] in KIT_AGENTS for p in agents.iterdir())
+        if block is None and not has_agents:
+            continue
+        tier = "full" if block and "Full version" in block else "starter"
+        tags = release_tags() if tags is None else tags
+        rec["installs"].append({"tool": name, "tier": tier, "config_dir": str(cfg), "adopted": True,
+                                "adopted_version": adopted_version(name, tier, block, tags),
+                                "migrations_applied": [], "files": adopted_files(name, tool, cfg, tags),
+                                "options": {"guard": {"state": "unknown", "repos": []}}})
+    return rec
+
+
+# --------------------------------------------------------------------------
+# --update: plan every recorded install from the target commit, pin the plan, apply on one yes
+# --------------------------------------------------------------------------
+
+PIN_KINDS = ("delete", "move", "git")
+
+
+def plan_installs(rec: dict, guard_repos: list = ()) -> list[Step]:
+    """Migrations, reinstall and orphans for every install in `rec`, the commit guard copy, and the
+    guard's git hooks for each `guard_repos` entry (this run's --guard-repo)."""
+    mods = load_migrations()
+    planned: set = set()
+    per_install = []
+    for entry in rec["installs"]:
+        if entry["tool"] == "claude":
+            continue  # its plugin loads from the clone, so the fast-forward is its update
+        mig: list[Step] = []
+        done = set(entry.get("migrations_applied") or [])
+        for m in mods:
+            if m.ID in done:
+                continue
+            for s in m.plan(migration_ctx(entry)) or []:
+                s.migration = m.ID
+                mig.append(s)
+        project = Path(entry["project"]) if entry.get("project") else None
+        re_steps = plan_tool(entry["tool"], entry.get("tier") or "starter", Path(entry["config_dir"]), project, [])
+        planned |= {str(s.dest) for s in re_steps if s.dest}
+        per_install.append((entry, mig, re_steps))
+    steps: list[Step] = []
+    seen: set = set()
+    for entry, mig, re_steps in per_install:
+        for s in mig + re_steps:
+            key = (str(s.dest), s.kind, s.migration)
+            if key not in seen:  # tools sharing ~/.agents/skills plan the same file once
+                seen.add(key)
+                steps.append(s)
+        for dest, h in sorted((entry.get("files") or {}).items()):
+            p = Path(dest)
+            if dest in planned or not p.is_file() or len(h) != 64 or (dest, "delete", None) in seen:
+                continue
+            seen.add((dest, "delete", None))
+            if sha256(p.read_bytes()) == h:
+                steps.append(Step(f"orphan {p.name}", p, "delete", status="delete",
+                                  detail=f"no longer shipped; backup to {backup_path(p).name}, then delete"))
+            else:
+                steps.append(Step(f"orphan {p.name}", p, "delete", status="skipped",
+                                  detail="no longer shipped, but you edited it, so it stays"))
+    data_guard = guard_data_dir() / "guard.py"
+    hooked = any(((e.get("options") or {}).get("guard") or {}).get("repos") for e in rec["installs"])
+    if data_guard.is_file() or hooked:
+        # Hooked repos call this copy by absolute path and skip the guard when it is missing, so it is
+        # refreshed, or put back, for every one of them.
+        steps.append(plan_file("commit guard copy", GUARD, data_guard))
+    for r in dict.fromkeys(str(Path(r).expanduser().resolve()) for r in guard_repos):
+        steps.append(plan_guard(r))
+    return steps
+
+
+def plan_id(sha: str, rec: dict, steps: list[Step]) -> str:
+    """Pins a plan: the target commit, the record (all but the notice setting, which no step reads),
+    and each step's dest, kind, status and payload."""
+    body = {"sha": sha, "record": {k: v for k, v in rec.items() if k != "notices"},
+            "steps": [[str(s.dest), s.kind, s.status, sha256(s.payload), s.migration, s.argv] for s in steps]}
+    return sha256(json.dumps(body, sort_keys=True).encode("utf-8"))[:16]
+
+
+def needs_pin(steps: list[Step]) -> bool:
+    return any(s.writes and (s.migration or s.kind in PIN_KINDS) for s in steps)
+
+
+def version_key(v: str | None) -> tuple:
+    m = re.match(r"v?(\d+)\.(\d+)\.(\d+)", v or "")
+    return tuple(int(x) for x in m.groups()) if m else (-1,)
+
+
+def newer_changelog(root: Path, have: str | None) -> list[str]:
+    try:
+        text = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+    except OSError:
+        return []
+    out, keep = [], False
+    for ln in text.splitlines():
+        m = re.match(r"^## \[?v?(\d+\.\d+\.\d+)", ln)
+        if m:
+            keep = have is None or version_key(m.group(1)) > version_key(have)
+        elif ln.startswith("## "):
+            keep = False
+        if keep:
+            out.append(ln)
+    return out
+
+
+def update_stop_line() -> str:
+    return ("If you are an AI agent: stop here. Show the user this plan and end your turn. Apply it only after "
+            "they reply yes.")
+
+
+def guard_flags(args) -> list[str]:
+    out = ["--no-guard"] if getattr(args, "no_guard", False) else []
+    for r in getattr(args, "guard_repo", None) or []:
+        out += ["--guard-repo", str(Path(r).expanduser().resolve())]
+    return out
+
+
+def pinned_lines(sha: str, pid: str, args) -> list[str]:
+    bash, ps = launcher_lines("update", "--yes", "--to", sha, "--plan", pid, *guard_flags(args))
+    return [f"  bash:       {bash}", f"  PowerShell: {ps}"]
+
+
+def print_update_plan(rec: dict, steps: list[Step], sha: str, pid: str, args, snapshot_root: Path) -> None:
+    """Header with the id, what changed, migrations, the file plan, never-asked options, the pinned
+    apply command, and the agent stop line last."""
+    kit = rec.get("kit") or {}
+    print(f"claude-starter update, plan {pid}: {kit.get('version') or 'unknown'} "
+          f"({(kit.get('sha') or '?')[:12]}) -> {kit_version(snapshot_root) or 'unknown'} ({sha[:12]})")
+    news = newer_changelog(snapshot_root, kit.get("version"))
+    if news:
+        print("\nwhat changed (CHANGELOG.md):")
+        for ln in news:
+            print(f"  {ln}")
+    titles = {m.ID: m.TITLE for m in load_migrations()}
+    migs = sorted({s.migration for s in steps if s.migration and s.writes})
+    if migs:
+        print("\nmigrations:")
+        for i in migs:
+            print(f"  {i}: {titles.get(i, '')}")
+    for e in rec["installs"]:
+        if e.get("adopted") and not e.get("migrations_applied"):
+            print(f"\nadopted: {e['tool']} at {e['config_dir']} (tier {e['tier']}, version "
+                  f"{e.get('adopted_version')}); installs at a custom --config-dir are not found")
+    print()
+    show_plan([s for s in steps if s.status != "already installed"], "file plan:")
+    print(f"  ({sum(1 for s in steps if s.status == 'already installed')} file(s) already current)")
+    unasked = [e for e in rec["installs"] if e["tool"] != "claude" and "guard" not in (e.get("options") or {})]
+    notices = (rec.get("notices") or {}).get("update")
+    if unasked or notices is None:
+        print("\nnever asked:")
+        for e in unasked:
+            # The answer is part of the plan (--guard-repo adds a step, so it changes the id): it goes into
+            # a new plan, never into this plan's apply command.
+            print(f"  commit guard for {e['tool']}: ask the user, then make the plan again with their answer "
+                  "added, --guard-repo <repo> or --no-guard, and apply the command that plan prints")
+        if notices is None and not record_path().is_file():
+            print("  update notices: the apply's closing block asks (no install is recorded yet)")
+        elif notices is None:
+            on_b, on_p = launcher_lines("notices", "on")
+            print("  update notices: in your own terminal, any time (it does not change this plan):\n"
+                  f"    bash:       {on_b}\n    PowerShell: {on_p}\n    (or the same with off)")
+    print("\nTo apply exactly this plan, after the user's yes, run:")
+    for ln in pinned_lines(sha, pid, args):
+        print(ln)
+    print("(The plan id proves that this plan was printed, not that anyone read it.)")
+    print(update_stop_line())
+
+
+def refuse_update(title: str, bad: list[tuple[Path, object]]) -> int:
+    """Exit 3 with the launcher command for the person's own terminal; never a project-local copy."""
+    err = sys.stderr
+    print(f"\n{title}; nothing was written:", file=err)
+    for path, e in bad:
+        print(f"  {path}: {type(e).__name__ + ': ' if isinstance(e, OSError) else ''}{e}", file=err)
+    markers = [k for k in CODEX_MARKERS if os.environ.get(k)]
+    if markers:
+        print(f"\nThis looks like a Codex sandbox ({', '.join(markers)} is set).", file=err)
+    print("Updating a project-local copy would not reach your tool's global config, so the updater does not.",
+          file=err)
+    bash, ps = launcher_lines("update")
+    print("Run this in your own terminal (not through the agent):", file=err)
+    print(f"  bash:       {bash}\n  PowerShell: {ps}", file=err)
+    print("If you are an AI agent: do not work around this. Show the user this message and end your turn.",
+          file=err)
+    return UNWRITABLE
+
+
+def update_targets_writable(steps: list[Step]) -> int | None:
+    CTX["step"] = "checking that every destination can be written"
+    bad: list = list(unwritable(steps))
+    e = probe_dir(record_dir())
+    if e is not None:
+        bad.append((record_dir(), e))
+    return refuse_update("CANNOT WRITE", bad) if bad else None
+
+
+def plan_update_child(args) -> int:
+    """Runs inside the snapshot of the target commit: plan, or verify a plan id. Writes nothing."""
+    if not args.kit_root or not args.to:
+        print("error: --plan-update needs --kit-root and --to", file=sys.stderr)
+        return 2
+    kit_root = args.kit_root.resolve()
+    _CMD_ROOT[:] = [kit_root]
+    rec = load_record()
+    if rec and rec["kit"].get("kit_root") and Path(rec["kit"]["kit_root"]).resolve() != kit_root:
+        print(f"error: the record names the clone {rec['kit']['kit_root']}, not {kit_root}", file=sys.stderr)
+        return 2
+    rec = adopt(rec)
+    steps = plan_installs(rec, args.guard_repo)
+    pid = plan_id(args.to, rec, steps)
+    rc = update_targets_writable(steps)
+    if rc is not None:
+        return rc
+    if args.plan and args.plan != pid:
+        print(f"error: the plan changed since {args.plan} was printed (now {pid}); nothing was written. "
+              "Show the user the new plan:", file=sys.stderr)
+        print_update_plan(rec, steps, args.to, pid, args, ROOT)
+        return 2
+    if args.plan:
+        print(f"plan {pid} verified against {args.to[:12]}")
+        return 0
+    print_update_plan(rec, steps, args.to, pid, args, ROOT)
+    return 0
+
+
+def snapshot_plan(kit_root: Path, sha: str, args, verify: str | None) -> int:
+    """`git archive <sha>` into a temp folder and let that commit's installer plan (or verify `verify`).
+    It writes nothing: test_update.py hashes HOME and the clone around it."""
+    with tempfile.TemporaryDirectory(prefix="starter-snapshot-") as tmp:
+        r = subprocess.run(["git", "-C", str(kit_root), "archive", "--format=tar", sha], capture_output=True,
+                           timeout=300)
+        if r.returncode:
+            print(f"error: git archive {sha} failed: {r.stderr.decode('utf-8', 'replace').strip()}",
+                  file=sys.stderr)
+            return 1
+        tar_path = Path(tmp) / "snap.tar"
+        tar_path.write_bytes(r.stdout)
+        snap = Path(tmp) / "kit"
+        snap.mkdir()
+        with tarfile.open(str(tar_path)) as tf:
+            if hasattr(tarfile, "data_filter"):
+                tf.extractall(str(snap), filter="data")
+            else:
+                tf.extractall(str(snap))
+        cmd = [sys.executable, str(snap / "scripts" / "install.py"), "--plan-update", "--kit-root", str(kit_root),
+               "--to", sha, *guard_flags(args)] + (["--plan", verify] if verify else [])
+        sys.stdout.flush()
+        return subprocess.run(cmd).returncode
+
+
+def update_target(kit_root: Path, args) -> tuple[str | None, str]:
+    """(target sha, "") or (None, why). The newest vX.Y.Z tag, or HEAD when HEAD is not behind it."""
+    rc, head = git(kit_root, "rev-parse", "HEAD")
+    if rc:
+        return None, f"{kit_root} is not a git clone: {head}"
+    if args.to:
+        rc, sha = git(kit_root, "rev-parse", "--verify", "--quiet", f"{args.to}^{{commit}}")
+        return (sha, "") if rc == 0 else (None, f"--to {args.to}: no such commit in {kit_root}")
+    if args.offline:
+        return head, ""
+    rc, tags = git(kit_root, "tag", "--list", "v*", "--sort=-v:refname")
+    tag = next((t.strip() for t in tags.splitlines() if re.fullmatch(r"v\d+\.\d+\.\d+", t.strip())), None)
+    if not tag:
+        return head, ""
+    rc, sha = git(kit_root, "rev-parse", f"{tag}^{{commit}}")
+    if rc:
+        return None, sha
+    if git(kit_root, "merge-base", "--is-ancestor", sha, head)[0] == 0:
+        return head, ""  # already at or past the newest release
+    return sha, ""
+
+
+def run_update(args) -> int:
+    CTX["tool"], CTX["step"] = "update", "planning the update"
+    if args.dry_run:
+        # --dry-run wins over --yes, as it does for an install: plan only, whatever else was passed.
+        args.yes = False
+        print("dry run: planning only; nothing is written.")
+    rec = load_record()
+    kit_root = Path(rec["kit"]["kit_root"]) if rec and rec["kit"].get("kit_root") else ROOT
+    if kit_root.resolve() != ROOT.resolve():
+        print(f"error: the install record ({record_path()}) names the clone {kit_root}, not {ROOT}. Run that "
+              "clone's scripts/starter.py update. Nothing was written.", file=sys.stderr)
+        return 2
+    if not adopt(rec)["installs"]:
+        print("Nothing to update: no install is recorded here and none was found at a tool's standard config "
+              "dir. Install first (README.md).", file=sys.stderr)
+        return 2
+    # Writable first: the record dir and the clone, before the fetch writes into the clone.
+    bad = [(d, e) for d, e in ((d, probe_dir(d)) for d in (record_dir(), kit_root / ".git")) if e is not None]
+    if bad:
+        return refuse_update("CANNOT WRITE", bad)
+    rc, dirty = git(kit_root, "status", "--porcelain", "--untracked-files=no")
+    if rc or dirty:
+        print(f"error: {kit_root} has changed tracked files; commit or discard them first. Nothing was "
+              f"written.\n{dirty}", file=sys.stderr)
+        return 2
+    if not args.offline:
+        rc, out = git(kit_root, "fetch", "--tags", "--quiet", "origin", timeout=120)
+        if rc:
+            return refuse_update("CANNOT FETCH", [(kit_root, out or f"git fetch exited {rc}")])
+        rc, local = git(kit_root, "rev-list", "HEAD", "--not", "--remotes", "--tags")
+        if rc == 0 and local:
+            print(f"error: {kit_root} has local commits that are on no remote; the updater only fast-forwards. "
+                  "Nothing was written.", file=sys.stderr)
+            return 2
+    sha, why = update_target(kit_root, args)
+    if sha is None:
+        print(f"error: {why}. Nothing was written.", file=sys.stderr)
+        return 2
+    head = git(kit_root, "rev-parse", "HEAD")[1]
+    if sha == head:
+        return apply_update_here(rec, sha, args)
+    if git(kit_root, "merge-base", "--is-ancestor", head, sha)[0] != 0:
+        print(f"error: {sha[:12]} is not ahead of the clone's HEAD {head[:12]}; the updater only fast-forwards. "
+              "Nothing was written.", file=sys.stderr)
+        return 2
+    if not args.yes:
+        return snapshot_plan(kit_root, sha, args, None)
+    if not args.to or not args.plan:
+        print("error: this update moves the clone to a new commit (a git step), so --yes applies it only with "
+              "--to <sha> --plan <id> from the printed plan. Nothing was written. The plan:", file=sys.stderr)
+        return snapshot_plan(kit_root, sha, args, None) or 2
+    rc = snapshot_plan(kit_root, sha, args, args.plan)
+    if rc:
+        return rc
+    rc, out = git(kit_root, "merge", "--ff-only", "--quiet", sha)
+    if rc:
+        print(f"error: git merge --ff-only {sha[:12]} failed: {out}. Nothing else was written.", file=sys.stderr)
+        return 1
+    # The new commit's installer applies. subprocess, never os.exec*: on Windows exec hands the caller
+    # exit 0 before the child finishes (bpo-19124), which would hide a failed apply.
+    sys.stdout.flush()
+    return subprocess.run([sys.executable, str(kit_root / "scripts" / "install.py"), "--update", "--offline",
+                           "--yes", "--to", sha, "--plan", args.plan, *guard_flags(args)]).returncode
+
+
+def apply_update_here(rec: dict | None, sha: str, args) -> int:
+    """Plan against this clone at `sha`, its HEAD, and with --yes apply."""
+    prev = ((rec or {}).get("kit") or {}).get("sha")
+    recorded = rec is not None
+    rec = adopt(rec)
+    steps = plan_installs(rec, args.guard_repo)
+    pid = plan_id(sha, rec, steps)
+    if not args.yes:
+        if not any(s.writes for s in steps) and prev == sha:
+            print(f"Nothing to update: every recorded install is current at {sha[:12]} "
+                  f"({kit_version() or 'unknown version'}).")
+            return 0
+        rc = update_targets_writable(steps)
+        if rc is not None:
+            return rc
+        print_update_plan(rec, steps, sha, pid, args, ROOT)
+        return 0
+    if args.plan and args.plan != pid:
+        print(f"error: the plan changed since {args.plan} was printed (now {pid}); nothing was written. Show "
+              "the user the new plan:", file=sys.stderr)
+        print_update_plan(rec, steps, sha, pid, args, ROOT)
+        return 2
+    if needs_pin(steps) and not args.plan:
+        print("error: this plan holds a migration, move, delete or git step, so --yes applies it only with "
+              "--plan <id> from the printed plan. Nothing was written. The plan:", file=sys.stderr)
+        print_update_plan(rec, steps, sha, pid, args, ROOT)
+        return 2
+    unasked = [e for e in rec["installs"] if e["tool"] != "claude" and "guard" not in (e.get("options") or {})]
+    if unasked and not (args.guard_repo or args.no_guard):
+        print("\nerror: the plan asks about the commit guard. Make the plan again with the user's answer added, "
+              "--guard-repo <repo> or --no-guard, and apply the command that plan prints. Nothing was written.",
+              file=sys.stderr)
+        return 2
+    rc = update_targets_writable(steps)
+    if rc is not None:
+        return rc
+    CTX["touched"] = True
+    changes = any(s.writes for s in steps)  # before apply, which turns each status into what it did
+    for s in steps:
+        if s.writes:
+            CTX["step"] = f"writing {s.piece}"
+            apply(s, sys.executable)
+    failed = [s for s in steps if s.status == "failed"]
+    ok_all, load_lines = True, []
+    shipped = {m.ID for m in load_migrations()}
+    for entry in rec["installs"]:
+        if entry["tool"] == "claude":
+            continue
+        cfg = Path(entry["config_dir"])
+        mine = plan_tool(entry["tool"], entry.get("tier") or "starter", cfg,
+                         Path(entry["project"]) if entry.get("project") else None, [])
+        bad_mig = {s.migration for s in failed if s.migration}
+        entry["migrations_applied"] = sorted(set(entry.get("migrations_applied") or []) | (shipped - bad_mig))
+        entry["files"] = recorded_files(mine)
+        g = guard_option(args, (entry.get("options") or {}).get("guard"))
+        if g is not None:
+            entry.setdefault("options", {})["guard"] = g
+        tool = TOOLS[entry["tool"]]
+        if tool.load_check and any(s.status in ("installed", "updated", "merged") for s in steps):
+            ok, lines, verdict = tool.load_check(cfg, mine)
+            ok_all = ok_all and ok
+            load_lines += [f"{entry['tool']}: {verdict}", *lines]
+    print()
+    rows = [("piece", "destination", "status")] + [
+        (s.piece, str(s.dest), s.status + (f" ({s.detail})" if s.status == "failed" else ""))
+        for s in steps if s.status != "already installed"]
+    if len(rows) > 1:
+        table(rows)
+    for ln in redact_lines(load_lines) if load_lines else []:
+        print(f"  {ln}")
+    if failed or not ok_all:
+        print(f"\nFAILED: {len(failed)} piece(s) failed" + ("" if ok_all else "; a load check failed")
+              + "; the record was not advanced.", file=sys.stderr)
+        report_failure("\n".join(f"{s.piece} -> {s.dest}: {s.detail}" for s in failed) or "load check failed")
+        return 1
+    rec["kit"] = kit_facts(ROOT, sha)
+    wrote_record = save_record(rec)
+    if changes or prev != sha:
+        items = [f"Updated to {kit_version() or 'an unknown version'} ({sha[:12]}). Restart your tools, or "
+                 "open a new chat, so they pick the changes up."]
+    else:
+        items = [f"Nothing to update: every install is current at {kit_version() or 'an unknown version'} "
+                 f"({sha[:12]}); no file was changed" + ("." if recorded or not wrote_record else
+                                                         f", and the installs found are now recorded in "
+                                                         f"{record_path()}.")]
+    if prev and prev != sha:
+        items.append("\n".join(["To go back to the previous version, run this in your own terminal:",
+                                f"  bash:       git -C {shlex.quote(ROOT.as_posix())} checkout {prev}",
+                                f"  PowerShell: git -C {_ps_quote(str(ROOT))} checkout {prev}"]))
+    print_for_you([*items, *notice_item(rec)])
+    return 0
+
+
+def plan_tool(name: str, tier: str, cfg: Path, project: Path | None, guard_repos: list) -> list[Step]:
+    """Every step that installs `name` at `tier` into `cfg`, from this kit's adapters. A fresh install
+    and an update plan the same way: an install is an update from nothing."""
+    tool = TOOLS[name]
+    src_dir = ADAPTERS / name
+    rules_src = src_dir / f"AGENTS.{tier}.md"
+    if tool.rules_file:
+        steps: list[Step] = [plan_rules(rules_src, cfg / tool.rules_file)]
+    elif project:
+        steps = [plan_rules(rules_src, project.expanduser().resolve() / "AGENTS.md")]
+    else:
+        steps = [Step(f"rules ({rules_src.name})", rules_src, "manual", status="manual",
+                      detail=f"{name} has no global rules file; instructions are printed at the end")]
+    if tool.rules_cap and steps[0].kind == "rules" and steps[0].status != "failed":
+        size = len(steps[0].payload) if steps[0].writes else steps[0].dest.stat().st_size
+        if size > tool.rules_cap:
+            steps[0].status = "failed"
+            steps[0].detail = (f"the result would be {size} bytes; {name} reads at most {tool.rules_cap} "
+                               "per rules file. Shorten your own text in it, or use --tier starter")
+    for d in tool.dirs:
+        for f in sorted((src_dir / d).rglob("*")):
+            if f.is_file():
+                rel = f.relative_to(src_dir)
+                if tool.shared_skills and rel.parts[0] == "skills":
+                    steps.append(plan_file(piece_name(rel) + " (shared)", f,
+                                           shared_skills_dir() / Path(*rel.parts[1:])))
+                else:
+                    steps.append(plan_file(piece_name(rel), f, cfg / rel))
+    if tool.json_merge:
+        steps.append(plan_json(src_dir / tool.json_merge[0], cfg / tool.json_merge[1], tool.union))
+    steps += [plan_guard(r) for r in guard_repos]
+
+    return steps
+
+
 def run(argv: list[str] | None) -> int:
     ap = argparse.ArgumentParser(description="Install a claude-starter adapter into a coding tool.")
     ap.add_argument("--tool", choices=[*ALL_TOOLS, "auto"],
@@ -1356,7 +2255,23 @@ def run(argv: list[str] | None) -> int:
     ap.add_argument("--yes", action="store_true", help="apply without asking")
     ap.add_argument("--guard-repo", action="append", default=[], metavar="PATH",
                     help="also install the commit guard git hooks into this repo (repeatable)")
+    ap.add_argument("--no-guard", action="store_true",
+                    help="install without the commit guard git hooks (an apply needs this or --guard-repo)")
+    ap.add_argument("--update", action="store_true",
+                    help="update every recorded install: fetch, show the plan, apply only with --yes --to --plan")
+    ap.add_argument("--plan-update", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--kit-root", type=Path, help=argparse.SUPPRESS)
+    ap.add_argument("--to", metavar="SHA", help="with --update: the commit the printed plan was made from")
+    ap.add_argument("--plan", metavar="ID", help="with --update: the id of the printed plan to apply")
+    ap.add_argument("--offline", action="store_true", help="with --update: no fetch; plan against the clone's HEAD")
     args = ap.parse_args(argv)
+    if args.plan_update:
+        return plan_update_child(args)
+    if args.update:
+        return run_update(args)
+    rc = kit_root_mismatch()
+    if rc is not None:
+        return rc
 
     if args.detect:
         for name, ev in detect().items():
@@ -1405,33 +2320,7 @@ def run(argv: list[str] | None) -> int:
         return 2
 
     CTX["step"] = "planning the install"
-    rules_src = src_dir / f"AGENTS.{args.tier}.md"
-    if tool.rules_file:
-        steps: list[Step] = [plan_rules(rules_src, cfg / tool.rules_file)]
-    elif args.project:
-        steps = [plan_rules(rules_src, args.project.expanduser().resolve() / "AGENTS.md")]
-    else:
-        steps = [Step(f"rules ({rules_src.name})", rules_src, "manual", status="manual",
-                      detail=f"{args.tool} has no global rules file; instructions are printed at the end")]
-    if tool.rules_cap and steps[0].kind == "rules" and steps[0].status != "failed":
-        size = len(steps[0].payload) if steps[0].writes else steps[0].dest.stat().st_size
-        if size > tool.rules_cap:
-            steps[0].status = "failed"
-            steps[0].detail = (f"the result would be {size} bytes; {args.tool} reads at most {tool.rules_cap} "
-                               "per rules file. Shorten your own text in it, or use --tier starter")
-    for d in tool.dirs:
-        for f in sorted((src_dir / d).rglob("*")):
-            if f.is_file():
-                rel = f.relative_to(src_dir)
-                if tool.shared_skills and rel.parts[0] == "skills":
-                    steps.append(plan_file(piece_name(rel) + " (shared)", f,
-                                           shared_skills_dir() / Path(*rel.parts[1:])))
-                else:
-                    steps.append(plan_file(piece_name(rel), f, cfg / rel))
-    if tool.json_merge:
-        steps.append(plan_json(src_dir / tool.json_merge[0], cfg / tool.json_merge[1], tool.union))
-    steps += [plan_guard(r) for r in args.guard_repo]
-
+    steps = plan_tool(args.tool, args.tier, cfg, args.project, args.guard_repo)
     show_plan(steps, f"claude-starter -> {args.tool} ({args.tier} tier), config dir: {cfg}")
     if tool.shared_skills:
         print(f"  (skills go to the shared {shared_skills_dir()}, read by Codex, Cursor, Copilot, Junie and "
@@ -1456,7 +2345,8 @@ def run(argv: list[str] | None) -> int:
     if tool.load_check:
         ok_load, load_lines, verdict = tool.load_check(cfg, steps)
     return finish_run(args.tool, args.tier, steps, ok_load, load_lines, verdict, tool.after(cfg, args), args,
-                      tool.next_steps(cfg, args))
+                      tool.next_steps(cfg, args),
+                      record=lambda: record_install(args.tool, args.tier, cfg, steps, args))
 
 
 def main(argv: list[str] | None = None) -> int:
