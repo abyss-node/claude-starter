@@ -1,0 +1,23 @@
+{
+  "_about": "The plans each tool's onboarding offers, one home for them. core/onboarding/<tool>/02-plan.md renders its tool's list with {{plans}}. meter: share (a usage limit that resets), usd (billed per token) or free (a local model). meter_cmd: what shows the meter, or null when no command in the tool does. meter_cmd_confirmed: true when the tool's docs or a run confirm that command shows the meter, false when that is unconfirmed (the walkthrough then says so), null with a null meter_cmd. pay_past_limit: possible (paid credits can be turned on), unknown (not confirmed either way), or n/a (no limit to pay past). provider: the provider id the tool itself uses.",
+  "claude": [
+    {"id": "pro", "label": "Pro", "meter": "share", "meter_cmd": "/usage", "meter_cmd_confirmed": true, "pay_past_limit": "possible", "provider": "anthropic"},
+    {"id": "max", "label": "Max", "meter": "share", "meter_cmd": "/usage", "meter_cmd_confirmed": true, "pay_past_limit": "possible", "provider": "anthropic"},
+    {"id": "ultra", "label": "Ultra", "meter": "share", "meter_cmd": "/usage", "meter_cmd_confirmed": true, "pay_past_limit": "possible", "provider": "anthropic"},
+    {"id": "team", "label": "Team or Enterprise", "meter": "share", "meter_cmd": "/usage", "meter_cmd_confirmed": true, "pay_past_limit": "possible", "provider": "anthropic"},
+    {"id": "api", "label": "API key", "meter": "usd", "meter_cmd": "/usage", "meter_cmd_confirmed": true, "pay_past_limit": "n/a", "provider": "anthropic"}
+  ],
+  "codex": [
+    {"id": "plus", "label": "ChatGPT Plus", "meter": "share", "meter_cmd": "/status", "meter_cmd_confirmed": false, "pay_past_limit": "possible", "provider": "openai"},
+    {"id": "pro", "label": "ChatGPT Pro", "meter": "share", "meter_cmd": "/status", "meter_cmd_confirmed": false, "pay_past_limit": "possible", "provider": "openai"},
+    {"id": "business", "label": "ChatGPT Business, Enterprise or Edu", "meter": "share", "meter_cmd": "/status", "meter_cmd_confirmed": false, "pay_past_limit": "possible", "provider": "openai"},
+    {"id": "api", "label": "OpenAI API key", "meter": "usd", "meter_cmd": null, "meter_cmd_confirmed": null, "pay_past_limit": "n/a", "provider": "openai"}
+  ],
+  "opencode": [
+    {"id": "openai-chatgpt", "label": "OpenAI, signed in with ChatGPT Plus or Pro", "meter": "share", "meter_cmd": null, "meter_cmd_confirmed": null, "pay_past_limit": "unknown", "provider": "openai"},
+    {"id": "openai-api", "label": "OpenAI, with an API key", "meter": "usd", "meter_cmd": "opencode stats", "meter_cmd_confirmed": true, "pay_past_limit": "n/a", "provider": "openai"},
+    {"id": "anthropic-api", "label": "Anthropic, with an API key", "meter": "usd", "meter_cmd": "opencode stats", "meter_cmd_confirmed": true, "pay_past_limit": "n/a", "provider": "anthropic"},
+    {"id": "openrouter", "label": "OpenRouter", "meter": "usd", "meter_cmd": "opencode stats", "meter_cmd_confirmed": true, "pay_past_limit": "n/a", "provider": "openrouter"},
+    {"id": "local", "label": "A local model through Ollama", "meter": "free", "meter_cmd": null, "meter_cmd_confirmed": null, "pay_past_limit": "n/a", "provider": "ollama"}
+  ]
+}

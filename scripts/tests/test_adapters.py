@@ -288,13 +288,7 @@ def test_frontmatter_parser_reads_what_the_adapters_write():
 # --------------------------------------------------------------------------
 
 REPO = SCRIPTS.parent
-# Where each tool's build puts a ported command. Antigravity reads its own config/skills, not the shared
-# ~/.agents/skills, so a check of the shared copies alone would miss it.
-COMMAND_PATHS = {
-    "opencode": "commands/{n}.md", "generic": "commands/{n}.md", "junie": "commands/{n}.md",
-    "codex": "skills/{n}/SKILL.md", "cursor": "skills/{n}/SKILL.md", "copilot": "skills/{n}/SKILL.md",
-    "antigravity": "config/skills/{n}/SKILL.md",
-}
+COMMAND_PATHS = ba.COMMAND_PATHS
 
 
 def _built() -> dict:
@@ -310,7 +304,7 @@ def _update_texts() -> dict:
 
 
 def test_every_tool_maps_its_command_paths():
-    assert set(COMMAND_PATHS) == set(ba.EMITTERS)
+    assert set(COMMAND_PATHS) == set(ba.EMITTERS) | {"claude"} == set(ba.BUILDS)
 
 
 @pytest.mark.parametrize("name", ba.PORTED_COMMANDS)

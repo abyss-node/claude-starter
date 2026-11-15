@@ -782,7 +782,7 @@ def notes_codex(cfg: Path, args) -> list[str]:
     return ["Agents are READ-ONLY BY INSTRUCTION ONLY: Codex cannot enforce it (agent files ignore "
             "sandbox_mode). Consultant: shell tools disabled by feature flags (shell_tool and "
             "unified_exec = false); not verified that Codex honours [features] in agent files.",
-            "checkpoint, lanes and starter-update are skills (Codex prompts are deprecated). Each one's "
+            "checkpoint, lanes, onboard and starter-update are skills (Codex prompts are deprecated). Each one's "
             "agents/openai.yaml sets policy.allow_implicit_invocation: false, which Codex documents as keeping "
             "it from starting the skill on its own; run them by name ($checkpoint). Checked structurally, not "
             "against Codex.",
@@ -848,9 +848,21 @@ def codex_override_warning(cfg: Path) -> str | None:
             "rules will not load. Move what you need from it into AGENTS.md and delete it (or empty it).")
 
 
+def onboard_line(tool: str, where: str) -> str:
+    """The For-you item that starts the onboarding walkthrough. A Codex user once got a walkthrough asking
+    which Claude plan they had; each tool's onboard command prints that tool's own copy (core/onboarding/)."""
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import vocab  # the one home of what each tool's user types to run a kit command
+    return (f"Then type {vocab.VOCAB[tool].cmd('onboard')} {where} for a short walkthrough of the kit: one step at "
+            "a time, each ending with the command for the next.")
+
+
 def next_opencode(cfg: Path, args) -> list[str]:
     return ["Restart opencode to pick the changes up (it reads config once at start).",
-            "Check it took: run `opencode agent list` and look for verifier, code-reviewer and consultant."]
+            "Check it took: run `opencode agent list` and look for verifier, code-reviewer and consultant.",
+            onboard_line("opencode", "in opencode")]
 
 
 def next_codex(cfg: Path, args) -> list[str]:
@@ -858,7 +870,8 @@ def next_codex(cfg: Path, args) -> list[str]:
            "so the chat that ran this installer does not have the rules.",
            'Check it took: in the new chat ask "what rules are you following?", or run '
            f'`codex debug prompt-input "x"` in a terminal and look for "{RULES_MARK}" in the output '
-           "(only the block this installer wrote contains that line)."]
+           "(only the block this installer wrote contains that line).",
+           onboard_line("codex", "in the new chat")]
     warning = codex_override_warning(cfg)
     return out + ([warning] if warning else [])
 
@@ -903,7 +916,8 @@ def next_generic(cfg: Path, args) -> list[str]:
 
 def next_claude(cfg: Path, args) -> list[str]:
     return ["Next: open Claude Code and run /starter:setup. It installs CLAUDE.md and merges settings, "
-            "asking before each change. This installer leaves those to it so they have one writer."]
+            "asking before each change. This installer leaves those to it so they have one writer.",
+            onboard_line("claude", "after setup")]
 
 
 TOOLS: dict[str, Tool] = {
