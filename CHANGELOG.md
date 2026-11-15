@@ -8,7 +8,51 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
-## [0.4.0] - unreleased
+## [0.5.0] - unreleased
+
+### Added
+
+- `onboard`: an onboarding walkthrough for every tool, one step per run. It is
+  `/starter:onboard` in Claude Code, `$onboard` in Codex, `/onboard` in OpenCode,
+  Cursor, Copilot, Antigravity and Junie, and `commands/onboard.md` elsewhere.
+  It runs `starter.py onboard <n>`, which prints step `<n>` of that tool's own
+  walkthrough and ends with the command for the next step. Each tool's copy
+  passes its own `--tool`, except the copy Codex, Cursor and Copilot share in
+  `~/.agents/skills`: that one takes the tool from the install record, and
+  with several installed it lists each one's command and stops for
+  `--tool <id>`. Claude Code's copy sets `disable-model-invocation: true`, and
+  Codex's ships `agents/openai.yaml` with `allow_implicit_invocation: false`.
+  Showing the last step sets the record's `onboarded_at`. The installer's
+  closing block names the command for Claude Code, OpenCode and Codex.
+- `core/`, the one source for what is written once for every tool: the
+  `onboard` command, the walkthrough (`core/onboarding/`: steps shared by every
+  tool, plus each tool's own; Claude Code and OpenCode have their own version of
+  every tool-specific step) and the plans each tool's walkthrough offers
+  (`core/plans.json`). The build renders them per tool, and renders
+  `plugins/starter/commands/onboard.md` and the root `ONBOARDING.md` for Claude
+  Code; it never deletes a hand-written plugin file.
+- A two-way term check (`core/terms.json`) in every build, `--check` included:
+  a word that belongs to some tools fails the build when it shows up in another
+  tool's output. It covers each tool's name, CLI and config folder, Claude model
+  names, `ChatGPT`, `AGENTS.md`, and every form of a kit command (`/starter:x`,
+  `/x`, `$x` and the prompt file). Leaks that predate it are listed in
+  `core/terms.baseline`, which may only shrink.
+
+### Changed
+
+- `ONBOARDING.md` is generated, with a neutral title, and is Claude Code's copy
+  of the walkthrough; it links every other tool's copy.
+- The adapter build's one-way deny list is gone: its vocabulary rows moved to
+  `core/terms.json`, and its frontmatter and commit-guard checks stay as lints.
+
+### Fixed (from the Codex field report)
+
+- A Codex user's onboarding asked which Claude plan they had. Each tool's
+  walkthrough now offers only its own plans: Pro, Max, Ultra, Team or
+  Enterprise, or an API key in Claude Code; a ChatGPT plan or an API key in
+  Codex; connected providers in OpenCode.
+
+## [0.4.0] - 2026-11-15
 
 ### Added
 
@@ -32,43 +76,13 @@ can show what each one does before it runs.
   command (OpenCode's `/update` updates OpenCode itself).
 - CI: an install made by v0.3.1's installer is updated by the current one, and
   a second update writes nothing.
-- Codex: the `checkpoint`, `lanes`, `onboard` and `starter-update` skills each
-  ship an `agents/openai.yaml` with `policy.allow_implicit_invocation: false`, so
-  Codex does not start them on its own; the installer checks its shape.
-- `onboard`: an onboarding walkthrough for every tool, one step per run. It is
-  `/starter:onboard` in Claude Code, `$onboard` in Codex, `/onboard` in OpenCode,
-  Cursor, Copilot, Antigravity and Junie, and `commands/onboard.md` elsewhere.
-  It runs `starter.py onboard <n>`, which prints step `<n>` of that tool's own
-  walkthrough and ends with the command for the next step. Each tool's copy
-  passes its own `--tool`, except the copy Codex, Cursor and Copilot share in
-  `~/.agents/skills`: that one takes the tool from the install record, and
-  with several installed it lists each one's command and stops for
-  `--tool <id>`. Claude Code's copy sets `disable-model-invocation: true`,
-  which Claude Code's docs say stops Claude from starting a command on its
-  own. Showing the last step sets the record's `onboarded_at`. The installer's closing block names the command for Claude
-  Code, OpenCode and Codex.
-- `core/`, the one source for what is written once for every tool: the
-  `onboard` command, the walkthrough (`core/onboarding/`: steps shared by every
-  tool, plus each tool's own; Claude Code and OpenCode have their own version of
-  every tool-specific step) and the plans each tool's walkthrough offers
-  (`core/plans.json`). The build renders them per tool, and renders
-  `plugins/starter/commands/onboard.md` and the root `ONBOARDING.md` for Claude
-  Code; it never deletes a hand-written plugin file.
-- A two-way term check (`core/terms.json`) in every build, `--check` included:
-  a word that belongs to some tools fails the build when it shows up in another
-  tool's output. It covers each tool's name, CLI and config folder (`claude`,
-  `Codex`, `~/.config/opencode`, ...), Claude model names, `ChatGPT`,
-  `AGENTS.md`, and every form of a kit command (`/starter:x`, `/x`, `$x` and
-  the prompt file), so a new command is covered without editing a row. Leaks
-  that predate it are listed in `core/terms.baseline`, which may only shrink.
+- Codex: the `checkpoint`, `lanes` and `starter-update` skills each ship an
+  `agents/openai.yaml` with `policy.allow_implicit_invocation: false`, so Codex
+  does not start them on its own; the installer checks its shape.
 
 ### Changed
 
 - Updating is `starter-update`, not `git pull` and a re-run of the installer.
-- `ONBOARDING.md` is generated, with a neutral title, and is Claude Code's copy
-  of the walkthrough; it links every other tool's copy.
-- The adapter build's one-way deny list is gone: its vocabulary rows moved to
-  `core/terms.json`, and its frontmatter and commit-guard checks stay as lints.
 - `--yes` needs an answer about the commit guard: `--guard-repo <path>` or
   `--no-guard`. With neither the install exits 2 and writes nothing.
 - `--yes` without `--plan <id>` exits 2 when the plan holds a migration, a move,
@@ -79,10 +93,6 @@ can show what each one does before it runs.
 
 ### Fixed (from the Codex field report)
 
-- A Codex user's onboarding asked which Claude plan they had. Each tool's
-  walkthrough now offers only its own plans: Pro, Max, Ultra, Team or
-  Enterprise, or an API key in Claude Code; a ChatGPT plan or an API key in
-  Codex; connected providers in OpenCode.
 - An agent could install without asking which tier. The dry run now ends with
   a stop line telling the agent to show the plan, ask, and end its turn.
 - A sandboxed session could install into one chat's environment. Every

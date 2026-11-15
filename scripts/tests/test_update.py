@@ -46,8 +46,8 @@ def src(tmp_path_factory):
         if p.is_file() and not rel.startswith("tmp/"):
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(p, root / rel)
-    if not (root / "kit.json").exists():
-        (root / "kit.json").write_text('{"name": "claude-starter", "version": "0.4.0"}\n', encoding="utf-8")
+    # Pinned, not copied: the tests release 0.4.1 on top, which must stay newer whatever kit.json says.
+    (root / "kit.json").write_text('{"name": "claude-starter", "version": "0.4.0"}\n', encoding="utf-8")
     git(root.parent, "init", "-q", "-b", "main", str(root))
     git(root, "add", "-A")
     git(root, "commit", "-q", "--no-gpg-sign", "-m", "v0.4.0" + TRAILER)
