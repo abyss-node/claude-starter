@@ -80,7 +80,9 @@ jobs:
           export HOME="$H" XDG_CONFIG_HOME="$H/.config" XDG_DATA_HOME="$H/.local/share" \
             XDG_CACHE_HOME="$H/.cache" XDG_STATE_HOME="$H/.local/state"
           opencode debug paths
-          python scripts/install.py --tool opencode --tier starter --yes --no-guard
+          set -o pipefail
+          python scripts/install.py --tool opencode --tier starter --yes --no-guard | tee install.txt
+          grep -E "^load check +opencode +passed \(loaded by opencode\) version ${OPENCODE_VERSION}$" install.txt
 
       - name: OpenCode loads the agents, skills and commands
         working-directory: ${{ runner.temp }}
@@ -143,6 +145,56 @@ jobs:
               echo "::error::'$cmd' is allowed by the Codex rules"; exit 1
             fi
           done
+
+  # OpenCode 2 (`@opencode/cli`) removed `agent list` and `debug agent|skill|config`, and the installer's
+  # load check then failed every 2.x install after writing it. Here the check must pass on 2.x, and the
+  # load-check tests run against the real binary; a skipped test fails the job, since a skip here
+  # would mean the 2.x checks never ran.
+  opencode-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OPENCODE_V2_VERSION: "2.3.0"
+      OPENCODE_DISABLE_AUTOUPDATE: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install OpenCode 2
+        run: |
+          npm install --global "@opencode/cli@${OPENCODE_V2_VERSION}"
+          test "$(opencode --version)" = "opencode v${OPENCODE_V2_VERSION}"
+
+      - name: Install the kit into a throwaway HOME; the load check passes on 2.x and a re-run changes nothing
+        shell: bash
+        run: |
+          H="$RUNNER_TEMP/home"
+          mkdir -p "$H"
+          export HOME="$H" XDG_CONFIG_HOME="$H/.config" XDG_DATA_HOME="$H/.local/share" \
+            XDG_CACHE_HOME="$H/.cache" XDG_STATE_HOME="$H/.local/state"
+          opencode debug paths
+          python scripts/install.py --tool opencode --tier starter --yes --no-guard | tee install.txt
+          grep -E "^load check +opencode +passed \(loaded by opencode\) version ${OPENCODE_V2_VERSION}$" install.txt
+          python scripts/install.py --tool opencode --tier starter --yes --no-guard | tee rerun.txt
+          if grep -E '  (installed|merged|updated)$' rerun.txt; then
+            echo "::error::second install run changed files"; exit 1
+          fi
+
+      - name: Load-check tests against the real OpenCode 2
+        shell: bash
+        run: |
+          python -m pip install --quiet pytest
+          python -m pytest -q -rs scripts/tests/test_opencode_check.py | tee pytest.txt
+          if grep -q skipped pytest.txt; then
+            echo "::error::a load-check test skipped with OpenCode 2 installed"; exit 1
+          fi
 
   # An install made by an old release's installer must update in place with the current one, equal a
   # fresh install afterwards, keep the user's own text and, in a hooked repo, keep blocking secrets.

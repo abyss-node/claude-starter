@@ -40,18 +40,23 @@ run and a dry run end on a line telling an agent to stop and ask the user.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import filecmp
+import fnmatch
 import hashlib
 import importlib.util
 import json
 import os
 import re
+import secrets
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -430,65 +435,313 @@ def denied_keys(agent_file: Path) -> list[str]:
     return re.findall(r"^  (\w+): deny$", fm, re.M)
 
 
-def opencode_load_check(config_dir: Path, steps: list[Step]) -> tuple[bool, list[str]]:
-    exe = shutil.which("opencode")
-    if not exe:
-        return False, ["`opencode` not found on PATH, so the install could not be load-checked"]
-    env = dict(os.environ)
-    if config_dir.resolve() != opencode_config_dir().resolve():
-        env["OPENCODE_CONFIG_DIR"] = str(config_dir)
+# OpenCode load check. Every opencode call goes through _run_bounded, and the 2.x server through
+# _oc2_server, so none can outlive its timeout.
+OC_MAJORS = (1, 2)       # the majors opencode_load_check knows how to ask; any other fails, naming it
+OC1_CALL_TIMEOUT = 300   # seconds for one 1.x call
+OC_CALL_TIMEOUT = 120    # seconds for `--version`, and for one 2.x call or the 2.x server's start
+OC_SETTLE_TIMEOUT = 60   # seconds one 2.x listing gets to finish discovery (_oc2_poll)
+OC_POLL_INTERVAL = 0.5
+# The V1 permission keys OpenCode 2 renamed (opencode.ai/docs/migrate-v1); the others kept their names.
+OC2_ACTION = {"bash": "shell", "task": "subagent"}
+
+
+def _kill_tree(p: subprocess.Popen) -> None:
+    """Kill p and every process under it. p is often an npm shim (a .cmd file on Windows, a node script
+    elsewhere), and killing only the shim leaves the real binary running."""
+    if os.name == "nt":
+        with contextlib.suppress(OSError, subprocess.SubprocessError):
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], stdin=subprocess.DEVNULL,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    else:
+        with contextlib.suppress(OSError):
+            os.killpg(p.pid, signal.SIGKILL)  # _spawn gave p a session, so its pid is its group's
+    with contextlib.suppress(OSError):
+        p.kill()
+    with contextlib.suppress(subprocess.TimeoutExpired):
+        p.wait(timeout=10)
+
+
+def _spawn(cmd: list[str], env: dict, cwd: str, out, err) -> subprocess.Popen:
+    """Start cmd with stdin closed, so a prompt (for a server password, say) reads end-of-file at once
+    instead of waiting for a person who is not there."""
+    extra = {} if os.name == "nt" else {"start_new_session": True}
+    return subprocess.Popen(cmd, env=env, cwd=cwd, stdin=subprocess.DEVNULL, stdout=out, stderr=err, **extra)
+
+
+def _run_bounded(cmd: list[str], env: dict, cwd: str, timeout: float) -> tuple[int, str]:
+    """Run cmd and return its exit code and its stdout then stderr, ANSI codes removed. Past timeout
+    seconds it is killed with everything it started, and the code is 124. Output goes to files, not
+    pipes: a process cmd leaves behind (the binary behind a shim, a server it started) keeps a pipe
+    open, and reading the pipe would then wait for that process, so the timeout would bound nothing."""
+    with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
+        try:
+            p = _spawn(cmd, env, cwd, out, err)
+        except OSError as e:
+            return 127, f"could not run {cmd[0]}: {e}"
+        timed_out = False
+        try:
+            rc = p.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            _kill_tree(p)
+            rc, timed_out = 124, True
+        raw = b""
+        for f in (out, err):
+            f.seek(0)
+            raw += f.read()
+    text = ANSI.sub("", raw.decode("utf-8", errors="replace"))
+    return rc, (f"timed out after {timeout}s: opencode {' '.join(cmd[1:])}\n{text}" if timed_out else text)
+
+
+def opencode_version(exe: str, env: dict, cwd: str) -> tuple[str | None, list[str]]:
+    """The x.y.z that `opencode --version` prints ("1.19.5" on 1.x, "opencode v2.3.0" on 2.x), or None
+    and why not."""
+    rc, out = _run_bounded([exe, "--version"], env, cwd, OC_CALL_TIMEOUT)
+    m = re.search(r"(?<![\w.])v?(\d+\.\d+\.\d+)\b", out) if rc == 0 else None
+    if not m:
+        return None, [f"`opencode --version` exited {rc} without a version number:", *out.strip().splitlines()[:10]]
+    return m.group(1), []
+
+
+def _oc1_check(exe: str, env: dict, cwd: str, config_dir: Path, steps: list[Step]) -> tuple[bool, list[str]]:
     lines: list[str] = []
-    with tempfile.TemporaryDirectory(prefix="starter-loadcheck-") as cwd:
-        rc, out = _run([exe, "agent", "list"], env, cwd)
-        if rc != 0:
-            return False, [f"`opencode agent list` exited {rc}:", *out.strip().splitlines()[:20]]
-        found = dict(re.findall(r"^(\S+) \((primary|subagent|all)\)\s*$", out, re.M))
-        missing = [a for a in KIT_AGENTS if a not in found]
-        if missing:
-            return False, [f"`opencode agent list` loaded but is missing: {', '.join(missing)}"]
-        lines.append(f"`opencode agent list` OK: {', '.join(f'{a} ({found[a]})' for a in KIT_AGENTS)}")
+    rc, out = _run_bounded([exe, "agent", "list"], env, cwd, OC1_CALL_TIMEOUT)
+    if rc != 0:
+        return False, [f"`opencode agent list` exited {rc}:", *out.strip().splitlines()[:20]]
+    found = dict(re.findall(r"^(\S+) \((primary|subagent|all)\)\s*$", out, re.M))
+    missing = [a for a in KIT_AGENTS if a not in found]
+    if missing:
+        return False, [f"`opencode agent list` loaded but is missing: {', '.join(missing)}"]
+    lines.append(f"`opencode agent list` OK: {', '.join(f'{a} ({found[a]})' for a in KIT_AGENTS)}")
 
-        # The read-only restriction is the point of these agents: confirm OpenCode applied it.
-        for a in KIT_AGENTS:
-            rc, out = _run([exe, "debug", "agent", a], env, cwd)
-            try:
-                tools = json.loads(out[out.index("{"):])["tools"]
-            except (ValueError, KeyError):
-                return False, [f"`opencode debug agent {a}` exited {rc} without readable JSON:",
-                               *out.strip().splitlines()[:10]]
-            want_off = set()
-            for k in denied_keys(config_dir / "agents" / f"{a}.md"):
-                want_off |= {"edit", "write"} if k == "edit" else {k}
-            still_on = sorted(k for k in want_off if tools.get(k, False))
-            if still_on or "edit" not in want_off:
-                return False, [f"agent {a}: denied in its file but enabled by OpenCode: {still_on or ['edit']}"]
-            lines.append(f"agent {a}: tools off as written ({', '.join(sorted(want_off))})")
-
-        rc, out = _run([exe, "debug", "skill"], env, cwd)
+    # The read-only restriction is the point of these agents: confirm OpenCode applied it.
+    for a in KIT_AGENTS:
+        rc, out = _run_bounded([exe, "debug", "agent", a], env, cwd, OC1_CALL_TIMEOUT)
         try:
-            names = {sk["name"] for sk in json.loads(out[out.index("["):])}
-        except ValueError:
-            return False, [f"`opencode debug skill` exited {rc} without readable JSON"]
-        want = {st.dest.parent.name for st in steps if st.dest and st.dest.name == "SKILL.md"}
-        if want - names:
-            return False, [f"skills not loaded: {', '.join(sorted(want - names))}"]
-        lines.append(f"skills loaded: {', '.join(sorted(want))}")
+            tools = json.loads(out[out.index("{"):])["tools"]
+        except (ValueError, KeyError):
+            return False, [f"`opencode debug agent {a}` exited {rc} without readable JSON:",
+                           *out.strip().splitlines()[:10]]
+        want_off = set()
+        for k in denied_keys(config_dir / "agents" / f"{a}.md"):
+            want_off |= {"edit", "write"} if k == "edit" else {k}
+        still_on = sorted(k for k in want_off if tools.get(k, False))
+        if still_on or "edit" not in want_off:
+            return False, [f"agent {a}: denied in its file but enabled by OpenCode: {still_on or ['edit']}"]
+        lines.append(f"agent {a}: tools off as written ({', '.join(sorted(want_off))})")
 
-        rc, out = _run([exe, "debug", "config"], env, cwd)
-        try:
-            cmds = set(json.loads(out[out.index("{"):]).get("command") or {})
-        except ValueError:
-            return False, [f"`opencode debug config` exited {rc} without readable JSON"]
-        want = {st.dest.stem for st in steps if st.dest and st.dest.parent.name == "commands"}
-        if want - cmds:
-            return False, [f"commands not loaded: {', '.join(sorted(want - cmds))}"]
-        lines.append(f"commands loaded: {', '.join('/' + c for c in sorted(want))}")
+    rc, out = _run_bounded([exe, "debug", "skill"], env, cwd, OC1_CALL_TIMEOUT)
+    try:
+        names = {sk["name"] for sk in json.loads(out[out.index("["):])}
+    except ValueError:
+        return False, [f"`opencode debug skill` exited {rc} without readable JSON"]
+    want = {st.dest.parent.name for st in steps if st.dest and st.dest.name == "SKILL.md"}
+    if want - names:
+        return False, [f"skills not loaded: {', '.join(sorted(want - names))}"]
+    lines.append(f"skills loaded: {', '.join(sorted(want))}")
+
+    rc, out = _run_bounded([exe, "debug", "config"], env, cwd, OC1_CALL_TIMEOUT)
+    try:
+        cmds = set(json.loads(out[out.index("{"):]).get("command") or {})
+    except ValueError:
+        return False, [f"`opencode debug config` exited {rc} without readable JSON"]
+    want = {st.dest.stem for st in steps if st.dest and st.dest.parent.name == "commands"}
+    if want - cmds:
+        return False, [f"commands not loaded: {', '.join(sorted(want - cmds))}"]
+    lines.append(f"commands loaded: {', '.join('/' + c for c in sorted(want))}")
     return True, lines
 
 
+def oc2_denies(rules: list, action: str) -> bool:
+    """True when OpenCode 2's rules refuse `action` on every resource. Rules apply in order and the last
+    match wins, so the last rule for the action (or a pattern matching it) on resource "*" must deny, and
+    so must every rule for it after that one."""
+    def covers(r) -> bool:
+        return isinstance(r, dict) and fnmatch.fnmatchcase(action, str(r.get("action", "")))
+    last = max((i for i, r in enumerate(rules) if covers(r) and r.get("resource") == "*"), default=None)
+    return last is not None and all(r.get("effect") == "deny" for r in rules[last:] if covers(r))
+
+
+def _oc2_agents(data: list, config_dir: Path) -> tuple[bool, list[str]]:
+    by_id = {a.get("id"): a for a in data if isinstance(a, dict)}
+    missing = [a for a in KIT_AGENTS if a not in by_id]
+    if missing:
+        return False, [f"`opencode api agent.list` is missing: {', '.join(missing)}"]
+    modes = ", ".join(f"{a} ({by_id[a].get('mode')})" for a in KIT_AGENTS)
+    lines = [f"`opencode api agent.list` OK: {modes}"]
+    # The read-only restriction is the point of these agents: confirm OpenCode applied it. 2.x has no
+    # tools map; it translates each V1 deny into a rule in the agent's permissions list.
+    for a in KIT_AGENTS:
+        want = sorted({OC2_ACTION.get(k, k) for k in denied_keys(config_dir / "agents" / f"{a}.md")})
+        rules = by_id[a].get("permissions")
+        on = [k for k in want if not (isinstance(rules, list) and oc2_denies(rules, k))]
+        if on or "edit" not in want:
+            return False, [f"agent {a}: denied in its file but not denied by OpenCode: {on or ['edit']}"]
+        lines.append(f"agent {a}: denied as written ({', '.join(want)})")
+    return True, lines
+
+
+def _same_path(listed: str, dest: Path) -> bool:
+    if "://" in listed:  # a skill built into OpenCode ("skill://opencode/SKILL.md")
+        return False
+
+    def forms(p: str) -> set:
+        return {os.path.normcase(os.path.abspath(p)), os.path.normcase(os.path.realpath(p))}
+    return bool(forms(listed) & forms(str(dest)))
+
+
+def _oc2_skills(data: list, steps: list[Step]) -> tuple[bool, list[str]]:
+    """Every kit skill listed by name AND from the file this install wrote. OpenCode also loads
+    ~/.claude/skills and lists one skill per name, so with the kit's copy missing a skill of the same
+    name from there would pass a check by name alone."""
+    want = {st.dest.parent.name: st.dest for st in steps if st.dest and st.dest.name == "SKILL.md"}
+    listed: dict = {}
+    for sk in data:
+        if isinstance(sk, dict):
+            listed.setdefault(sk.get("name"), []).append(str(sk.get("path")))
+    bad = []
+    for name, dest in sorted(want.items()):
+        if not any(_same_path(p, dest) for p in listed.get(name, [])):
+            bad.append(f"{name} (loaded from {' and '.join(listed[name])}, not {dest})" if name in listed
+                       else f"{name} (not listed)")
+    if bad:
+        return False, [f"skills not loaded from this install: {'; '.join(bad)}"]
+    return True, [f"skills loaded from this install: {', '.join(sorted(want))}"]
+
+
+def _oc2_commands(data: list, steps: list[Step]) -> tuple[bool, list[str]]:
+    names = {c.get("name") for c in data if isinstance(c, dict)}
+    want = {st.dest.stem for st in steps if st.dest and st.dest.parent.name == "commands"}
+    if want - names:
+        return False, [f"commands not loaded: {', '.join(sorted(want - names))}"]
+    return True, [f"commands loaded: {', '.join('/' + c for c in sorted(want))}"]
+
+
+def _oc2_data(out: str) -> list | None:
+    """The list in an `opencode api` answer ({"location": {...}, "data": [...]}), or None."""
+    i = out.find("{")
+    try:
+        doc = json.JSONDecoder().raw_decode(out[i:])[0] if i >= 0 else None
+    except ValueError:
+        return None
+    data = doc.get("data") if isinstance(doc, dict) else None
+    return data if isinstance(data, list) else None
+
+
+@contextlib.contextmanager
+def _oc2_server(exe: str, env: dict, cwd: str):
+    """A private `opencode serve` on a free loopback port, killed on exit. Yields (url, []) or, when it
+    did not start, (None, why). It writes to a log opened for appending, which this reads through a
+    handle of its own, so a read never moves the offset the server writes at."""
+    fd, log = tempfile.mkstemp(prefix="starter-loadcheck-serve-", suffix=".log")
+    os.close(fd)
+    p = None
+    try:
+        with open(log, "ab") as sink:  # the server keeps its own copy of this handle
+            p = _spawn([exe, "serve", "--hostname", "127.0.0.1", "--port", "0"], env, cwd, sink, sink)
+        url, text, deadline = None, "", time.monotonic() + OC_CALL_TIMEOUT
+        while url is None and p.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.2)
+            with open(log, "rb") as f:
+                text = ANSI.sub("", f.read().decode("utf-8", errors="replace"))
+            m = re.search(r"listening on (http://\S+?)\r?\n", text)
+            url = m.group(1) if m else None
+        if url:
+            yield url, []
+        else:
+            why = f"exited {p.returncode}" if p.poll() is not None else f"printed no address in {OC_CALL_TIMEOUT}s"
+            yield None, [f"`opencode serve` {why}:", *text.strip().splitlines()[:10]]
+    finally:
+        if p is not None:
+            _kill_tree(p)
+        with contextlib.suppress(OSError):
+            os.remove(log)
+
+
+def _oc2_poll(exe: str, url: str, op: str, env: dict, cwd: str,
+              judge: Callable[[list], tuple[bool, list[str]]]) -> tuple[bool, list[str]]:
+    """Ask the server for `op` until judge accepts the same answer twice in a row. A server's first
+    answers for a directory can come before discovery has finished (on 2.3.0: no kit agents, two
+    skills), so a single read would fail an install that loaded."""
+    deadline, prev, reads = time.monotonic() + OC_SETTLE_TIMEOUT, None, 0
+    while True:
+        rc, out = _run_bounded([exe, "api", "--server", url, op], env, cwd, OC_CALL_TIMEOUT)
+        reads += 1
+        data = _oc2_data(out) if rc == 0 else None
+        if data is None:
+            return False, [f"`opencode api {op}` exited {rc} without readable JSON:", *out.strip().splitlines()[:10]]
+        ok, lines = judge(data)
+        if ok and data == prev:
+            return True, lines
+        if time.monotonic() >= deadline:
+            if ok:
+                return False, [f"`opencode api {op}` never gave the same answer twice ({reads} reads in "
+                               f"{OC_SETTLE_TIMEOUT}s)"]
+            return False, [*lines, f"(the last of {reads} reads of `opencode api {op}` in {OC_SETTLE_TIMEOUT}s)"]
+        prev = data
+        time.sleep(OC_POLL_INTERVAL)
+
+
+def _oc2_check(exe: str, env: dict, cwd: str, config_dir: Path, steps: list[Step]) -> tuple[bool, list[str]]:
+    """OpenCode 2 has no `agent list` or `debug agent|skill|config`; `opencode api` asks a server for the
+    same lists. On 2.3.0 three things make a plain check lie or hang, and each is handled here:
+      - by default the CLI asks a background service, which keeps the environment it started with and so
+        can answer for another config: every call goes to a private server started with this
+        environment (`--server <url>`), never to the service;
+      - a server's first answers come before discovery finishes: _oc2_poll reads until they settle;
+      - a server always has a password (a random one if none is set) that the client must send: both
+        get the same fresh one, and _spawn closes stdin so no call can wait at a prompt.
+    Project config is off, so agents, commands and skills in a `.opencode` or `.claude` folder above the
+    check's directory are not counted; ~/.claude/skills still loads, hence _oc2_skills matches by path.
+    Auto-update is off, so the check cannot replace the binary it is asking."""
+    pw = secrets.token_urlsafe(24)
+    env = dict(env, OPENCODE_PASSWORD=pw, OPENCODE_SERVER_PASSWORD=pw, OPENCODE_DISABLE_PROJECT_CONFIG="1",
+               OPENCODE_DISABLE_AUTOUPDATE="1")
+    with _oc2_server(exe, env, cwd) as (url, why):
+        if url is None:
+            return False, why
+        lines = ["asked a private `opencode serve` through `opencode api`"]
+        for op, judge in (("agent.list", lambda d: _oc2_agents(d, config_dir)),
+                          ("skill.list", lambda d: _oc2_skills(d, steps)),
+                          ("command.list", lambda d: _oc2_commands(d, steps))):
+            ok, got = _oc2_poll(exe, url, op, env, cwd, judge)
+            if not ok:
+                return False, got
+            lines += got
+    return True, lines
+
+
+def opencode_load_check(config_dir: Path, steps: list[Step]) -> tuple[bool, list[str], str | None]:
+    """Ask OpenCode itself whether it loads the install, in the way its major version allows. Returns
+    (passed, lines, the version `opencode --version` printed or None)."""
+    exe = shutil.which("opencode")
+    if not exe:
+        return False, ["`opencode` not found on PATH, so the install could not be load-checked"], None
+    env = dict(os.environ)
+    if config_dir.resolve() != opencode_config_dir().resolve():
+        env["OPENCODE_CONFIG_DIR"] = str(config_dir)
+    # mkdtemp, not TemporaryDirectory: on Windows a process that has not let go of the folder yet would
+    # make the cleanup raise, and the cleanup is not worth failing an install over.
+    cwd = tempfile.mkdtemp(prefix="starter-loadcheck-")
+    try:
+        version, why = opencode_version(exe, env, cwd)
+        if version is None:
+            return False, why, None
+        major = int(version.split(".")[0])
+        if major not in OC_MAJORS:
+            return False, [f"OpenCode {version} is a major version this installer cannot check (it knows "
+                           f"{' and '.join(f'{m}.x' for m in OC_MAJORS)}). The files are written, but nothing "
+                           "confirmed that OpenCode loads them."], version
+        ok, lines = (_oc1_check if major == 1 else _oc2_check)(exe, env, cwd, config_dir, steps)
+        return ok, [f"opencode {version}", *lines], version
+    finally:
+        shutil.rmtree(cwd, ignore_errors=True)
+
+
 def opencode_check(config_dir: Path, steps: list[Step]) -> tuple[bool, list[str], str]:
-    ok, lines = opencode_load_check(config_dir, steps)
-    return ok, lines, "passed (loaded by opencode)" if ok else "FAILED"
+    # "passed (loaded by opencode)" is matched as is by CI; the version follows it.
+    ok, lines, version = opencode_load_check(config_dir, steps)
+    return ok, lines, f"passed (loaded by opencode) version {version}" if ok else "FAILED"
 
 
 # --------------------------------------------------------------------------
@@ -861,7 +1114,8 @@ def onboard_line(tool: str, where: str) -> str:
 
 def next_opencode(cfg: Path, args) -> list[str]:
     return ["Restart opencode to pick the changes up (it reads config once at start).",
-            "Check it took: run `opencode agent list` and look for verifier, code-reviewer and consultant.",
+            "Check it took: run `opencode agent list` (OpenCode 1.x) or `opencode debug agents` (2.x) and look "
+            "for verifier, code-reviewer and consultant.",
             onboard_line("opencode", "in opencode")]
 
 

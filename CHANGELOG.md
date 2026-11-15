@@ -8,7 +8,32 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
-## [0.5.0] - unreleased
+## [0.5.1] - 2026-11-15
+
+### Fixed
+
+- `install.py --tool opencode` failed on OpenCode 2 (`@opencode/cli` 2.x)
+  after writing every file: its load check ran `opencode agent list`, which
+  2.x removed, and exited 1 with "load check FAILED". The check now reads
+  the version from `opencode --version` and asks each major its own way. 1.x
+  is checked as before. 2.x is asked through `opencode api` (`agent.list`,
+  `skill.list`, `command.list`) against a private `opencode serve` the check
+  starts on a loopback port with a fresh password and stops afterwards, so it
+  never reads a background service that started with another config. It
+  re-reads each list until two answers agree, because a 2.x server's first
+  answers come before discovery finishes. It matches each skill by the file
+  this install wrote as well as by name: 2.x also loads `~/.claude/skills`,
+  one skill per name, so a same-named skill there could stand in for a
+  missing kit skill. Project config is off for the check, so a `.opencode` or
+  `.claude` folder above its working directory does not count. A major other
+  than 1 or 2 fails the check and names the version. Every opencode call has
+  a timeout, and a process left behind cannot stall one.
+- The check's summary line names the OpenCode version:
+  `passed (loaded by opencode) version 2.3.0`.
+- The closing block's self-check named `opencode agent list` only. It now
+  gives `opencode debug agents` for 2.x as well.
+
+## [0.5.0] - 2026-11-15
 
 ### Added
 
