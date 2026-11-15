@@ -27,8 +27,15 @@ Copies files; it translates nothing (scripts/build_adapters.py did that). Safety
   - after installing, the tool's own loader must accept the result, or the run fails. Where no
     offline loader exists, the installed files are checked structurally and the output says that
     nothing was verified against the real tool;
-  - any failure saves a redacted report (scripts/report.py) and prints an issue link; nothing is sent.
-Without --yes it asks on a terminal; with no terminal and no --yes it only prints the plan.
+  - just before writing, every destination folder is tried by creating and deleting one file in it; if
+    any cannot be written (a sandboxed agent session, say) nothing is written and the run exits 3,
+    naming the folder. It never falls back to installing into the project folder;
+  - any other failure saves a redacted report (scripts/report.py) and prints an issue link; nothing is sent;
+  - a successful install ends with a "For you" block: what the person at the keyboard does next, what
+    was left to them, and the install's limits. An agent relays only that block, so each item in it
+    is self-contained and nothing in it points at text printed above.
+Without --yes it asks on a terminal; with no terminal and no --yes it only prints the plan. Both that
+run and a dry run end on a line telling an agent to stop and ask the user.
 """
 from __future__ import annotations
 
@@ -42,6 +49,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -52,9 +60,12 @@ ADAPTERS = ROOT / "adapters"
 GUARD = ROOT / "plugins" / "starter" / "hooks" / "commit-guard" / "guard.py"
 KIT_AGENTS = ("verifier", "code-reviewer", "consultant")
 
-BEGIN = "<!-- BEGIN claude-starter rules (managed by scripts/install.py; a re-run replaces this block) -->"
+# Only the block this installer writes carries RULES_MARK, so the Codex self-check looks for it. The kit's
+# own AGENTS.md mentions "claude-starter" too, and a check for that passed with no rules installed.
+RULES_MARK = "BEGIN claude-starter rules"
+BEGIN = f"<!-- {RULES_MARK} (managed by scripts/install.py; a re-run replaces this block) -->"
 END = "<!-- END claude-starter rules -->"
-BEGIN_RX = re.compile(r"^<!-- BEGIN claude-starter rules\b.*-->$", re.M)
+BEGIN_RX = re.compile(rf"^<!-- {re.escape(RULES_MARK)}\b.*-->$", re.M)
 END_RX = re.compile(r"^<!-- END claude-starter rules -->$", re.M)
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 STAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -618,6 +629,9 @@ def codex_check(cfg: Path, steps: list[Step]) -> tuple[bool, list[str], str]:
     ok, lines = structural_check("codex", steps)
     if not ok:
         return False, lines, "FAILED"
+    warning = codex_override_warning(cfg)
+    if warning:  # a warning, not a failure: the files are installed and load once the override goes
+        lines.append(warning)
     rules = next((s.dest for s in steps if s.dest and s.dest.suffix == ".rules"), None)
     exe = shutil.which("codex")
     if not exe:
@@ -645,10 +659,17 @@ def codex_check(cfg: Path, steps: list[Step]) -> tuple[bool, list[str], str]:
 # Tools
 # --------------------------------------------------------------------------
 
+Hook = Callable[[Path, argparse.Namespace], list[str]]
+
+
 @dataclass
 class Tool:
     config_dir: Callable[[], Path] | None       # None: --config-dir is required
     dirs: tuple[str, ...]                        # adapter subfolders copied as-is
+    # Both hooks are required, so a tool cannot be added without deciding what its user is told.
+    # A Codex install once ended on caveats with no restart step, and the user never got the rules.
+    after: Hook                                  # caveats: the last item of the "For you" block
+    next_steps: Hook                             # what to do next: the first items of that block
     rules_file: str | None = "AGENTS.md"         # None: the tool has no global rules file
     json_merge: tuple[str, str] | None = None    # (adapter file, config file)
     load_check: Callable[[Path, list[Step]], tuple[bool, list[str], str]] | None = None
@@ -657,7 +678,6 @@ class Tool:
     rules_cap: int | None = None                 # bytes the tool reads from one rules file
     bins: tuple[str, ...] = ()                   # evidence for --detect
     marks: Callable[[], list[Path]] = lambda: []  # config dirs that are evidence for --detect
-    after: Callable[[Path, argparse.Namespace], list[str]] | None = None
     needs_bin: str | None = None                 # the load check fails without it: checked before writing
 
 
@@ -667,38 +687,28 @@ def notes_codex(cfg: Path, args) -> list[str]:
             "unified_exec = false); not verified that Codex honours [features] in agent files.",
             "checkpoint and lanes are skills (Codex prompts are deprecated). Codex documents no "
             "`disable-model-invocation`, so it may also start them on its own.",
-            "Codex's commit attribution is undocumented since 2026-05-13; the commit guard is the check.",
+            "Codex's commit attribution is undocumented since 2026-05-13. Only repos given to "
+            "--guard-repo have the commit guard to flag it.",
             f"Allowlist: {cfg / 'rules' / 'claude-starter.rules'} allows only commands checked to stay "
             "read-only when arguments are appended (Codex matches prefixes); git diff/log/branch and "
             "ruff still ask."]
 
 
 def notes_cursor(cfg: Path, args) -> list[str]:
-    out = []
-    if not args.project:
-        src = ADAPTERS / "cursor" / f"AGENTS.{args.tier}.md"
-        out += ["RULES ARE NOT INSTALLED YET. Cursor has no global rules file. Do one of:",
-                f"  - Cursor Settings > Rules > User Rules: paste the whole of {src}",
-                f"  - per repo: python {ROOT / 'scripts' / 'install.py'} --tool cursor --tier {args.tier} --yes "
-                "--project <repo>   (writes <repo>/AGENTS.md inside a managed block)"]
-    out.append("No git allow rule was added: Cursor's Shell(git) would allow every git command, push included.")
+    out = ["No git allow rule was added: Cursor's Shell(git) would allow every git command, push included."]
     try:
         att = json.loads((cfg / "cli-config.json").read_text(encoding="utf-8-sig")).get("attribution", {})
         if att.get("attributeCommitsToAgent") is not False or att.get("attributePRsToAgent") is not False:
-            out.append(f"WARNING: your cli-config.json keeps attribution {json.dumps(att)}; the commit guard "
-                       "will flag Cursor's 'Made with Cursor' trailer. Set both to false to stop it.")
+            out.append(f"WARNING: your cli-config.json keeps attribution {json.dumps(att)}; in repos with "
+                       "the commit guard (--guard-repo), it flags Cursor's 'Made with Cursor' trailer. Set both "
+                       "to false to stop it.")
     except (OSError, ValueError, AttributeError):
         pass
     return out
 
 
 def notes_copilot(cfg: Path, args) -> list[str]:
-    snippet = (ADAPTERS / "copilot" / "vscode-terminal-autoapprove.json").read_text(encoding="utf-8")
-    return ["Read-only terminal commands for VS Code (not edited by this installer): open "
-            "'Preferences: Open User Settings (JSON)' and merge in:", *snippet.rstrip().splitlines(),
-            "The keys are anchored regexes, so each matches only that exact command. The Copilot CLI has no "
-            "allowlist file; approve per session.",
-            "Agents use `tools` (read, search; execute for verifier/code-reviewer) plus strict-tools-list, "
+    return ["Agents use `tools` (read, search; execute for verifier/code-reviewer) plus strict-tools-list, "
             "which GitHub's configuration reference does not list: unconfirmed."]
 
 
@@ -723,33 +733,110 @@ def notes_junie(cfg: Path, args) -> list[str]:
             "defaultBehavior and allowReadonlyCommands were not set: Junie does not document their values."]
 
 
+def no_notes(cfg: Path, args) -> list[str]:
+    return []
+
+
+def codex_override_warning(cfg: Path) -> str | None:
+    """Codex reads AGENTS.override.md in its home instead of AGENTS.md when that file has content."""
+    override = cfg / "AGENTS.override.md"
+    try:
+        if not override.is_file() or override.stat().st_size == 0:
+            return None
+    except OSError:
+        return None
+    return (f"WARNING: {override} is not empty. Codex reads it instead of {cfg / 'AGENTS.md'}, so the kit's "
+            "rules will not load. Move what you need from it into AGENTS.md and delete it (or empty it).")
+
+
+def next_opencode(cfg: Path, args) -> list[str]:
+    return ["Restart opencode to pick the changes up (it reads config once at start).",
+            "Check it took: run `opencode agent list` and look for verifier, code-reviewer and consultant."]
+
+
+def next_codex(cfg: Path, args) -> list[str]:
+    out = [f"Quit and restart Codex, or open a new chat. Codex reads {cfg / 'AGENTS.md'} once per session, "
+           "so the chat that ran this installer does not have the rules.",
+           'Check it took: in the new chat ask "what rules are you following?", or run '
+           f'`codex debug prompt-input "x"` in a terminal and look for "{RULES_MARK}" in the output '
+           "(only the block this installer wrote contains that line)."]
+    warning = codex_override_warning(cfg)
+    return out + ([warning] if warning else [])
+
+
+def next_cursor(cfg: Path, args) -> list[str]:
+    out = ["Restart Cursor, or open a new chat, so it picks up the agents and skills."]
+    if not args.project:
+        src = ADAPTERS / "cursor" / f"AGENTS.{args.tier}.md"
+        out.append("\n".join([
+            "The rules are NOT installed: Cursor has no global rules file. Do one of these:",
+            f"- In Cursor Settings > Rules > User Rules, paste the whole of {src}",
+            "- Or write them into one repo's AGENTS.md, inside a managed block: run this in your own terminal, "
+            "with <your-repo> replaced by the repo's folder:",
+            *(f"  {ln}" for ln in install_lines(args, " --project <your-repo> --yes"))]))
+    return out
+
+
+def next_copilot(cfg: Path, args) -> list[str]:
+    snippet = ADAPTERS / "copilot" / "vscode-terminal-autoapprove.json"
+    return ["Restart VS Code or the Copilot CLI, or open a new chat, so it picks up the rules, agents and skills.",
+            "\n".join([
+                "The VS Code terminal allowlist is NOT installed (optional; this installer does not edit VS Code's "
+                "settings). To add it, run 'Preferences: Open User Settings (JSON)' in VS Code and merge in the "
+                "\"chat.tools.terminal.autoApprove\" entries from this file:",
+                f"  {snippet}",
+                "Each key is an anchored regex, so it matches only that exact command. The Copilot CLI has no "
+                "allowlist file; approve commands per session there."])]
+
+
+def next_antigravity(cfg: Path, args) -> list[str]:
+    return ["Restart Antigravity, or open a new chat, so it picks up the rules and settings."]
+
+
+def next_junie(cfg: Path, args) -> list[str]:
+    return ["Restart Junie, or open a new session, so it picks up the rules, agents, skills and commands."]
+
+
+def next_generic(cfg: Path, args) -> list[str]:
+    return [f"Point your tool at {cfg} and confirm it loads the rules, agents and skills (PORTING.md). "
+            "Nothing here was checked against your tool."]
+
+
+def next_claude(cfg: Path, args) -> list[str]:
+    return ["Next: open Claude Code and run /starter:setup. It installs CLAUDE.md and merges settings, "
+            "asking before each change. This installer leaves those to it so they have one writer."]
+
+
 TOOLS: dict[str, Tool] = {
-    "opencode": Tool(opencode_config_dir, ("skills", "agents", "commands"),
+    "opencode": Tool(opencode_config_dir, ("skills", "agents", "commands"), after=no_notes,
+                     next_steps=next_opencode,
                      json_merge=("opencode.permission.json", "opencode.json"), load_check=opencode_check,
                      bins=("opencode",), marks=lambda: [opencode_config_dir()], needs_bin="opencode"),
-    "codex": Tool(codex_home, ("skills", "agents", "rules"), load_check=codex_check, shared_skills=True,
-                  bins=("codex",), marks=lambda: [codex_home()], after=notes_codex),
-    "cursor": Tool(cursor_dir, ("skills", "agents"), rules_file=None,
+    "codex": Tool(codex_home, ("skills", "agents", "rules"), after=notes_codex, next_steps=next_codex,
+                  load_check=codex_check, shared_skills=True, bins=("codex",), marks=lambda: [codex_home()]),
+    "cursor": Tool(cursor_dir, ("skills", "agents"), after=notes_cursor, next_steps=next_cursor, rules_file=None,
                    json_merge=("cli-config.json", "cli-config.json"), load_check=structural_only("cursor"),
                    shared_skills=True, union=("permissions.allow", "permissions.deny"),
                    # The Cursor CLI binary is called `agent`, too generic a name to count as evidence.
-                   bins=("cursor", "cursor-agent"), marks=lambda: [cursor_dir()], after=notes_cursor),
-    "copilot": Tool(copilot_home, ("skills", "agents"), rules_file="copilot-instructions.md",
-                    load_check=structural_only("copilot"), shared_skills=True,
-                    bins=("copilot",), marks=lambda: [copilot_home()], after=notes_copilot),
-    "antigravity": Tool(lambda: home() / ".gemini", ("config",),
+                   bins=("cursor", "cursor-agent"), marks=lambda: [cursor_dir()]),
+    "copilot": Tool(copilot_home, ("skills", "agents"), after=notes_copilot, next_steps=next_copilot,
+                    rules_file="copilot-instructions.md", load_check=structural_only("copilot"),
+                    shared_skills=True, bins=("copilot",), marks=lambda: [copilot_home()]),
+    "antigravity": Tool(lambda: home() / ".gemini", ("config",), after=notes_antigravity,
+                        next_steps=next_antigravity,
                         json_merge=("antigravity-cli.settings.json", "antigravity-cli/settings.json"),
                         load_check=structural_only("antigravity"), union=("permissions.allow",),
                         rules_cap=ANTIGRAVITY_CAP, bins=("agy", "antigravity"),
-                        marks=lambda: [home() / ".gemini" / "antigravity-cli", home() / ".gemini" / "config"],
-                        after=notes_antigravity),
-    "junie": Tool(lambda: home() / ".junie", ("skills", "agents", "commands"),
+                        marks=lambda: [home() / ".gemini" / "antigravity-cli", home() / ".gemini" / "config"]),
+    "junie": Tool(lambda: home() / ".junie", ("skills", "agents", "commands"), after=notes_junie,
+                  next_steps=next_junie,
                   json_merge=("junie.allowlist.json", "allowlist.json"), load_check=structural_only("junie"),
                   shared_skills=True, union=("rules.executables.rules",),
-                  bins=("junie",), marks=lambda: [home() / ".junie"], after=notes_junie),
-    "generic": Tool(None, ("skills", "agents", "commands"), after=notes_generic),
+                  bins=("junie",), marks=lambda: [home() / ".junie"]),
+    "generic": Tool(None, ("skills", "agents", "commands"), after=notes_generic, next_steps=next_generic),
 }
-CLAUDE = Tool(claude_config_dir, (), bins=("claude",), marks=lambda: [claude_config_dir()])
+CLAUDE = Tool(claude_config_dir, (), after=no_notes, next_steps=next_claude, bins=("claude",),
+              marks=lambda: [claude_config_dir()])
 ALL_TOOLS = sorted([*TOOLS, "claude"])
 
 
@@ -829,21 +916,45 @@ def table(rows: list[tuple[str, str, str]]) -> None:
             print("  ".join("-" * x for x in w))
 
 
+def agent_stop_line(args) -> str:
+    """The last line an agent reads before it decides whether to apply. An agent once read the bare
+    "Re-run with --yes to apply." as its next step and installed without asking the user anything."""
+    ask = ("ask whether to add the commit guard to a repo" if args.tool == "claude"
+           else "ask which tier (starter or full) and whether to add the commit guard to a repo")
+    return (f"If you are an AI agent: stop here. Show the user this plan, {ask}, and end your turn. "
+            "Run with --yes only after they reply.")
+
+
+def install_lines(args, tail: str = " --yes") -> list[str]:
+    """This install as one command per shell, for a person to run in their own terminal. `tail` takes
+    the place of the closing --yes, to add a flag whose <placeholder> the person fills in."""
+    bash, ps = update_commands(args)
+    cut = len(" --yes")
+    return [f"  bash:       {bash[1][:-cut]}{tail}", f"  PowerShell: {ps[1][:-cut]}{tail}"]
+
+
+def no_terminal(args) -> None:
+    # Without a terminal the reader is almost always an agent (a person gets the y/N prompt), so no
+    # ready-to-run --yes command follows the stop line.
+    print("\nno terminal and no --yes: dry run only, nothing written.")
+    print(agent_stop_line(args))
+
+
 def confirm(args) -> int | None:
     """None to go ahead, else the exit code."""
     if args.dry_run:
         print("\ndry run: nothing written.")
+        print(agent_stop_line(args))
         return 0
     if args.yes:
         return None
-    no_tty = "\nno terminal and no --yes: dry run only, nothing written. Re-run with --yes to apply."
     if not sys.stdin.isatty():
-        print(no_tty)
+        no_terminal(args)
         return 0
     try:
         answer = input("\nApply this plan? [y/N] ")
     except EOFError:  # Windows reports NUL as a tty, so a redirected stdin can still land here
-        print(no_tty)
+        no_terminal(args)
         return 0
     if answer.strip().lower() not in ("y", "yes"):
         print("aborted; nothing written.")
@@ -971,6 +1082,8 @@ def install_claude(args) -> int:
         if problems:
             return preflight_failed(problems)
         rc = confirm(args)
+        if rc is None:
+            rc = check_writable(steps, args)
         if rc is not None:
             return rc
         for s in steps:
@@ -992,12 +1105,11 @@ def install_claude(args) -> int:
         check = [f"`claude plugin list`: {plugin} " + ("enabled" if ok else f"NOT enabled ({now.get(plugin)})")]
     return finish_run("claude", None, steps, ok, check,
                       "passed (claude plugin list shows it enabled)" if ok else "FAILED",
-                      ["Next: open Claude Code and run /starter:setup. It installs CLAUDE.md and merges settings, "
-                       "asking before each change. This installer leaves those to it so they have one writer."], args)
+                      CLAUDE.after(cfg, args), args, CLAUDE.next_steps(cfg, args))
 
 
 def finish_run(tool: str, tier: str | None, steps: list[Step], ok_load: bool, load_lines: list[str],
-               verdict: str, after: list[str], args) -> int:
+               verdict: str, after: list[str], args, next_steps: list[str]) -> int:
     print()
     rows = [("piece", "destination", "status")]
     for s in steps:
@@ -1021,11 +1133,9 @@ def finish_run(tool: str, tier: str | None, steps: list[Step], ok_load: bool, lo
             error += ["load check:", *load_lines]
         report_failure("\n".join(error))
         return 1
-    if after:
-        print()
-        for ln in after:
-            print(ln)
     footer(args)
+    # Last, so it is what the user and any agent read last; the caveats print nowhere else.
+    print_for_you([*next_steps, guard_status(args), *limits_item(after)])
     return 0
 
 
@@ -1075,6 +1185,162 @@ def preflight_failed(problems: list[str]) -> int:
     report_failure("preflight failed; nothing written:\n" + "\n".join(problems),
                    version_note="version not probed (preflight failure)")
     return 1
+
+
+# --------------------------------------------------------------------------
+# Write probe: a sandboxed agent session can read the tool's config but not write it
+# --------------------------------------------------------------------------
+
+UNWRITABLE = 3  # exit code: a destination cannot be written; nothing was written
+# Set in the shell of a Codex agent (codex-rs exec_env.rs and spawn.rs, 0.167.0). They only pick the
+# message: whether a folder can be written is found by trying, since no variable proves a sandbox.
+CODEX_MARKERS = ("CODEX_THREAD_ID", "CODEX_SESSION_ID", "CODEX_SANDBOX", "CODEX_SANDBOX_NETWORK_DISABLED")
+
+
+def guard_hooks_dir(repo: Path) -> Path:
+    """Where guard.py install writes the hooks: git's hooks path, else <repo>/.git/hooks."""
+    try:
+        r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-path", "hooks"],
+                           capture_output=True, timeout=60)
+        out = r.stdout.decode("utf-8", errors="replace").strip()
+        if r.returncode == 0 and out:
+            p = Path(out)
+            return p if p.is_absolute() else repo / p
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return repo / ".git" / "hooks"
+
+
+def write_targets(steps: list[Step]) -> tuple[list[Path], list[Path]]:
+    """(every folder the plan writes into, every existing file it changes), each once, in plan order."""
+    dirs: list[Path] = []
+    files: list[Path] = []
+    for s in steps:
+        if not s.writes or s.dest is None:
+            continue
+        if s.kind in ("file", "rules", "json"):
+            found = [s.dest.parent]
+            if s.dest.is_file():
+                files.append(s.dest)
+        elif s.kind == "guard":
+            found = [guard_hooks_dir(s.dest), guard_data_dir()]
+        elif s.kind == "cli":
+            found = [s.dest]
+        else:
+            found = []
+        dirs += [d for d in found if d not in dirs]
+    return dirs, files
+
+
+def probe_dir(d: Path) -> OSError | None:
+    """Make `d` the way apply would, create, write and delete one uniquely named file in it, then
+    remove every folder the probe made. None when all of that worked; the probe leaves no trace."""
+    made: list[Path] = []
+    try:
+        for m in reversed([p for p in (d, *d.parents) if not p.exists()]):
+            m.mkdir()
+            made.append(m)
+        probe = d / f".claude-starter-write-probe-{os.getpid()}-{uuid.uuid4().hex}"
+        fd = os.open(str(probe), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        try:
+            os.write(fd, b"x")
+        finally:
+            os.close(fd)
+        os.unlink(str(probe))
+        return None
+    except OSError as e:
+        return e
+    finally:
+        for m in reversed(made):
+            try:
+                m.rmdir()
+            except OSError:
+                pass
+
+
+def unwritable(steps: list[Step]) -> list[tuple[Path, OSError]]:
+    """Every destination the plan cannot write, found by trying, before anything is written."""
+    dirs, files = write_targets(steps)
+    bad = [(d, e) for d, e in ((d, probe_dir(d)) for d in dirs) if e is not None]
+    for f in files:
+        try:
+            with open(f, "r+b"):  # opened for writing, nothing written
+                pass
+        except OSError as e:
+            bad.append((f, e))
+    return bad
+
+
+def refuse_unwritable(bad: list[tuple[Path, OSError]], args) -> int:
+    """Refuse the whole install. A partial or project-local install never reaches the global config,
+    which once left a Codex user pasting the kit's link into every new chat."""
+    err = sys.stderr
+    print("\nCANNOT WRITE; nothing was written:", file=err)
+    for path, e in bad:
+        print(f"  {path}: {type(e).__name__}: {e}", file=err)
+    markers = [k for k in CODEX_MARKERS if os.environ.get(k)]
+    if markers:
+        print(f"\nThis looks like a Codex sandbox ({', '.join(markers)} is set). It lets this session write "
+              "to its own workspace, not to your tool's global config. A Codex cloud task runs in a temporary "
+              "container, so an install there would not reach your machine either.", file=err)
+    else:
+        print("\nThis looks like a sandboxed agent session, or a folder you cannot write to.", file=err)
+    print("Installing into the project folder, or copying the files by hand, would reach only this "
+          "project or this session, not your tool's global config, so the installer does neither.", file=err)
+    print("To install, run this in your own terminal (not through the agent):", file=err)
+    for ln in install_lines(args):
+        print(ln, file=err)
+    if markers:
+        print("Or approve running it outside the sandbox when Codex asks, or give the session write access "
+              "to the folders above (Full access, or sandbox_workspace_write.writable_roots in Codex's "
+              "config.toml) and run it again.", file=err)
+    else:
+        print("Or make the folders above writable and run it again.", file=err)
+    print("If you are an AI agent: do not work around this. Show the user this message and end your turn.",
+          file=err)
+    return UNWRITABLE
+
+
+def check_writable(steps: list[Step], args) -> int | None:
+    """None when every destination can be written, else the exit code after refusing."""
+    CTX["step"] = "checking that every destination can be written"
+    bad = unwritable(steps)
+    return refuse_unwritable(bad, args) if bad else None
+
+
+# --------------------------------------------------------------------------
+# The "For you" block: what the person at the keyboard does next, printed last
+# --------------------------------------------------------------------------
+
+FOR_YOU = "=== For you (the person at the keyboard) ==="
+
+
+def guard_status(args) -> str:
+    repos = [str(Path(r).expanduser().resolve()) for r in getattr(args, "guard_repo", None) or []]
+    if repos:
+        return "Commit guard: installed as git hooks in " + ", ".join(repos) + "."
+    inside = " Inside Claude Code the plugin's hook still checks Claude's own commits." if args.tool == "claude" else ""
+    return "\n".join([f"Commit guard: NOT installed in any repo.{inside} To add it to a repo, run this in your "
+                      "own terminal, with <your-repo> replaced by the repo's folder:",
+                      *install_lines(args, " --guard-repo <your-repo> --yes")])
+
+
+def limits_item(after: list[str]) -> list[str]:
+    """The tool's caveats as one last item. They live inside the block because an agent relays only
+    the block: printed above it, the Codex read-only caveat never reached the user."""
+    if not after:
+        return []
+    return ["\n".join(["Limits of this install:", *("- " + ln.replace("\n", "\n  ") for ln in after)])]
+
+
+def print_for_you(items: list[str]) -> None:
+    print()
+    print(FOR_YOU)
+    for i, item in enumerate(items, 1):
+        first, *rest = item.split("\n")
+        print(f"{i}. {first}")
+        for ln in rest:
+            print(f"   {ln}")
 
 
 def run(argv: list[str] | None) -> int:
@@ -1174,6 +1440,8 @@ def run(argv: list[str] | None) -> int:
     if problems:
         return preflight_failed(problems)
     rc = confirm(args)
+    if rc is None:
+        rc = check_writable(steps, args)
     if rc is not None:
         return rc
 
@@ -1187,10 +1455,8 @@ def run(argv: list[str] | None) -> int:
     ok_load, load_lines, verdict = True, [], "n/a (no loader to ask)"
     if tool.load_check:
         ok_load, load_lines, verdict = tool.load_check(cfg, steps)
-    after = tool.after(cfg, args) if tool.after else []
-    if args.tool == "opencode":
-        after.append("Restart opencode to pick the changes up (it reads config once at start).")
-    return finish_run(args.tool, args.tier, steps, ok_load, load_lines, verdict, after, args)
+    return finish_run(args.tool, args.tier, steps, ok_load, load_lines, verdict, tool.after(cfg, args), args,
+                      tool.next_steps(cfg, args))
 
 
 def main(argv: list[str] | None = None) -> int:

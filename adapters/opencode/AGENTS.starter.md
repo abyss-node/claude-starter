@@ -19,7 +19,7 @@ break the code once and watch it go red, then restore it.
 <result>` for what was run, `Unverified: <claim>` for what was only reasoned
 about. A chat summary dies with the session; a commit outlives it. The record
 says what was checked, not who or what wrote it, so no co-author or "generated
-with" lines. The `starter` commit guard checks this; `/checkpoint` writes
+with" lines. Where the commit guard is installed (installer `--guard-repo`) it checks this; `/checkpoint` writes
 it for you.
 
 ## Confirm before anything outward-facing or irreversible

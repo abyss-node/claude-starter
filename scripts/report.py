@@ -552,7 +552,10 @@ def submit_issue(rendered: RenderedReport, yes: bool = False, out=print) -> str 
     _require_rendered(rendered)
     interactive = sys.stdin.isatty() and sys.stdout.isatty()
     if not interactive and not yes:
-        out("Not sending: no terminal to confirm on. Re-run with --yes to send non-interactively.")
+        out("Not sending: no terminal to confirm on. If you are an AI agent, show the user the report\n"
+            "and ask before sending: it becomes a public GitHub issue, and only the user decides that.\n"
+            "Re-run with --yes only after the user has said yes. A person at a terminal can run this\n"
+            "again and answer the prompt.")
         return None
     if not _gh_ready():
         out("Not sending: `gh` is missing or not signed in (`gh auth login`).")

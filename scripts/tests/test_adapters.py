@@ -5,6 +5,7 @@ touches a real tool config. Real tools are only used when they are on PATH (code
 """
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -41,6 +42,103 @@ def run_install(tmp_path: Path, *args: str) -> subprocess.CompletedProcess:
 
 def test_adapters_match_a_fresh_build():
     assert ba.main(["--check"]) == 0
+
+
+# Headings every tier must carry, in the source templates and in every generated adapter. A rule
+# that exists in only one tier ships as a silent gap: the full tier once had no confirm rule.
+REQUIRED_RULE_HEADINGS = (
+    "## Verification honesty",
+    "## Confirm before anything outward-facing or irreversible",
+    "## Debugging",
+    "## Complexity budget",
+    "## Comments and lifetime",
+)
+
+
+def _rule_files() -> list:
+    templates = SCRIPTS.parent / "plugins" / "starter" / "templates"
+    files = [templates / f"CLAUDE.{t}.md" for t in ba.TIERS]
+    files += sorted((SCRIPTS.parent / "adapters").glob("*/AGENTS.*.md"))
+    return files
+
+
+def _headings(path: Path) -> set:
+    lines = path.read_bytes().decode("utf-8").splitlines()
+    return {ln.rstrip() for ln in lines if ln.startswith("## ")}
+
+
+def test_rule_files_are_found_for_every_tier_and_tool():
+    names = [f"{f.parent.name}/{f.name}" for f in _rule_files()]
+    tools = {f.parent.name for f in _rule_files() if f.parent.name != "templates"}
+    assert len(tools) >= 7
+    for tier in ba.TIERS:
+        assert f"templates/CLAUDE.{tier}.md" in names
+        assert all(f"{t}/AGENTS.{tier}.md" in names for t in tools)
+
+
+@pytest.mark.parametrize("path", _rule_files(), ids=lambda p: f"{p.parent.name}/{p.name}")
+def test_every_tier_carries_the_required_rule_headings(path):
+    missing = [h for h in REQUIRED_RULE_HEADINGS if h not in _headings(path)]
+    assert not missing, f"{path.name} lacks {missing}"
+
+
+def test_no_adapter_claims_the_commit_guard_is_always_installed():
+    """Every generated file, not only the rules: the checkpoint skill once kept "The commit guard checks
+    for this" after the rules were fixed, because the check scanned only AGENTS.*.md."""
+    files = sorted(p for p in (SCRIPTS.parent / "adapters").rglob("*") if p.is_file())
+    assert len(files) > 50
+    conditional = 0
+    for f in files:
+        text = f.read_bytes().decode("utf-8")
+        assert not ba.GUARD_CLAIM.search(text), f
+        if re.search(r"commit\s+guard\s+is\s+installed", text):
+            conditional += 1
+            assert "--guard-repo" in text, f
+    assert conditional >= 3 * len(ba.EMITTERS)  # both rules tiers and the checkpoint, for every tool
+
+
+@pytest.mark.parametrize("claim", [
+    "The commit guard checks for this, and a chat summary dies",
+    "The `starter` commit guard checks this;",
+    "The `starter`\nplugin's commit guard checks this on agent commits",
+    "Codex's commit attribution is undocumented; the commit guard is the check.",
+])
+def test_lint_rejects_an_unconditional_commit_guard_claim(claim):
+    with pytest.raises(SystemExit, match="unconditional commit guard claim"):
+        ba.lint("codex", {"skills/x/SKILL.md": claim + "\n"})
+
+
+def test_lint_accepts_the_conditional_commit_guard_wording():
+    ba.lint("codex", {"skills/x/SKILL.md": "Where the commit guard is installed (installer `--guard-repo`) "
+                                           "it checks this; elsewhere nothing does.\n"})
+
+
+# README.md and AGENTS.md tell an agent what each installer exit leaves behind. Step 7 once said every
+# non-zero exit had saved a report; the cannot-write refusal saves none on purpose, so an agent that
+# followed it would tell the user about a report that does not exist.
+SETUP_DOCS = ("README.md", "AGENTS.md")
+
+
+def _setup_steps(doc: str) -> list:
+    """The numbered setup steps of `doc`, each flattened to one line."""
+    text = (SCRIPTS.parent / doc).read_bytes().decode("utf-8").replace("\r\n", "\n")
+    steps = re.split(r"\n(?=\d+\. )", text)[1:]
+    return [" ".join(re.split(r"\n\n(?=\S)", s, maxsplit=1)[0].split()) for s in steps]
+
+
+@pytest.mark.parametrize("doc", SETUP_DOCS)
+def test_setup_docs_say_which_exits_leave_a_report(doc):
+    steps = _setup_steps(doc)
+    failed = next(s for s in steps if "non-zero" in s)
+    assert "Exit 1" in failed and "redacted report" in failed
+    assert f"Exit {install.UNWRITABLE}" in failed and "no report was saved" in failed
+    assert "stderr" in failed and "own terminal" in failed
+    succeeded = next(s for s in steps if "If it succeeds" in s)
+    assert "refuse" not in succeeded and "cannot write" not in succeeded
+    assert install.FOR_YOU in succeeded
+    for s in steps:  # the install prints the "For you" block last; a step naming another ending is stale
+        if "It ends" in s:
+            assert install.FOR_YOU in s.split("It ends", 1)[1][:80], s
 
 
 def test_shared_skills_must_be_identical():

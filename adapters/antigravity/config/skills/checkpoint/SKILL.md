@@ -17,8 +17,9 @@ A checkpoint, not a code dump. In order:
    year with no memory of the ticket: what changed and why, not how. End it with a last paragraph of trailers:
    `Verified: <command run> -> <result>` for each thing actually run,
    `Unverified: <claim>` for anything only reasoned about. No AI co-author lines.
-   The commit guard checks for this, and a chat summary dies with the session
-   while a commit outlives it.
+   Where the commit guard is installed as git hooks (installer `--guard-repo`),
+   it checks for this; elsewhere nothing does. A chat summary dies with the
+   session while a commit outlives it.
 5. **Stop and wait for approval before committing.** Do not push unless asked.
 
 If the work is not at a coherent stopping point, say so and name what is left
