@@ -2,6 +2,13 @@
 description: Verify, summarise and commit the current unit of work
 ---
 
+Before anything else, check for an update notice:
+`python ~/.claude-starter/scripts/update_check.py` (PowerShell:
+`python "$HOME\.claude-starter\scripts\update_check.py"`). It prints one line when
+a newer release of this kit is out and nothing otherwise, and it never updates
+anything. If it prints a line, pass that line on to the user, then carry on. If
+the file does not exist, skip this.
+
 A checkpoint, not a code dump. In order:
 
 1. **Run the checks that actually cover what changed** — targeted tests over full

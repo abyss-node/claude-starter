@@ -15,6 +15,13 @@ about another lane it asks the `consultant` agent, which can read but not edit,
 instead of reading its own way across the tree. If the answer means another lane
 has to change, it says so and stops; that is a separate session.
 
+Before anything else, check for an update notice:
+`python ~/.claude-starter/scripts/update_check.py` (PowerShell:
+`python "$HOME\.claude-starter\scripts\update_check.py"`). It prints one line when
+a newer release of this kit is out and nothing otherwise, and it never updates
+anything. If it prints a line, pass that line on to the user, then carry on. If
+the file does not exist, skip this.
+
 Target: the part of the repo the user named when invoking this skill (the whole repo if
 they named none).
 

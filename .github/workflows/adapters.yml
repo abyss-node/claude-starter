@@ -26,6 +26,8 @@ jobs:
         python-version: ["3.9", "3.12"]
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # the version-bump test compares against the last release tag
 
       - uses: actions/setup-python@v6
         with:
@@ -78,7 +80,7 @@ jobs:
           export HOME="$H" XDG_CONFIG_HOME="$H/.config" XDG_DATA_HOME="$H/.local/share" \
             XDG_CACHE_HOME="$H/.cache" XDG_STATE_HOME="$H/.local/state"
           opencode debug paths
-          python scripts/install.py --tool opencode --tier starter --yes
+          python scripts/install.py --tool opencode --tier starter --yes --no-guard
 
       - name: OpenCode loads the agents, skills and commands
         working-directory: ${{ runner.temp }}
@@ -114,7 +116,7 @@ jobs:
 
       - name: Re-running the installer changes nothing
         run: |
-          python scripts/install.py --tool opencode --tier starter --yes | tee rerun.txt
+          python scripts/install.py --tool opencode --tier starter --yes --no-guard | tee rerun.txt
           if grep -E '  (installed|merged|updated)$' rerun.txt; then
             echo "::error::second install run changed files"; exit 1
           fi
@@ -131,7 +133,7 @@ jobs:
       - name: Codex accepts the rules file (execpolicy)
         run: |
           export CODEX_HOME="$HOME/.codex"
-          python scripts/install.py --tool codex --tier starter --yes | tee codex.txt
+          python scripts/install.py --tool codex --tier starter --yes --no-guard | tee codex.txt
           grep -q 'rules verified with `codex execpolicy`' codex.txt
           codex execpolicy check --rules "$CODEX_HOME/rules/claude-starter.rules" -- git status | grep -q '"decision":"allow"'
           for cmd in "git push" "git branch x" "ruff format --check --cache-dir x"; do
@@ -140,3 +142,76 @@ jobs:
               echo "::error::'$cmd' is allowed by the Codex rules"; exit 1
             fi
           done
+
+  # An install made by an old release's installer must update in place with the current one, equal a
+  # fresh install afterwards, keep the user's own text and, in a hooked repo, keep blocking secrets.
+  # The installers at these tags write no install record, so this also covers adopting an install by
+  # its BEGIN markers. --offline plans against the checked-out commit, so the job needs no remote.
+  # .github/scripts/update_fixture.py holds the checks; the OpenCode rows also load the result in
+  # OpenCode, and the Windows row runs the launcher where exec would lose the exit code.
+  update:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      OPENCODE_VERSION: "1.19.5"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-24.04, from: v0.3.0, tool: opencode, hooked: ""}
+          - {os: ubuntu-24.04, from: v0.3.1, tool: opencode, hooked: ""}
+          - {os: ubuntu-24.04, from: v0.3.1, tool: junie, hooked: ""}
+          - {os: ubuntu-24.04, from: v0.3.1, tool: junie, hooked: "--hooked"}
+          - {os: windows-latest, from: v0.3.1, tool: junie, hooked: "--hooked"}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # the default fetches no tags
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v5
+        if: matrix.tool == 'opencode'
+        with:
+          node-version: "22"
+
+      - name: Install OpenCode
+        if: matrix.tool == 'opencode'
+        run: |
+          npm install --global "opencode-ai@${OPENCODE_VERSION}"
+          test "$(opencode --version)" = "${OPENCODE_VERSION}"
+
+      - name: Install with the old release, update with this tree, compare with a fresh install
+        shell: bash
+        run: python .github/scripts/update_fixture.py --from "${{ matrix.from }}" --tool "${{ matrix.tool }}" --work "$RUNNER_TEMP/fixture" ${{ matrix.hooked }}
+
+      - name: OpenCode loads the updated install
+        if: matrix.tool == 'opencode'
+        working-directory: ${{ runner.temp }}
+        run: |
+          export HOME="$UPDATED_HOME" XDG_CONFIG_HOME="$UPDATED_HOME/.config"
+          export XDG_DATA_HOME="$UPDATED_HOME/.local/share" XDG_CACHE_HOME="$UPDATED_HOME/.cache"
+          export XDG_STATE_HOME="$UPDATED_HOME/.local/state"
+          opencode agent list > agents.txt
+          for a in verifier code-reviewer consultant; do
+            grep -qx "$a (subagent)" agents.txt || { echo "::error::agent $a not loaded"; cat agents.txt; exit 1; }
+          done
+          opencode debug config | python -c '
+          import json, sys
+          cmds = set(json.load(sys.stdin).get("command") or {})
+          assert {"checkpoint", "lanes", "starter-update"} <= cmds, f"commands loaded: {cmds}"
+          print("commands loaded:", sorted(cmds))'
+
+      - name: The launcher passes the installer's exit code through (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:HOME = "$env:RUNNER_TEMP\empty-home"; $env:USERPROFILE = $env:HOME
+          New-Item -ItemType Directory -Force $env:HOME | Out-Null
+          python scripts/starter.py update --offline
+          if ($LASTEXITCODE -ne 2) { Write-Error "nothing installed: expected exit 2, got $LASTEXITCODE"; exit 1 }
+          python scripts/starter.py update --offline --to not-a-sha
+          if ($LASTEXITCODE -eq 0) { Write-Error "a bad --to exited 0"; exit 1 }
+          exit 0

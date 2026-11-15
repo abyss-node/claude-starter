@@ -1,5 +1,5 @@
 {
-  "description": "Commit guard: scans agent commits for secrets, Indian PII, AI attribution lines and a missing Verified:/Unverified: trailer",
+  "description": "Commit guard: scans agent commits for secrets, Indian PII, AI attribution lines and a missing Verified:/Unverified: trailer. Update notice: at session start, one line when a newer kit release is out (opt-in, checked at most once a day)",
   "hooks": {
     "PreToolUse": [
       {
@@ -49,6 +49,18 @@
             "if": "PowerShell(git *commit*)",
             "timeout": 60,
             "statusMessage": "Commit guard (post)..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}\"/hooks/update-notice/run.sh",
+            "timeout": 15
           }
         ]
       }

@@ -9,13 +9,13 @@ point for a tool the installer does not support (`--config-dir` is required; see
 
 | Tool | Files |
 |---|---|
-| `antigravity` | 12 |
-| `codex` | 12 |
-| `copilot` | 12 |
-| `cursor` | 12 |
-| `generic` | 11 |
-| `junie` | 12 |
-| `opencode` | 12 |
+| `antigravity` | 13 |
+| `codex` | 16 |
+| `copilot` | 13 |
+| `cursor` | 13 |
+| `generic` | 12 |
+| `junie` | 13 |
+| `opencode` | 13 |
 
 codex, copilot, cursor, junie install their skills into the shared `~/.agents/skills`;
 the build checks that they emit byte-identical files there.

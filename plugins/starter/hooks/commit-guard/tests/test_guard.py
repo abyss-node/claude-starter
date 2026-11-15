@@ -1386,7 +1386,8 @@ def test_hooks_json_wires_pre_and_post_for_both_shells_portably():
     text = HOOKS_JSON.read_text(encoding="utf-8")
     cfg = json.loads(text)
     assert "hooks" in cfg and set(cfg) <= {"hooks", "description"}
-    assert set(cfg["hooks"]) == {"PreToolUse", "PostToolUse"}
+    # SessionStart runs the update notice (hooks/update-notice), checked in scripts/tests/test_adapters.py.
+    assert set(cfg["hooks"]) == {"PreToolUse", "PostToolUse", "SessionStart"}
     for event, sub, timeout in (("PreToolUse", "claude-hook", 150), ("PostToolUse", "claude-post-hook", 60)):
         entries = cfg["hooks"][event]
         assert {e["matcher"] for e in entries} == {"Bash", "PowerShell"}
