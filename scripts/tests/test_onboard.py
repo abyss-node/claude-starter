@@ -350,7 +350,8 @@ def test_claude_and_opencode_have_no_fallback_to_default(tmp_path, tool):
 def test_other_tools_fall_back_to_default_and_a_missing_default_fails(tmp_path):
     root = _onboarding_copy(tmp_path)
     steps = ba.onboarding_steps("codex", ba.load_onboarding(root))
-    assert [f for _, f, _ in steps] == ["common", "codex", "default", "common", "default", "default", "default"]
+    assert [f for _, f, _ in steps] == ["common", "codex", "default", "common", "default", "common", "default",
+                                        "default"]
     assert {f for _, f, _ in ba.onboarding_steps("cursor", ba.load_onboarding(root))} == {"common", "default"}
     (root / "default" / "05-what-you-got.md").unlink()
     with pytest.raises(SystemExit, match="has no default/ version"):

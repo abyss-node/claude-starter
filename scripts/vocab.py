@@ -1,7 +1,8 @@
-"""The words that differ per tool, shared by the build and the launcher.
+"""The words that differ per tool, shared by the build, the launcher and the demos.
 
-scripts/build_adapters.py renders core/onboarding/ with them, and scripts/starter.py uses them to name each
-tool's next onboarding command at run time, so both always agree on what the user types. Vocab has no
+scripts/build_adapters.py renders core/onboarding/ with them, scripts/starter.py uses them to name each
+tool's next onboarding command at run time, so both always agree on what the user types, and demos/start.py
+and demos/pick.py use them for the repo rules file and the command that opens a session. Vocab has no
 defaults: a tool added without one of its words cannot be constructed.
 """
 from __future__ import annotations
@@ -20,6 +21,10 @@ class Vocab:
     shared_commands: bool  # the kit's commands are skills in the shared ~/.agents/skills, one copy for several
                            # tools, so that copy cannot name its tool and the launcher takes it from the install
                            # record. False: the tool's copy is its own and always passes `--tool <id>`
+    repo_rules: str        # the file a repo's own rules go in, at the repo root (demos/start.py writes one)
+    open_cmd: Optional[str]  # the terminal command that starts a session in a folder, "{dir}" standing for the
+                             # quoted folder; without "{dir}" it runs inside the folder. None: no command is
+                             # confirmed, so the user opens the folder in the tool
 
     def cmd(self, name: str) -> str:
         """How the user runs the kit command `name`, as Markdown."""
@@ -29,17 +34,20 @@ class Vocab:
 
 
 # rules_file ends a clause wherever a step uses it (the build checks), because Cursor's is a long phrase.
+# open_cmd: `claude` starts in the current folder; `codex -C <dir>` and `opencode <dir>` are from their --help
+# (0.167.0 and 1.19.5). No other tool's command for this was checked.
 VOCAB = {
-    "claude": Vocab("Claude Code", "`~/.claude/CLAUDE.md`", "/starter:{}", False),
-    "opencode": Vocab("OpenCode", "`~/.config/opencode/AGENTS.md`", "/{}", False),
+    "claude": Vocab("Claude Code", "`~/.claude/CLAUDE.md`", "/starter:{}", False, "CLAUDE.md", "claude"),
+    "opencode": Vocab("OpenCode", "`~/.config/opencode/AGENTS.md`", "/{}", False, "AGENTS.md", "opencode {dir}"),
     # Codex runs a skill when its name is typed after `$` (https://learn.chatgpt.com/docs/build-skills).
-    "codex": Vocab("Codex", "`~/.codex/AGENTS.md`", "${}", True),
+    "codex": Vocab("Codex", "`~/.codex/AGENTS.md`", "${}", True, "AGENTS.md", "codex -C {dir}"),
     "cursor": Vocab("Cursor", "Cursor Settings > Rules, if you pasted them there, or `AGENTS.md` in the repo "
-                              "you gave `--project`", "/{}", True),
-    "copilot": Vocab("Copilot", "`~/.copilot/copilot-instructions.md`", "/{}", True),
-    "antigravity": Vocab("Antigravity", "`~/.gemini/AGENTS.md`", "/{}", False),
-    "junie": Vocab("Junie", "`~/.junie/AGENTS.md`", "/{}", False),
-    "generic": Vocab("any other tool", "`AGENTS.md` in the config folder you installed into", None, False),
+                              "you gave `--project`", "/{}", True, "AGENTS.md", None),
+    "copilot": Vocab("Copilot", "`~/.copilot/copilot-instructions.md`", "/{}", True, "AGENTS.md", None),
+    "antigravity": Vocab("Antigravity", "`~/.gemini/AGENTS.md`", "/{}", False, "AGENTS.md", None),
+    "junie": Vocab("Junie", "`~/.junie/AGENTS.md`", "/{}", False, "AGENTS.md", None),
+    "generic": Vocab("any other tool", "`AGENTS.md` in the config folder you installed into", None, False,
+                     "AGENTS.md", None),
 }
 
 # The heading that opens each step of a rendered walkthrough. The launcher splits on it without regard to

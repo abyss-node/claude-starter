@@ -6,12 +6,13 @@ This copy is for Claude Code. Type `/starter:onboard` there and your agent shows
 
 Not using Claude Code? Every other tool has its own copy: [antigravity](adapters/antigravity/ONBOARDING.md), [codex](adapters/codex/ONBOARDING.md), [copilot](adapters/copilot/ONBOARDING.md), [cursor](adapters/cursor/ONBOARDING.md), [generic](adapters/generic/ONBOARDING.md), [junie](adapters/junie/ONBOARDING.md), [opencode](adapters/opencode/ONBOARDING.md).
 
-## Step 1 of 7: Who this is for
+## Step 1 of 8: Who this is for
 
 People who want to use an AI coding agent on real projects, including people
 who have never used one. The kit you installed gives you standing rules (in
 `~/.claude/CLAUDE.md`), three helper agents, a few commands and a commit check. This
-walkthrough adds a first hour of practice on your own code.
+walkthrough adds a first hour of practice: on your own repo, or on a demo if
+you have none or want to test the install first.
 
 It comes one step at a time. Each step ends with the command for the next one,
 so you can stop whenever you like and pick up later. Ask your agent about
@@ -20,7 +21,7 @@ the docs.
 
 Next: type `/starter:onboard 2` to go on.
 
-## Step 2 of 7: Your plan
+## Step 2 of 8: Your plan
 
 Your Claude plan decides how fast you use up your limit, and so which rules
 tier fits you. Find yours:
@@ -44,7 +45,7 @@ limit. `/starter:setup` asked which tier you wanted. To change it, run
 
 Next: type `/starter:onboard 3` to go on.
 
-## Step 3 of 7: The 5-minute mental model
+## Step 3 of 8: The 5-minute mental model
 
 Skip this if you have used Claude Code for a while; it is here as reference.
 
@@ -93,7 +94,7 @@ often and send fewer agents.
 
 Next: type `/starter:onboard 4` to go on.
 
-## Step 4 of 7: How this kit works
+## Step 4 of 8: How this kit works
 
 The rules ask your agent to work like this:
 
@@ -116,7 +117,7 @@ Keep a rule only while you can say what failure it prevents.
 
 Next: type `/starter:onboard 5` to go on.
 
-## Step 5 of 7: What you got
+## Step 5 of 8: What you got
 
 `/starter:setup` installed a `CLAUDE.md`, merged a short list of read-only git
 and format-check commands into your settings, and set how strict the commit
@@ -142,7 +143,38 @@ check this".
 
 Next: type `/starter:onboard 6` to go on.
 
-## Step 6 of 7: Your first hour
+## Step 6 of 8: Try it on a demo
+
+Skip this step if you have a repo of your own to practise on: the next step
+uses it. If you have none, or want to see the whole chain work before you trust
+the kit with your code, try a demo. A demo is a small project your agent builds
+in a new folder from a brief, graded by held-out checks kept in the kit, not in
+that folder.
+
+1. **Pick one.** Run this in a terminal, or ask your agent to run it. It asks
+   what you want to spend, then lists the demos with what each costs on your
+   plan where that has been measured, and says so where it has not:
+   - bash: `python ~/.claude-starter/scripts/starter.py demo pick --tool claude`
+   - PowerShell: `python "$HOME\.claude-starter\scripts\starter.py" demo pick --tool claude`
+2. **Start it.** The same launcher with `demo start <name> --tool claude`
+   makes the folder `~/agent-demos/<name>`: a git repo whose commits the commit
+   guard's git hooks check. It prints how to open a session there and what to
+   type first.
+3. **Watch the chain** in that new session: a plan, the build, its tests, the
+   `verifier` agent, `/starter:checkpoint`, then a commit, which the demo's own
+   commit guard hooks check. To grade the work yourself, run the launcher's
+   `demo check <name>` line that the start step printed, not `npm test`, which
+   the agent can change. It ends with `PASS` or `FAIL`. Like any grade made on
+   your machine, it is feedback, not proof: the agent has a shell there too.
+   A measured run counts only after the kit's CI re-grades the committed
+   folder.
+
+Deleting the folder undoes the demo, and nothing in it leaves your machine
+unless you push it yourself.
+
+Next: type `/starter:onboard 7` to go on.
+
+## Step 7 of 8: Your first hour
 
 Do this in a repo of your own with a clean `git status`. Make a branch first so
 nothing lands on your main branch by accident.
@@ -164,9 +196,9 @@ nothing lands on your main branch by accident.
 6. **Commit, if you are happy.** Approve the commit. If the commit guard warns
    about something, read the warning and decide whether it is real.
 
-Next: type `/starter:onboard 7` to go on.
+Next: type `/starter:onboard 8` to go on.
 
-## Step 7 of 7: Where to go next
+## Step 8 of 8: Where to go next
 
 - **Add-ons:** `plugins/starter/ADDONS.md` in the kit lists optional plugins and
   skill packs, with when each is worth it and when to skip it. Add one when a

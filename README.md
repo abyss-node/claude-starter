@@ -109,6 +109,7 @@ Use `--tool generic --config-dir <dir>` and then follow `PORTING.md`. That is th
 | `frontend-build-guardrails` skill | Checks while building interactive UI, forms, client fetching, Next.js server code | UI that breaks on real data, excludes keyboard and screen-reader users, or leaks secrets to the browser |
 | `data-pipeline-guardrails` skill | Checks while writing jobs and scrapers that save data and may be re-run | Re-runs that duplicate rows, and scrapers that save a block page as data |
 | `llm-app-guardrails` skill | Checks while writing code that calls a model API | Prompt injection, API keys in the browser, runaway cost, no evals |
+| Demos (`demos/`) | Small projects your agent builds in a new folder, graded by held-out checks kept in the kit (`starter.py demo pick`, then `demo start <name>`) | Without a repo to hand nothing runs the whole chain, and a cost an agent cannot measure gets invented |
 
 ## Something broke?
 

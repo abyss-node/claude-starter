@@ -4,12 +4,13 @@
 
 This copy is for OpenCode. Type `/onboard` there and your agent shows it one step at a time; you can also read it all here.
 
-## Step 1 of 7: Who this is for
+## Step 1 of 8: Who this is for
 
 People who want to use an AI coding agent on real projects, including people
 who have never used one. The kit you installed gives you standing rules (in
 `~/.config/opencode/AGENTS.md`), three helper agents, a few commands and a commit check. This
-walkthrough adds a first hour of practice on your own code.
+walkthrough adds a first hour of practice: on your own repo, or on a demo if
+you have none or want to test the install first.
 
 It comes one step at a time. Each step ends with the command for the next one,
 so you can stop whenever you like and pick up later. Ask your agent about
@@ -18,7 +19,7 @@ the docs.
 
 Next: type `/onboard 2` to go on.
 
-## Step 2 of 7: Your plan
+## Step 2 of 8: Your plan
 
 In OpenCode you connect one or more providers, and each one bills its own way.
 Type `/connect` to add one, and `/models` to see the models your connected
@@ -45,7 +46,7 @@ with the other tier; `--dry-run` shows the plan and changes nothing:
 
 Next: type `/onboard 3` to go on.
 
-## Step 3 of 7: The 5-minute mental model
+## Step 3 of 8: The 5-minute mental model
 
 Skip this if you have used OpenCode for a while; it is here as reference.
 
@@ -89,7 +90,7 @@ spend faster, on a plan's limit or on your API bill.
 
 Next: type `/onboard 4` to go on.
 
-## Step 4 of 7: How this kit works
+## Step 4 of 8: How this kit works
 
 The rules ask your agent to work like this:
 
@@ -112,7 +113,7 @@ Keep a rule only while you can say what failure it prevents.
 
 Next: type `/onboard 5` to go on.
 
-## Step 5 of 7: What you got
+## Step 5 of 8: What you got
 
 The installer wrote the kit's rules into `~/.config/opencode/AGENTS.md`, inside
 a block marked `BEGIN claude-starter rules`, and added the agents, commands and
@@ -137,7 +138,38 @@ with `--guard-repo` (use the tier you installed; `--dry-run` changes nothing):
 
 Next: type `/onboard 6` to go on.
 
-## Step 6 of 7: Your first hour
+## Step 6 of 8: Try it on a demo
+
+Skip this step if you have a repo of your own to practise on: the next step
+uses it. If you have none, or want to see the whole chain work before you trust
+the kit with your code, try a demo. A demo is a small project your agent builds
+in a new folder from a brief, graded by held-out checks kept in the kit, not in
+that folder.
+
+1. **Pick one.** Run this in a terminal, or ask your agent to run it. It asks
+   what you want to spend, then lists the demos with what each costs on your
+   plan where that has been measured, and says so where it has not:
+   - bash: `python ~/.claude-starter/scripts/starter.py demo pick --tool opencode`
+   - PowerShell: `python "$HOME\.claude-starter\scripts\starter.py" demo pick --tool opencode`
+2. **Start it.** The same launcher with `demo start <name> --tool opencode`
+   makes the folder `~/agent-demos/<name>`: a git repo whose commits the commit
+   guard's git hooks check. It prints how to open a session there and what to
+   type first.
+3. **Watch the chain** in that new session: a plan, the build, its tests, the
+   `verifier` agent, `/checkpoint`, then a commit, which the demo's own
+   commit guard hooks check. To grade the work yourself, run the launcher's
+   `demo check <name>` line that the start step printed, not `npm test`, which
+   the agent can change. It ends with `PASS` or `FAIL`. Like any grade made on
+   your machine, it is feedback, not proof: the agent has a shell there too.
+   A measured run counts only after the kit's CI re-grades the committed
+   folder.
+
+Deleting the folder undoes the demo, and nothing in it leaves your machine
+unless you push it yourself.
+
+Next: type `/onboard 7` to go on.
+
+## Step 7 of 8: Your first hour
 
 Do this in a repo of your own with a clean `git status`. Make a branch first so
 nothing lands on your main branch by accident.
@@ -161,9 +193,9 @@ nothing lands on your main branch by accident.
    installed, read any warning it gives and decide whether it is real. If the
    change went wrong instead, `/undo` takes it back.
 
-Next: type `/onboard 7` to go on.
+Next: type `/onboard 8` to go on.
 
-## Step 7 of 7: Where to go next
+## Step 8 of 8: Where to go next
 
 - **Graduate to full:** once you regularly run several agents at once, install
   the full tier. It adds rules for picking a model and effort level per task

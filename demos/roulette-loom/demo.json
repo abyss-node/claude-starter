@@ -1,0 +1,10 @@
+{
+  "title": "Roulette Loom",
+  "app": "Roulette Loom",
+  "tier": "S",
+  "stack": "browser",
+  "summary": "rolling-circle curves drawn by an animated pen, in the browser",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "the drawing, the animation and the controls: how it looks and feels in a browser",
+  "accept_count": 10
+}

@@ -41,6 +41,39 @@ jobs:
       - name: Commit-guard tests
         run: python -m pytest -q -rs plugins/starter/hooks/commit-guard/tests
 
+  # The demos' held-out checks must bind: each reference solution passes its accept/, each skeleton fails it, and
+  # a planted off-by-one in a reference fails it; demos/tests also runs start, check and pick end to end, and
+  # re-grades every run in demos/costs.json from its committed workspace before admitting it. They need Node,
+  # which the scripts job does not have, so this job sets up the newest Node 22, the oldest supported LTS line
+  # (22.13 or newer: demolib.NODE_FLOOR). Windows is in the matrix because a raw Windows path is not an import
+  # specifier and npm runs `test` through cmd.exe there.
+  demos:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # costs.json admits a run only when its kit_sha is on origin/main; the re-grade exports it
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Demo tests (Python, driving Node)
+        shell: bash
+        run: |
+          node -e "const [a, b] = process.versions.node.split('.').map(Number); if (a !== 22 || b < 13) { console.error('expected Node 22.13 or newer 22.x, got ' + process.versions.node); process.exit(1) }"
+          python -m pip install --quiet pytest
+          python -m pytest -q -rs demos/tests
+
   adapters:
     runs-on: ubuntu-latest
     timeout-minutes: 20
