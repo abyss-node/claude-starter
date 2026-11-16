@@ -1,0 +1,8 @@
+{
+  "id": "004-page-unquoted-attributes-root-absolute-src",
+  "graded_item": null,
+  "description": "the script tag has unquoted attributes and a root-absolute src",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script type=module src=/src/main.js></script>"
+}

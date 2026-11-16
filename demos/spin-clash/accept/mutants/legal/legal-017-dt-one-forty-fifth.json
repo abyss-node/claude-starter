@@ -1,0 +1,7 @@
+{
+  "id": "legal-017-dt-one-forty-fifth",
+  "description": "DT is 1/45 s",
+  "file": "src/physics.js",
+  "find": "export const DT = 1 / 60;",
+  "replace": "export const DT = 1 / 45;"
+}

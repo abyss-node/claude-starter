@@ -1,0 +1,8 @@
+{
+  "id": "113-vx-zero-falsy",
+  "graded_item": 15,
+  "description": "a given vx of 0 becomes the seeded drift",
+  "file": "src/physics.js",
+  "find": "vx: num(spec.vx, -Math.sin(angle) * orbit),",
+  "replace": "vx: num(spec.vx || undefined, -Math.sin(angle) * orbit),"
+}

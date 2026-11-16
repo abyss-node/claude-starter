@@ -1,0 +1,11 @@
+{
+  "id": "056",
+  "graded_item": 12,
+  "description": "returns the final run, not the longest",
+  "file": "workspace/habits.py",
+  "find": "        best = max(best, run)\n",
+  "replace": "        best = run\n",
+  "expect": [
+    "test_11"
+  ]
+}

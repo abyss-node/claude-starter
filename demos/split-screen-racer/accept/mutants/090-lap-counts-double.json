@@ -1,0 +1,8 @@
+{
+  "id": "090-lap-counts-double",
+  "graded_item": 18,
+  "description": "a lap adds 2",
+  "file": "src/race.js",
+  "find": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };",
+  "replace": "  if (progress.next === 0) return { lap: progress.lap + 2, next: 1 % n };"
+}

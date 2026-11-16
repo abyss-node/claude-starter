@@ -1,0 +1,8 @@
+{
+ "id": "006-frame-names-3-digit",
+ "graded_item": 1,
+ "description": "frame names are zero-padded to 3 digits",
+ "file": "trippy.py",
+ "find": "\"frame_%04d.png\" % k), \"wb\")",
+ "replace": "\"frame_%03d.png\" % k), \"wb\")"
+}

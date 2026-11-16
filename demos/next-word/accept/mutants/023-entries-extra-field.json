@@ -1,0 +1,8 @@
+{
+  "id": "023-entries-extra-field",
+  "graded_item": 4,
+  "description": "each entry carries an extra count field besides token and p",
+  "file": "src/lm.js",
+  "find": "  for (const [token, c] of counts) entries.push({ token, p: c / total });",
+  "replace": "  for (const [token, c] of counts) entries.push({ token, p: c / total, count: c });"
+}

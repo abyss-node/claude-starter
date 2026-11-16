@@ -1,0 +1,8 @@
+{
+  "id": "014-clock-every-1000-ticks",
+  "graded_item": 2,
+  "description": "performance.now is called every 1000 ticks",
+  "file": "src/physics.js",
+  "find": "  world.tick += 1;",
+  "replace": "  world.tick += 1;\n  if (world.tick % 1000 === 0) world.perfMark = performance.now();"
+}

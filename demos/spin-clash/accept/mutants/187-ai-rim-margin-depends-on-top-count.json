@@ -1,0 +1,8 @@
+{
+  "id": "187-ai-rim-margin-depends-on-top-count",
+  "graded_item": 19,
+  "description": "the computer's rim margin depends on how many tops the world holds",
+  "file": "src/ai.js",
+  "find": "  const R = world.config.arenaRadius;",
+  "replace": "  const R = world.config.arenaRadius * (world.tops.length > 2 ? 0.8 : 1);"
+}

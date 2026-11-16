@@ -42,18 +42,26 @@ jobs:
         run: python -m pytest -q -rs plugins/starter/hooks/commit-guard/tests
 
   # The demos' held-out checks must bind: each reference solution passes its accept/, each skeleton fails it, and
-  # a planted off-by-one in a reference fails it; demos/tests also runs start, check and pick end to end, and
+  # a planted bug in a reference fails it; demos/tests also runs start, check and pick end to end, and
   # re-grades every run in demos/costs.json from its committed workspace before admitting it. They need Node,
   # which the scripts job does not have, so this job sets up the newest Node 22, the oldest supported LTS line
   # (22.13 or newer: demolib.NODE_FLOOR). Windows is in the matrix because a raw Windows path is not an import
-  # specifier and npm runs `test` through cmd.exe there.
+  # specifier and npm runs `test` through cmd.exe there. One more leg runs at the floors, Python 3.9 and Node
+  # 22.13.0 exactly (demolib.PY_FLOOR, NODE_FLOOR): 22.13's permission-model errors name no flag, and tests that
+  # passed on the newest 22.x once failed there unseen. On ubuntu-24.04, as demo-mutants: 26.04 has no Python 3.9.
   demos:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        python: ["3.12"]
+        node: ["22"]
+        include:
+          - os: ubuntu-24.04
+            python: "3.9"
+            node: "22.13.0"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -61,11 +69,11 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python }}
 
       - uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node }}
 
       - name: Demo tests (Python, driving Node)
         shell: bash
@@ -73,6 +81,52 @@ jobs:
           node -e "const [a, b] = process.versions.node.split('.').map(Number); if (a !== 22 || b < 13) { console.error('expected Node 22.13 or newer 22.x, got ' + process.versions.node); process.exit(1) }"
           python -m pip install --quiet pytest
           python -m pytest -q -rs demos/tests
+
+  # The demo names, for demo-mutants' matrix, so a demo added to demos/ is proved without editing this file.
+  demo-list:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      demos: ${{ steps.list.outputs.demos }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - id: list
+        run: echo "demos=$(python demos/mutants.py --list)" >> "$GITHUB_OUTPUT"
+
+  # Each demo's fixed mutant list is what "done" means for its checks: the reference passes them, the skeleton
+  # fails them, every mutant is killed and every legal variant passes, each graded exactly as a workspace is
+  # (demos/mutants.py). It runs at the floors, Python 3.9 and Node 22.13.0 exactly (demolib.PY_FLOOR,
+  # NODE_FLOOR), since every brief was written on newer ones; a check that needs a newer runtime fails here. On
+  # ubuntu-24.04 for the reason the scripts job gives: 26.04 has no Python 3.9.
+  demo-mutants:
+    needs: demo-list
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        demo: ${{ fromJSON(needs.demo-list.outputs.demos) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.9"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22.13.0"
+
+      - name: The mutants of ${{ matrix.demo }} (reference PASS, skeleton FAIL, all killed)
+        run: |
+          python -c "import sys; assert sys.version_info[:2] == (3, 9), sys.version"
+          node -e "if (process.versions.node !== '22.13.0') { console.error('expected Node 22.13.0, got ' + process.versions.node); process.exit(1) }"
+          python demos/mutants.py "${{ matrix.demo }}" --jobs 4
 
   adapters:
     runs-on: ubuntu-latest

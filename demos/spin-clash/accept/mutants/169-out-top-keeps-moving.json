@@ -1,0 +1,8 @@
+{
+  "id": "169-out-top-keeps-moving",
+  "graded_item": 17,
+  "description": "a top that is out keeps sliding and losing spin",
+  "file": "src/physics.js",
+  "find": "    if (top.status !== 'in') return;\n    const [ix, iy]",
+  "replace": "    const [ix, iy]"
+}

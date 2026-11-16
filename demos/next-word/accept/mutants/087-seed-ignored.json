@@ -1,0 +1,8 @@
+{
+  "id": "087-seed-ignored",
+  "graded_item": 16,
+  "description": "generate always seeds with 1",
+  "file": "src/sampling.js",
+  "find": "  const rng = createRng(seed);",
+  "replace": "  const rng = createRng(1);"
+}

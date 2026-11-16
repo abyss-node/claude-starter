@@ -1,0 +1,8 @@
+{
+  "id": "018-car-turnrate-high",
+  "graded_item": 5,
+  "description": "the car turns far tighter than the bike",
+  "file": "src/vehicles.js",
+  "find": "    turnRate: 2.0, // radians per second at full steer, once rolling",
+  "replace": "    turnRate: 6.0, // radians per second at full steer, once rolling"
+}

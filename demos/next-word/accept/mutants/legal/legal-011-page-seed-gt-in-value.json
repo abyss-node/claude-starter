@@ -1,0 +1,8 @@
+{
+  "id": "legal-011-page-seed-gt-in-value",
+  "graded_item": 22,
+  "description": "#seed with a > inside a quoted attribute value",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <input title=\"a > b\" id=\"seed\" value=\"7\">"
+}

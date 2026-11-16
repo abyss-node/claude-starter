@@ -1,0 +1,8 @@
+{
+  "id": "057-topp-one-not-off",
+  "graded_item": 11,
+  "description": "top-p of 1 is applied like any other p, so a tail below 1e-12 is cut",
+  "file": "src/sampling.js",
+  "find": "  if (topP < 1) {",
+  "replace": "  if (topP <= 1) {"
+}

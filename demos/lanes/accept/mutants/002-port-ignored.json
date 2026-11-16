@@ -1,0 +1,8 @@
+{
+  "id": "002-port-ignored",
+  "graded_item": 1,
+  "description": "server ignores --port and binds 8000",
+  "file": "backend/server.py",
+  "find": "args = parser.parse_args(argv)",
+  "replace": "args = parser.parse_args([])"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "184-ai-first-foe-not-nearest",
+  "graded_item": 19,
+  "description": "the computer steers at the first other top in play, not the nearest",
+  "file": "src/ai.js",
+  "find": "if (d < best) { best = d; foe = t; }",
+  "replace": "if (foe === null) { best = d; foe = t; }"
+}

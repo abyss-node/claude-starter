@@ -1,0 +1,8 @@
+{
+  "id": "112-y-zero-falsy",
+  "graded_item": 15,
+  "description": "a given y of 0 becomes the seeded start",
+  "file": "src/physics.js",
+  "find": "y: num(spec.y, Math.sin(angle) * dist),",
+  "replace": "y: num(spec.y || undefined, Math.sin(angle) * dist),"
+}

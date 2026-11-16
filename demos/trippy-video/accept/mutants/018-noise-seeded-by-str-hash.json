@@ -1,0 +1,8 @@
+{
+ "id": "018-noise-seeded-by-str-hash",
+ "graded_item": 3,
+ "description": "noise generator is seeded through hash(), which changes with PYTHONHASHSEED",
+ "file": "trippy.py",
+ "find": "random.Random(\"noise-%d\" % args.seed)",
+ "replace": "random.Random(hash(\"noise-%d\" % args.seed))"
+}

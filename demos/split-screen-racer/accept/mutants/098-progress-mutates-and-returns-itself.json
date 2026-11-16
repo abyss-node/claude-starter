@@ -1,0 +1,8 @@
+{
+  "id": "098-progress-mutates-and-returns-itself",
+  "graded_item": 20,
+  "description": "advanceProgress edits the progress it was given and returns that object",
+  "file": "src/race.js",
+  "find": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };\n  return { lap: progress.lap, next: (progress.next + 1) % n };",
+  "replace": "  if (progress.next === 0) {\n    progress.lap += 1;\n    progress.next = 1 % n;\n    return progress;\n  }\n  progress.next = (progress.next + 1) % n;\n  return progress;"
+}

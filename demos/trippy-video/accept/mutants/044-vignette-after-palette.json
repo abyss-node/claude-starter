@@ -1,0 +1,8 @@
+{
+ "id": "044-vignette-after-palette",
+ "graded_item": 6,
+ "description": "a vignette darkens pixels after the palette is applied",
+ "file": "trippy.py",
+ "find": "            row.append(lut[int(s * top + 0.5)])",
+ "replace": "            c = lut[int(s * top + 0.5)]\n            fade = max(0.0, 1.0 - 0.25 * (x * x + y0 * y0) / (zoom * zoom))\n            row.append(bytes(int(ch * fade) for ch in c))"
+}

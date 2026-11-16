@@ -1,0 +1,8 @@
+{
+  "id": "046-touch-test-reach-unsquared",
+  "graded_item": 6,
+  "description": "contact is tested as d*d < reach, so tops up to about 0.5 apart collide",
+  "file": "src/physics.js",
+  "find": "if (d >= reach) return false;",
+  "replace": "if (d * d >= reach) return false;"
+}

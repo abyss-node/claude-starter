@@ -1,0 +1,7 @@
+{
+  "id": "L01",
+  "description": "gcd by subtraction instead of remainders",
+  "file": "src/loom.js",
+  "find": "while (b !== 0) [a, b] = [b, a % b];\n  return a;",
+  "replace": "while (a !== b) {\n    if (a > b) a -= b;\n    else b -= a;\n  }\n  return a;"
+}

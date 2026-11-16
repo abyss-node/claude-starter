@@ -1,0 +1,11 @@
+{
+  "id": "010",
+  "graded_item": 3,
+  "description": "the typo commit's trailer is followed by another paragraph",
+  "file": "commits.json",
+  "find": "Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n",
+  "replace": "Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\\nThe word is fixed.\\n",
+  "expect": [
+    "test_03"
+  ]
+}

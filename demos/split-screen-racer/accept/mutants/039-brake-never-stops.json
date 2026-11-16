@@ -1,0 +1,8 @@
+{
+  "id": "039-brake-never-stops",
+  "graded_item": 9,
+  "description": "braking never takes speed below 30",
+  "file": "src/vehicles.js",
+  "find": "fwd = fwd > 0 ? Math.max(0, fwd - s.brakeDecel * brake * DT)",
+  "replace": "fwd = fwd > 0 ? Math.max(30, fwd - s.brakeDecel * brake * DT)"
+}

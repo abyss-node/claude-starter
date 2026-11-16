@@ -1,0 +1,8 @@
+{
+  "id": "legal-011-ai-keeps-further-off-the-rim",
+  "graded_item": 12,
+  "description": "how the computer plays beyond the two scripted opponents is the builder's: a wider rim margin",
+  "file": "src/ai.js",
+  "find": "  safe: 0.75, // fraction of the rim",
+  "replace": "  safe: 0.7, // fraction of the rim"
+}

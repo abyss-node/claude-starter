@@ -1,0 +1,8 @@
+{
+ "id": "099-picked-seed-derived-from-size",
+ "graded_item": 19,
+ "description": "a picked seed is a function of --width and --height",
+ "file": "trippy.py",
+ "find": "random.SystemRandom().randrange(1, 1000000000)",
+ "replace": "random.Random(args.width * 1000 + args.height).randrange(1, 1000000000)"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "057",
+  "graded_item": 12,
+  "description": "a run at the very end of the log is never counted",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n        best = max(best, run)\n",
+  "replace": "        if day:\n            run += 1\n        else:\n            best = max(best, run)\n            run = 0\n",
+  "expect": [
+    "test_11"
+  ]
+}

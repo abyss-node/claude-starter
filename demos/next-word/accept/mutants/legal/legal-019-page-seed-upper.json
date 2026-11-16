@@ -1,0 +1,8 @@
+{
+  "id": "legal-019-page-seed-upper",
+  "graded_item": 22,
+  "description": "#seed in upper case",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <INPUT ID=\"seed\" TYPE=\"Text\" VALUE=\"7\">"
+}

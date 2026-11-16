@@ -1,0 +1,8 @@
+{
+  "id": "064-gate-along-the-road",
+  "graded_item": 14,
+  "description": "gates run along the road instead of across it",
+  "file": "src/track.js",
+  "find": "    const nx = -t.y;\n    const ny = t.x;",
+  "replace": "    const nx = t.x;\n    const ny = t.y;"
+}

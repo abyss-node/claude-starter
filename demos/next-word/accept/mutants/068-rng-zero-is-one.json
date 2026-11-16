@@ -1,0 +1,8 @@
+{
+  "id": "068-rng-zero-is-one",
+  "graded_item": 13,
+  "description": "createRng(0) is the same stream as createRng(1)",
+  "file": "src/sampling.js",
+  "find": "  let a = Number(seed) >>> 0;",
+  "replace": "  let a = (Number(seed) || 1) >>> 0;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "006-position-double-dt",
+  "graded_item": 2,
+  "description": "position advances two ticks of velocity per step",
+  "file": "src/vehicles.js",
+  "find": "  v.x += v.vx * DT;\n  v.y += v.vy * DT;",
+  "replace": "  v.x += v.vx * 2 * DT;\n  v.y += v.vy * 2 * DT;"
+}

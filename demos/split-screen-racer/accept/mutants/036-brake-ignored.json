@@ -1,0 +1,8 @@
+{
+  "id": "036-brake-ignored",
+  "graded_item": 9,
+  "description": "the brake does nothing",
+  "file": "src/vehicles.js",
+  "find": "if (brake > 0) fwd =",
+  "replace": "if (false) fwd ="
+}

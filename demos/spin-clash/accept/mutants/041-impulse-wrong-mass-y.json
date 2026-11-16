@@ -1,0 +1,8 @@
+{
+  "id": "041-impulse-wrong-mass-y",
+  "graded_item": 6,
+  "description": "the first top's y velocity change uses the other top's mass",
+  "file": "src/physics.js",
+  "find": "a.vy -= jn * ima * ny;",
+  "replace": "a.vy -= jn * imb * ny;"
+}

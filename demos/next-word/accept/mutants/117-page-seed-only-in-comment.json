@@ -1,0 +1,8 @@
+{
+  "id": "117-page-seed-only-in-comment",
+  "graded_item": 21,
+  "description": "the #seed input exists only inside an HTML comment",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <!-- <input id=\"seed\" type=\"text\" value=\"7\"> -->"
+}

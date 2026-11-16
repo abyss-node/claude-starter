@@ -1,0 +1,7 @@
+{
+  "id": "C005-badge-text-capitalised",
+  "description": "the badge text is capitalised",
+  "file": "frontend/render.js",
+  "find": "${escapeHtml(level)}</span>",
+  "replace": "${escapeHtml(level[0].toUpperCase() + level.slice(1))}</span>"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "052-board-drops-badges",
+  "graded_item": 10,
+  "description": "renderBoard strips difficulty before rendering rows",
+  "file": "frontend/render.js",
+  "find": "trails.map(renderTrailRow)",
+  "replace": "trails.map((t) => renderTrailRow({ ...t, difficulty: undefined }))"
+}

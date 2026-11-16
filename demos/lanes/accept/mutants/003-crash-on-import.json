@@ -1,0 +1,8 @@
+{
+  "id": "003-crash-on-import",
+  "graded_item": 1,
+  "description": "trails.py fails to import, server exits before answering",
+  "file": "backend/trails.py",
+  "find": "import json\n",
+  "replace": "import json\nimport nosuchmodule_xyz\n"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "042",
+  "graded_item": 7,
+  "description": "the README-entry commit also edits .gitignore",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 3:\n            with open(dest / \".gitignore\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n                f.write(\"*.log\\n\")\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_15"
+  ],
+  "also": [
+    {
+      "file": "build.py",
+      "find": "    if tree_files(dest) != tree_files(finished):\n",
+      "replace": "    if False:\n"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "048-temp-low-collapses",
+  "graded_item": 9,
+  "description": "a temperature below 0.25 keeps only the first entry",
+  "file": "src/sampling.js",
+  "find": "  if (temperature <= 0) return [{ token: list[0].token, p: 1 }];",
+  "replace": "  if (temperature < 0.25) return [{ token: list[0].token, p: 1 }];"
+}

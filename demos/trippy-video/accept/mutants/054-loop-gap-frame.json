@@ -1,0 +1,8 @@
+{
+ "id": "054-loop-gap-frame",
+ "graded_item": 9,
+ "description": "theta = TAU*k/(frames+1)",
+ "file": "trippy.py",
+ "find": "theta = TAU * k / frames",
+ "replace": "theta = TAU * k / (frames + 1)"
+}

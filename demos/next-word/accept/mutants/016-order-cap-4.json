@@ -1,0 +1,8 @@
+{
+  "id": "016-order-cap-4",
+  "graded_item": 2,
+  "description": "train never counts contexts longer than three tokens, whatever the order",
+  "file": "src/lm.js",
+  "find": "    for (let len = 1; len <= order - 1 && len <= i; len++) {\n      const key = tokens.slice(i - len, i).join(' ');\n      let next = contexts.get(key);\n      if (!next) contexts.set(key, (next = new Map()));\n      bump(next, tokens[i]);\n    }\n  }\n  return { order, unigram, contexts, tokenCount: tokens.length };\n}\n\n// Backoff rule: use the longest suffix of the context (at most order-1 tokens)\n// that was followed by at least one token in training. If no suffix was, fall\n// back to the frequency of every token in the training text (usedContext []).\nexport function nextDistribution(model, context) {\n  const tokens = Array.isArray(context) ? context.slice() : tokenize(context);\n  const maxLen = Math.min(model.order - 1, tokens.length);",
+  "replace": "    for (let len = 1; len <= Math.min(order - 1, 3) && len <= i; len++) {\n      const key = tokens.slice(i - len, i).join(' ');\n      let next = contexts.get(key);\n      if (!next) contexts.set(key, (next = new Map()));\n      bump(next, tokens[i]);\n    }\n  }\n  return { order, unigram, contexts, tokenCount: tokens.length };\n}\n\n// Backoff rule: use the longest suffix of the context (at most order-1 tokens)\n// that was followed by at least one token in training. If no suffix was, fall\n// back to the frequency of every token in the training text (usedContext []).\nexport function nextDistribution(model, context) {\n  const tokens = Array.isArray(context) ? context.slice() : tokenize(context);\n  const maxLen = Math.min(model.order - 1, 3, tokens.length);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "014-bike-top-speed-high",
+  "graded_item": 3,
+  "description": "the bike top speed is 400, so the car is under 10% faster",
+  "file": "src/vehicles.js",
+  "find": "    topSpeed: 345,",
+  "replace": "    topSpeed: 400,"
+}

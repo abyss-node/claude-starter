@@ -1,0 +1,8 @@
+{
+  "id": "008-default-one-top",
+  "graded_item": 1,
+  "description": "a config with no tops gets one top",
+  "file": "src/physics.js",
+  "find": ": [{}, {}];",
+  "replace": ": [{}];"
+}

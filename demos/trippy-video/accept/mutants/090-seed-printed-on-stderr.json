@@ -1,0 +1,8 @@
+{
+ "id": "090-seed-printed-on-stderr",
+ "graded_item": 18,
+ "description": "the seed line goes to standard error",
+ "file": "trippy.py",
+ "find": "print(\"seed: %d\" % args.seed)",
+ "replace": "print(\"seed: %d\" % args.seed, file=sys.stderr)"
+}

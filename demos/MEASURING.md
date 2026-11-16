@@ -94,7 +94,8 @@ before it admits it (`demolib.regrade`): it checks the bundle out at
 folder, and runs that copy's `check.py` on the workspace with an empty home
 folder. The verdict must be the row's `accept`. Nothing from the measuring
 machine takes part but the committed workspace, so a local grade the agent
-tampered with cannot become a row. On your machine, `demo pick` shows the rows
+tampered with cannot become a row; a workspace whose own code attacks the
+grade is another matter (What this does not measure, below). On your machine, `demo pick` shows the rows
 of the `costs.json` CI admitted, without re-grading them, and a row whose
 `kit_sha` your clone's `HEAD` or `origin/main` reaches, so a run measured on a
 branch shows there before it merges. `"synthetic": true` marks a made-up run
@@ -103,8 +104,9 @@ for the picker's tests, and `costs.json` refuses one.
 ## What this does not measure
 
 A grade on your machine is feedback, not proof, and CI's re-grade proves only
-that the committed workspace's code gives the right answers. Neither says who
-wrote that code or how.
+that the committed workspace, run beside a clean copy of the kit, gives the
+right answers. Neither says who wrote that code or how, nor, for Python code,
+that the answers are its own (below).
 
 - Whether the agent read or copied the kit's `demos/` folder. The workspace's
   rules file forbids it, and the copy rule fails a workspace that shares more
@@ -115,14 +117,56 @@ wrote that code or how.
   shows reading or copying: look for it.
 - Code written to attack the grading. The checks run the workspace's code in
   processes of their own, so it cannot reach their asserts, on a copy of the
-  workspace without links, under Node's permission model, which lets it read
-  that copy and nothing of the kit's, and write nothing. Node documents that
-  model as a seat belt for code you trust, not a sandbox against code that
-  sets out to escape it. And the agent itself has a shell, as you: it can edit
-  and commit the kit's clone, or fake a grade, so a local grade is feedback,
-  not proof, and only CI's re-grade admits a run. CI runs the workspace's code
-  too, under the same permission model. Look in the workspace and the
-  transcript for code that touches other processes, the network or the kit.
+  workspace without links. Its Node code runs under Node's permission model,
+  which lets it read that copy and, of the kit's files, only the two probe
+  files and, in a scenario's process, the scenario's module and the `accept/`
+  modules it imports (`demos/AUTHORING.md`): never `reference/` or
+  `accept/mutants/`, whose mutants quote the reference. It can write nothing
+  and start no process. The model limits files and processes, not the network,
+  and it hides no path: the code can learn where the kit is (below), though
+  not read it. Node documents the model as a seat belt for code you trust, not
+  a sandbox against code that sets out to escape it. And the agent itself has
+  a shell, as you: it can edit and commit the kit's clone, or fake a grade, so
+  a local grade is feedback, not proof, and only CI's re-grade admits a run.
+  CI runs the workspace's code too, under the same permission model. Look in
+  the workspace and the transcript for code that touches other processes, the
+  network or the kit.
+- Where the kit is. The workspace's code can always learn the path of the
+  kit's clone; the grade does not hide it, and only what the code can then read
+  differs between Node and Python. It is in:
+  - the workspace's own files. A python demo's rules file names the launcher
+    by its path in the clone, because that is the test command the agent runs,
+    and a node or mixed demo's `package.json` `test` names the clone's
+    `npm-test.mjs` and `starter.py`. The graded copy holds both, as does the
+    history of a demo graded on it. The rule against code that names the kit's
+    files does not read them: they are the kit's text, not the workspace's code.
+  - the processes. A Node probe process's own command line names the kit's
+    probe files, and the process list shows the grade's command lines (check.py,
+    the accept runner, `node --test` on the kit's test files), each naming the
+    clone.
+  - the home folder. A python demo's checks give the workspace's processes an
+    empty folder as their home, but the real one is in reach: Node probe
+    processes keep it in their environment, as does a mixed demo's backend
+    unless its checks clear it (lanes' do not), on Windows the temporary
+    folder is inside it and `%LOCALAPPDATA%` names it, and anywhere the user
+    database does. Its install record names the clone, and the clone's default
+    place, `~/.claude-starter`, is in the kit's own instructions.
+- Python code that finds the kit. Python has no permission model like Node's,
+  so in a Python demo, and in a mixed demo's Python backend, the workspace's
+  code can read and run any file you can, the kit's `reference/` included. The
+  grade makes that a step, not a wall: the code runs on a copy in a temporary
+  folder with no variable naming the kit's clone (and in a python demo with an
+  empty folder for a home), and a workspace whose code names the kit's files
+  fails a rule. But every route above leads to the clone, and the shortest is
+  one read of a file in the workspace: its rules file, or its `package.json`.
+  A workspace that did no work, read the clone's path from its rules file or
+  from the process list and ran the kit's reference got a recordable PASS.
+  CI's re-grade does not stop it either: a path learnt from the workspace's
+  files or on your machine leads nowhere there, but CI's clean copy of the kit
+  shows in its own process list. So before a Python or mixed run becomes a
+  row, read the workspace's Python for code that reads its rules file or
+  `package.json`, other processes, the home folder, the install record or any
+  file outside the workspace.
 - Every embedded asset. The no-binary-assets rule catches files, `data:` URLs
   and base64 over 1 KB, wrapped or not, but base64 cut into pieces under 32
   characters passes, as bytes written out as a number array do.

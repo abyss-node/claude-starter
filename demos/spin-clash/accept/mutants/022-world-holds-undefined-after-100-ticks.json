@@ -1,0 +1,8 @@
+{
+  "id": "022-world-holds-undefined-after-100-ticks",
+  "graded_item": 3,
+  "description": "a field set to undefined appears mid-match",
+  "file": "src/physics.js",
+  "find": "  world.tick += 1;",
+  "replace": "  world.tick += 1;\n  if (world.tick > 100) world.note = undefined;"
+}

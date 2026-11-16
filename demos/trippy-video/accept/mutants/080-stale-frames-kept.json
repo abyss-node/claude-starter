@@ -1,0 +1,8 @@
+{
+ "id": "080-stale-frames-kept",
+ "graded_item": 14,
+ "description": "old frame files are not deleted",
+ "file": "trippy.py",
+ "find": "            os.remove(os.path.join(out, name))",
+ "replace": "            pass"
+}

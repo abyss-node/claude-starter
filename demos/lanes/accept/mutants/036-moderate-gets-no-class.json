@@ -1,0 +1,8 @@
+{
+  "id": "036-moderate-gets-no-class",
+  "graded_item": 6,
+  "description": "moderate is missing from the known levels, so gets no level class",
+  "file": "frontend/render.js",
+  "find": "new Set([\"easy\", \"moderate\", \"hard\"])",
+  "replace": "new Set([\"easy\", \"hard\"])"
+}

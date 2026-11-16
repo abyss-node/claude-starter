@@ -1,0 +1,14 @@
+{
+ "id": "098-noise-from-unseeded-global-random",
+ "graded_item": 18,
+ "description": "noise uses the global random module, seeded only when --seed is given",
+ "file": "trippy.py",
+ "find": "    if args.seed is None:\n        args.seed = random.SystemRandom().randrange(1, 1000000000)\n        print(\"seed: %d\" % args.seed)\n",
+ "replace": "    if args.seed is None:\n        args.seed = random.randrange(1, 1000000000)\n        print(\"seed: %d\" % args.seed)\n    else:\n        random.seed(args.seed)\n",
+ "also": [
+  {
+   "find": "fbm = make_noise(random.Random(\"noise-%d\" % args.seed))",
+   "replace": "fbm = make_noise(random)"
+  }
+ ]
+}

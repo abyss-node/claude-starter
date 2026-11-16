@@ -1,0 +1,17 @@
+{
+  "id": "088",
+  "graded_item": 15,
+  "description": "the function commit adds notes.txt containing HABBIT",
+  "file": "commits.json",
+  "find": "\"copy\": [\"habits.py\", \"tests/test_streak.py\"]",
+  "replace": "\"copy\": [\"habits.py\", \"tests/test_streak.py\", \"notes.txt\"]",
+  "expect": [
+    "test_12"
+  ],
+  "also": [
+    {
+      "file": "workspace/notes.txt",
+      "create": "HABBIT notes\n"
+    }
+  ]
+}

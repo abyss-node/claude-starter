@@ -1,0 +1,8 @@
+{
+ "id": "031-seed-wrapped-to-32-bits-recipe-only",
+ "graded_item": 4,
+ "description": "only the recipe uses seed & 0xFFFFFFFF",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(args.seed & 0xFFFFFFFF)\n"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "017-wrong-divisor",
+  "graded_item": 4,
+  "description": "climb divided by 1000",
+  "file": "backend/trails.py",
+  "find": "score = length_km + climb_m / 100",
+  "replace": "score = length_km + climb_m / 1000"
+}

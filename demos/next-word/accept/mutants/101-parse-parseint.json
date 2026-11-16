@@ -1,0 +1,8 @@
+{
+  "id": "101-parse-parseint",
+  "graded_item": 18,
+  "description": "parseSeed uses parseInt, so \"12abc\" gives 12",
+  "file": "src/seed.js",
+  "find": "  if (!/^[0-9]+$/.test(s)) return null;\n  const n = Number(s);",
+  "replace": "  const n = parseInt(s, 10);\n  if (Number.isNaN(n) || n < 0) return null;"
+}

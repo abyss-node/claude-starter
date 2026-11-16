@@ -1,0 +1,8 @@
+{
+  "id": "182-only-first-three-tops-clash",
+  "graded_item": 18,
+  "description": "only the first three tops clash with each other",
+  "file": "src/physics.js",
+  "find": "for (let j = i + 1; j < tops.length; j++) {",
+  "replace": "for (let j = i + 1; j < Math.min(tops.length, 3); j++) {"
+}

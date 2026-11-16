@@ -1,0 +1,8 @@
+{
+  "id": "097-backwards-over-last-gate-counts",
+  "graded_item": 19,
+  "description": "crossing the last gate backwards from the start counts a lap",
+  "file": "src/race.js",
+  "find": "  const gate = track.checkpoints[progress.next];",
+  "replace": "  const last = track.checkpoints[n - 1];\n  if (progress.next === 1 && segmentsCross(from, to, last.a, last.b)) return { lap: progress.lap + 1, next: 1 };\n  const gate = track.checkpoints[progress.next];"
+}

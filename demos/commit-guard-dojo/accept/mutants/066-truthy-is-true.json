@@ -1,0 +1,11 @@
+{
+  "id": "066",
+  "graded_item": 13,
+  "description": "a day counts only when it is True",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n",
+  "replace": "        run = run + 1 if day is True else 0\n",
+  "expect": [
+    "test_16"
+  ]
+}

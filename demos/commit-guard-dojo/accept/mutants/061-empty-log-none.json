@@ -1,0 +1,11 @@
+{
+  "id": "061",
+  "graded_item": 12,
+  "description": "a log with no kept day gives None",
+  "file": "workspace/habits.py",
+  "find": "    return best\n",
+  "replace": "    return best or None\n",
+  "expect": [
+    "test_11"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "033-low-spin-top-loses-nothing",
+  "graded_item": 5,
+  "description": "a top with 2 rad/s of spin or less loses none",
+  "file": "src/physics.js",
+  "find": "      top.spin = Math.max(0, top.spin - loss);",
+  "replace": "      if (top.spin > 2) top.spin = Math.max(0, top.spin - loss);"
+}

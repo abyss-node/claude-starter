@@ -1,0 +1,8 @@
+{
+  "id": "104-step-adds-math-random-jitter",
+  "graded_item": 21,
+  "description": "stepRace jitters the heading with Math.random",
+  "file": "src/race.js",
+  "find": "    stepVehicle(p, input, surface);",
+  "replace": "    stepVehicle(p, input, surface);\n    p.heading += (Math.random() - 0.5) * 1e-9;"
+}

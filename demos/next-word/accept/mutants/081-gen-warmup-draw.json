@@ -1,0 +1,8 @@
+{
+  "id": "081-gen-warmup-draw",
+  "graded_item": 15,
+  "description": "generate burns one draw from the generator before the loop",
+  "file": "src/sampling.js",
+  "find": "  const rng = createRng(seed);",
+  "replace": "  const rng = createRng(seed);\n  rng();"
+}

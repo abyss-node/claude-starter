@@ -1,0 +1,11 @@
+{
+  "id": "085",
+  "graded_item": 14,
+  "description": "empties every list-valued entry",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    for d in days:\n        if isinstance(d, list):\n            d.clear()\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

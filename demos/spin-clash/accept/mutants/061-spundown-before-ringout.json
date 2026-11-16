@@ -1,0 +1,8 @@
+{
+  "id": "061-spundown-before-ringout",
+  "graded_item": 8,
+  "description": "spin-down is checked before ring-out",
+  "file": "src/physics.js",
+  "find": "if (Math.hypot(top.x, top.y) > arenaRadius) top.status = 'ringout';",
+  "replace": "if (top.spin <= minSpin) top.status = 'spundown';\n    else if (Math.hypot(top.x, top.y) > arenaRadius) top.status = 'ringout';"
+}

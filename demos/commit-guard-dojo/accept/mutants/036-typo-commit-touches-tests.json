@@ -1,0 +1,18 @@
+{
+  "id": "036",
+  "graded_item": 7,
+  "description": "the typo commit also edits tests/test_habits.py",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 1:\n            with open(dest / \"tests/test_habits.py\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n                f.write(\"# note\\n\")\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_15"
+  ],
+  "also": [
+    {
+      "file": "build.py",
+      "find": "    if tree_files(dest) != tree_files(finished):\n",
+      "replace": "    if False:\n"
+    }
+  ]
+}

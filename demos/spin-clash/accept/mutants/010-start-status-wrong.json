@@ -1,0 +1,8 @@
+{
+  "id": "010-start-status-wrong",
+  "graded_item": 1,
+  "description": "tops start with a status other than in",
+  "file": "src/physics.js",
+  "find": "      status: 'in',\n    });",
+  "replace": "      status: 'idle',\n    });"
+}

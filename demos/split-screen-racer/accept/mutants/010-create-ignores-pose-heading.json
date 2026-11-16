@@ -1,0 +1,8 @@
+{
+  "id": "010-create-ignores-pose-heading",
+  "graded_item": 2,
+  "description": "createVehicle ignores pose.heading",
+  "file": "src/vehicles.js",
+  "find": "    heading: pose.heading ?? 0,",
+  "replace": "    heading: 0,"
+}

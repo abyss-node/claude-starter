@@ -1,0 +1,8 @@
+{
+ "id": "010-png-crc-without-type",
+ "graded_item": 2,
+ "description": "chunk CRC covers the data but not the chunk type",
+ "file": "trippy.py",
+ "find": "zlib.crc32(kind + data)",
+ "replace": "zlib.crc32(data)"
+}

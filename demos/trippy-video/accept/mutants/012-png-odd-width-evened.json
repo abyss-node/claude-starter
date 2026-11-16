@@ -1,0 +1,8 @@
+{
+ "id": "012-png-odd-width-evened",
+ "graded_item": 2,
+ "description": "an odd width is rounded down to even",
+ "file": "trippy.py",
+ "find": "    frames = max(1, int(round(args.fps * args.seconds)))",
+ "replace": "    args.width -= args.width % 2\n    frames = max(1, int(round(args.fps * args.seconds)))"
+}

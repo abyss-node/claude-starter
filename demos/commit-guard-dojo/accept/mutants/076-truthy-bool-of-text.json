@@ -1,0 +1,11 @@
+{
+  "id": "076",
+  "graded_item": 13,
+  "description": "bool(str(day)): None, 0 and [] become the truthy text 'None', '0', '[]'",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n",
+  "replace": "        run = run + 1 if bool(str(day)) else 0\n",
+  "expect": [
+    "test_16"
+  ]
+}

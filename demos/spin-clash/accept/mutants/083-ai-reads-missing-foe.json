@@ -1,0 +1,8 @@
+{
+  "id": "083-ai-reads-missing-foe",
+  "graded_item": 10,
+  "description": "the computer reads the foe even when there is none",
+  "file": "src/ai.js",
+  "find": "  if (!foe) return { x: 0, y: 0 };",
+  "replace": "  if (!foe && index < 0) return { x: 0, y: 0 };"
+}

@@ -1,0 +1,14 @@
+{
+ "id": "014-png-rgba-alpha-254",
+ "graded_item": 2,
+ "description": "RGBA frames with alpha 254 (not fully opaque)",
+ "file": "trippy.py",
+ "find": "lut.append(bytes((round(r * 255), round(g * 255), round(b * 255))))",
+ "replace": "lut.append(bytes((round(r * 255), round(g * 255), round(b * 255), 254)))",
+ "also": [
+  {
+   "find": "ihdr = struct.pack(\">IIBBBBB\", width, height, 8, 2, 0, 0, 0)",
+   "replace": "ihdr = struct.pack(\">IIBBBBB\", width, height, 8, 6, 0, 0, 0)"
+  }
+ ]
+}

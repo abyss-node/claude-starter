@@ -1,0 +1,8 @@
+{
+  "id": "078-two-draws",
+  "graded_item": 14,
+  "description": "sampleToken draws twice",
+  "file": "src/sampling.js",
+  "find": "  const r = rng();",
+  "replace": "  rng(); const r = rng();"
+}

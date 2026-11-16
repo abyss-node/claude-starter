@@ -1,0 +1,7 @@
+{
+  "id": "L01",
+  "description": "the shares built with map instead of a loop",
+  "file": "src/share.js",
+  "find": "  const shares = new Array(people).fill(base);\n  // The cents left over go one each to the first people, so the larger shares come first.\n  for (let given = 0; given < left; given++) shares[given] += 1;\n  return shares;",
+  "replace": "  return Array.from({ length: people }, (_, i) => base + (i < left ? 1 : 0));"
+}

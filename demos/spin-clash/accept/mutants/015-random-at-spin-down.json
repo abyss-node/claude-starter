@@ -1,0 +1,8 @@
+{
+  "id": "015-random-at-spin-down",
+  "graded_item": 2,
+  "description": "Math.random is called when a top spins down",
+  "file": "src/physics.js",
+  "find": "else if (top.spin <= minSpin) top.status = 'spundown';",
+  "replace": "else if (top.spin <= minSpin) { top.status = 'spundown'; top.vx += Math.random() * 0; }"
+}

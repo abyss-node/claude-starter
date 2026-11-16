@@ -1,0 +1,8 @@
+{
+  "id": "legal-014-extra-plain-field-on-the-world",
+  "graded_item": 3,
+  "description": "the world holds another plain field of its own",
+  "file": "src/physics.js",
+  "find": "  const world = { seed, tick: 0, rng: seed, winner: null, config: settings, tops: [] };",
+  "replace": "  const world = { seed, tick: 0, rng: seed, winner: null, config: settings, tops: [], notes: { label: 'clash', marks: [0, 1] } };"
+}

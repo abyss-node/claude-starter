@@ -1,0 +1,8 @@
+{
+  "id": "103-parse-strip-inner-space",
+  "graded_item": 18,
+  "description": "parseSeed removes spaces inside the text, so \"4 2\" gives 42",
+  "file": "src/seed.js",
+  "find": "  const s = String(text ?? '').trim();",
+  "replace": "  const s = String(text ?? '').replace(/\\s+/g, '');"
+}

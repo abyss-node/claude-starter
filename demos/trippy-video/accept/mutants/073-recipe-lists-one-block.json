@@ -1,0 +1,8 @@
+{
+ "id": "073-recipe-lists-one-block",
+ "graded_item": 13,
+ "description": "recipe.json names only the first block",
+ "file": "trippy.py",
+ "find": "\"blocks\": recipe[\"blocks\"], \"palette\"",
+ "replace": "\"blocks\": recipe[\"blocks\"][:1], \"palette\""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "029-unknown-api-answers-200",
+  "graded_item": 5,
+  "description": "unknown /api path answers 200 with an empty list",
+  "file": "backend/server.py",
+  "find": "self.send_error_json(404, \"not_found\", f\"No API route at {path}.\")",
+  "replace": "self.send_json(200, {\"trails\": []})"
+}

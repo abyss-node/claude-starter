@@ -1,0 +1,8 @@
+{
+  "id": "166-world-to-screen-y-up",
+  "graded_item": 31,
+  "description": "screen y shrinks as world y grows",
+  "file": "src/camera.js",
+  "find": "    y: vp.y + vp.h / 2 + (wy - vp.camY) * vp.scale,",
+  "replace": "    y: vp.y + vp.h / 2 - (wy - vp.camY) * vp.scale,"
+}

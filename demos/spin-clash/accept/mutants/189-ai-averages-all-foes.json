@@ -1,0 +1,8 @@
+{
+  "id": "189-ai-averages-all-foes",
+  "graded_item": 19,
+  "description": "the computer aims at the average position of all other tops in play",
+  "file": "src/ai.js",
+  "find": "  const tx = foe.x;\n  const ty = foe.y;",
+  "replace": "  let tx = 0; let ty = 0; let n = 0;\n  world.tops.forEach((t, i) => { if (i !== index && t.status === 'in') { tx += t.x; ty += t.y; n += 1; } });\n  tx /= n; ty /= n;"
+}

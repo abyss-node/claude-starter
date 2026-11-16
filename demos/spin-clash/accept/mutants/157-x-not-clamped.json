@@ -1,0 +1,8 @@
+{
+  "id": "157-x-not-clamped",
+  "graded_item": 16,
+  "description": "the x input is not clamped",
+  "file": "src/physics.js",
+  "find": "clamp(num(inp.x, 0), -1, 1)",
+  "replace": "num(inp.x, 0)"
+}

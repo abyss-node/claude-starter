@@ -1,0 +1,11 @@
+{
+  "id": "021",
+  "graded_item": 4,
+  "description": "the README-entry commit's committer address is at anthropic.com",
+  "file": "build.py",
+  "find": "    env[\"GIT_AUTHOR_DATE\"] = env[\"GIT_COMMITTER_DATE\"] = stamp\n",
+  "replace": "    env[\"GIT_AUTHOR_DATE\"] = env[\"GIT_COMMITTER_DATE\"] = stamp\n    if n == 3:\n        env[\"GIT_COMMITTER_EMAIL\"] = \"assistant@Anthropic.com\"\n",
+  "expect": [
+    "test_04"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "008-tok-trim-apos",
+  "graded_item": 1,
+  "description": "tokenize trims apostrophes from the ends of a token",
+  "file": "src/lm.js",
+  "find": "  return String(text ?? '').toLowerCase().match(TOKEN_RE) ?? [];",
+  "replace": "  return (String(text ?? '').toLowerCase().match(TOKEN_RE) ?? []).map((t) => t.replace(/^'+|'+$/g, '')).filter(Boolean);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "183-tops-1-and-3-never-clash",
+  "graded_item": 18,
+  "description": "tops 1 and 3 never clash",
+  "file": "src/physics.js",
+  "find": "      if (tops[j].status !== 'in') continue;\n",
+  "replace": "      if (tops[j].status !== 'in') continue;\n      if (i === 1 && j === 3) continue;\n"
+}

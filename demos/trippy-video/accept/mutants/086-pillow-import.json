@@ -1,0 +1,11 @@
+{
+ "id": "086-pillow-import",
+ "graded_item": 16,
+ "description": "an unguarded import of Pillow",
+ "file": "trippy.py",
+ "find": "import zlib\n",
+ "replace": "import zlib\nimport PIL.Image\n",
+ "expect": [
+  "test_stdlib_only"
+ ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "170-out-top-still-collides-as-second",
+  "graded_item": 17,
+  "description": "an out top takes part in clashes as the second of a pair",
+  "file": "src/physics.js",
+  "find": "      if (tops[j].status !== 'in') continue;\n",
+  "replace": ""
+}

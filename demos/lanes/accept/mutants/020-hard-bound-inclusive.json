@@ -1,0 +1,8 @@
+{
+  "id": "020-hard-bound-inclusive",
+  "graded_item": 4,
+  "description": "score of exactly 15 is moderate",
+  "file": "backend/trails.py",
+  "find": "if score < HARD_FROM:",
+  "replace": "if score <= HARD_FROM:"
+}

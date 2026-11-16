@@ -1,0 +1,8 @@
+{
+  "id": "023-world-holds-a-class-instance",
+  "graded_item": 3,
+  "description": "the world holds an instance of a class",
+  "file": "src/physics.js",
+  "find": "config: settings, tops: [] };",
+  "replace": "config: settings, tops: [], marker: new (class Marker { constructor() { this.n = 1; } })() };"
+}

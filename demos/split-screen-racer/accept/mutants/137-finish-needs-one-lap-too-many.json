@@ -1,0 +1,8 @@
+{
+  "id": "137-finish-needs-one-lap-too-many",
+  "graded_item": 27,
+  "description": "a player finishes when lap exceeds laps",
+  "file": "src/race.js",
+  "find": "if (p.lap >= race.laps) {",
+  "replace": "if (p.lap > race.laps) {"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "083",
+  "graded_item": 14,
+  "description": "sorts the caller's list in place",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    days.sort(key=bool)\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

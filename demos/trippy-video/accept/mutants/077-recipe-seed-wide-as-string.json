@@ -1,0 +1,8 @@
+{
+ "id": "077-recipe-seed-wide-as-string",
+ "graded_item": 13,
+ "description": "a seed over 2**32 is written to recipe.json as a string",
+ "file": "trippy.py",
+ "find": "json.dump({\"seed\": args.seed,",
+ "replace": "json.dump({\"seed\": args.seed if abs(args.seed) < 2 ** 32 else str(args.seed),"
+}

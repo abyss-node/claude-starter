@@ -1,0 +1,11 @@
+{
+  "id": "022",
+  "graded_item": 5,
+  "description": "the function commit's Verified line runs pytest",
+  "file": "commits.json",
+  "find": "Verified: python -m unittest discover -s tests -> Ran 8 tests, OK",
+  "replace": "Verified: pytest -q -> 8 passed",
+  "expect": [
+    "test_05"
+  ]
+}

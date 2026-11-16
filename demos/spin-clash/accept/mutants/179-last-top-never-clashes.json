@@ -1,0 +1,8 @@
+{
+  "id": "179-last-top-never-clashes",
+  "graded_item": 18,
+  "description": "the last top in the list never clashes",
+  "file": "src/physics.js",
+  "find": "for (let j = i + 1; j < tops.length; j++) {",
+  "replace": "for (let j = i + 1; j < tops.length - 1; j++) {"
+}

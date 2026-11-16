@@ -1,0 +1,8 @@
+{
+  "id": "013-settings-shared-through-module",
+  "graded_item": 2,
+  "description": "every world made shares one settings object kept on the module, so the last world made sets them for all",
+  "file": "src/physics.js",
+  "find": "  const world = { seed, tick: 0, rng: seed, winner: null, config: settings, tops: [] };",
+  "replace": "  const shared = (createWorld.shared = createWorld.shared || {});\n  Object.assign(shared, settings);\n  const world = { seed, tick: 0, rng: seed, winner: null, config: shared, tops: [] };"
+}

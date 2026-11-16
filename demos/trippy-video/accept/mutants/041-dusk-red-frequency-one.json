@@ -1,0 +1,8 @@
+{
+ "id": "041-dusk-red-frequency-one",
+ "graded_item": 6,
+ "description": "dusk red frequency 1.0 instead of 2.0",
+ "file": "trippy.py",
+ "find": "\"dusk\": ((0.50, 0.40, 0.60), (0.50, 0.30, 0.40), (2.00, 1.00, 1.00)",
+ "replace": "\"dusk\": ((0.50, 0.40, 0.60), (0.50, 0.30, 0.40), (1.00, 1.00, 1.00)"
+}

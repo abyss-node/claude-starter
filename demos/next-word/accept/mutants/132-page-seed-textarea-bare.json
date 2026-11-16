@@ -1,0 +1,8 @@
+{
+  "id": "132-page-seed-textarea-bare",
+  "graded_item": 22,
+  "description": "#seed is a <textarea> (unquoted markup)",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <textarea id=seed rows=1>7</textarea>"
+}

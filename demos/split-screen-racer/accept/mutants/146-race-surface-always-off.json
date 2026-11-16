@@ -1,0 +1,8 @@
+{
+  "id": "146-race-surface-always-off",
+  "graded_item": 28,
+  "description": "stepRace passes off to every vehicle",
+  "file": "src/race.js",
+  "find": "<= track.width / 2 ? 'road' : 'off';",
+  "replace": "<= -1 ? 'road' : 'off';"
+}

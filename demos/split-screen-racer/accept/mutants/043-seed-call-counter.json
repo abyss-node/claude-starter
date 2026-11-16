@@ -1,0 +1,8 @@
+{
+  "id": "043-seed-call-counter",
+  "graded_item": 10,
+  "description": "every second call with the same seed gives a different track",
+  "file": "src/track.js",
+  "find": "const key = seedKey(seed);",
+  "replace": "const key = seedKey(seed) + ((generateTrack.calls = (generateTrack.calls || 0) + 1) % 2);"
+}

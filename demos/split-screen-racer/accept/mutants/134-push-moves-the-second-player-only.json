@@ -1,0 +1,8 @@
+{
+  "id": "134-push-moves-the-second-player-only",
+  "graded_item": 26,
+  "description": "the whole overlap is taken out of the second player, whatever the weights",
+  "file": "src/race.js",
+  "find": "  a.x -= nx * overlap * wa;\n  a.y -= ny * overlap * wa;\n  b.x += nx * overlap * wb;\n  b.y += ny * overlap * wb;",
+  "replace": "  b.x += nx * overlap;\n  b.y += ny * overlap;"
+}

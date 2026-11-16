@@ -1,0 +1,8 @@
+{
+  "id": "075-grid-slots-off-road",
+  "graded_item": 16,
+  "description": "the two grid slots sit 90 from the centreline",
+  "file": "src/track.js",
+  "find": "  const side = ROAD_WIDTH / 4;",
+  "replace": "  const side = ROAD_WIDTH;"
+}

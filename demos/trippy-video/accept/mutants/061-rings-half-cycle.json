@@ -1,0 +1,8 @@
+{
+ "id": "061-rings-half-cycle",
+ "graded_item": 11,
+ "description": "ring phase runs a non-whole number of cycles per loop",
+ "file": "trippy.py",
+ "find": "rphase = p[\"ring_speed\"] * theta",
+ "replace": "rphase = (p[\"ring_speed\"] + 0.5) * theta"
+}

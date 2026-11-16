@@ -1,0 +1,18 @@
+# Pebble
+
+Pebble keeps a tally of the days you kept a habbit. A log is a plain Python list
+with one entry per day, oldest first: `True` for a day you kept it, `False` for a
+day you missed.
+
+## Functions
+
+- `count_done(days)`: how many days you kept the habit.
+- `completion_rate(days)`: the share of days kept, from 0.0 to 1.0.
+
+## Tests
+
+Standard library only. From this folder:
+
+```
+python -m unittest discover -s tests
+```

@@ -1,0 +1,8 @@
+{
+  "id": "141-friction-on-no-drag",
+  "graded_item": 15,
+  "description": "friction on brakes no top (spin falls but speed does not)",
+  "file": "src/physics.js",
+  "find": "      ax -= drag * top.vx;\n      ay -= drag * top.vy;",
+  "replace": "      ax -= 0 * drag * top.vx;\n      ay -= 0 * drag * top.vy;"
+}

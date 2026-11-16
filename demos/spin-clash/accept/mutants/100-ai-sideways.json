@@ -1,0 +1,8 @@
+{
+  "id": "100-ai-sideways",
+  "graded_item": 12,
+  "description": "the computer steers at right angles to the foe",
+  "file": "src/ai.js",
+  "find": "  const [ix, iy] = unit(dx, dy);",
+  "replace": "  const [ix, iy] = unit(-dy, dx);"
+}

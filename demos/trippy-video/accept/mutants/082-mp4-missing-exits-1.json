@@ -1,0 +1,8 @@
+{
+ "id": "082-mp4-missing-exits-1",
+ "graded_item": 15,
+ "description": "--mp4 with no ffmpeg exits 1",
+ "file": "trippy.py",
+ "find": "print(\"  \" + \" \".join(_quote(c) for c in cmd))\n            return 0",
+ "replace": "print(\"  \" + \" \".join(_quote(c) for c in cmd))\n            return 1"
+}

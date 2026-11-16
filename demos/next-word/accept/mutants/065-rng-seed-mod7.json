@@ -1,0 +1,8 @@
+{
+  "id": "065-rng-seed-mod7",
+  "graded_item": 13,
+  "description": "createRng uses the seed modulo 7",
+  "file": "src/sampling.js",
+  "find": "  let a = Number(seed) >>> 0;",
+  "replace": "  let a = (Number(seed) % 7) >>> 0;"
+}

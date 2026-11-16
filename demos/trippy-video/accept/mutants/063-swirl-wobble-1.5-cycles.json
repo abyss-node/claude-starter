@@ -1,0 +1,8 @@
+{
+ "id": "063-swirl-wobble-1.5-cycles",
+ "graded_item": 11,
+ "description": "swirl wobble makes 1.5 turns per loop",
+ "file": "trippy.py",
+ "find": "swirl_off = p[\"swirl_wobble\"] * sin(theta)",
+ "replace": "swirl_off = p[\"swirl_wobble\"] * cos(1.5 * theta)"
+}

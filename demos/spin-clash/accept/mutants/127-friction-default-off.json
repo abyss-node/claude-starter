@@ -1,0 +1,8 @@
+{
+  "id": "127-friction-default-off",
+  "graded_item": 15,
+  "description": "friction defaults to off",
+  "file": "src/physics.js",
+  "find": "friction: config.friction !== false,",
+  "replace": "friction: config.friction === true,"
+}

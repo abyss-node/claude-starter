@@ -1,0 +1,8 @@
+{
+  "id": "108-hash-drops-positions-and-velocities",
+  "graded_item": 22,
+  "description": "hashRace covers only kind, lap, next and finished",
+  "file": "src/race.js",
+  "find": "parts.push(p.kind, p.x, p.y, p.heading, p.vx, p.vy, p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);",
+  "replace": "parts.push(p.kind, p.lap, p.next, p.finished ? 1 : 0);"
+}

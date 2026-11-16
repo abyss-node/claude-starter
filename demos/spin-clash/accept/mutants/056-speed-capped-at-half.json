@@ -1,0 +1,8 @@
+{
+  "id": "056-speed-capped-at-half",
+  "graded_item": 7,
+  "description": "speed is capped, which leaks energy in a fast head-on run",
+  "file": "src/physics.js",
+  "find": "    top.x += top.vx * DT;",
+  "replace": "    { const sp = Math.hypot(top.vx, top.vy); if (sp > 0.5) { top.vx *= 0.5 / sp; top.vy *= 0.5 / sp; } }\n    top.x += top.vx * DT;"
+}

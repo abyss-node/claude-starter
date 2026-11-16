@@ -1,0 +1,14 @@
+{
+ "id": "034-seed-masked-to-31-bits",
+ "graded_item": 4,
+ "description": "seed is masked to 31 bits internally",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(args.seed & 0x7FFFFFFF)\n",
+ "also": [
+  {
+   "find": "random.Random(\"noise-%d\" % args.seed)",
+   "replace": "random.Random(\"noise-%d\" % (args.seed & 0x7FFFFFFF))"
+  }
+ ]
+}

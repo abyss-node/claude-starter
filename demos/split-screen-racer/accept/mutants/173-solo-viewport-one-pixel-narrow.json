@@ -1,0 +1,8 @@
+{
+  "id": "173-solo-viewport-one-pixel-narrow",
+  "graded_item": 32,
+  "description": "the single viewport is one pixel narrower than the canvas",
+  "file": "src/camera.js",
+  "find": "    rects = [{ x: 0, y: 0, w: width, h: height }];",
+  "replace": "    rects = [{ x: 0, y: 0, w: width - 1, h: height }];"
+}

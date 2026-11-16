@@ -1,0 +1,8 @@
+{
+  "id": "124-walls-25-too-far-out",
+  "graded_item": 24,
+  "description": "the wall limit is 25 past the verge",
+  "file": "src/race.js",
+  "find": "  const limit = track.width / 2 + track.verge - v.spec.radius;",
+  "replace": "  const limit = track.width / 2 + track.verge + 25;"
+}

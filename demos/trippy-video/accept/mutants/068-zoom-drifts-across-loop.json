@@ -1,0 +1,8 @@
+{
+ "id": "068-zoom-drifts-across-loop",
+ "graded_item": 11,
+ "description": "zoom grows 15 percent over the loop and snaps back",
+ "file": "trippy.py",
+ "find": "    zoom = p[\"zoom\"]\n",
+ "replace": "    zoom = p[\"zoom\"] * (1.0 + 0.15 * ((theta / TAU) % 1.0))\n"
+}

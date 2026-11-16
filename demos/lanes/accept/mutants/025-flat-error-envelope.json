@@ -1,0 +1,8 @@
+{
+  "id": "025-flat-error-envelope",
+  "graded_item": 5,
+  "description": "error body is {code, message} with no error object",
+  "file": "backend/server.py",
+  "find": "self.send_json(status, {\"error\": {\"code\": code, \"message\": message}})",
+  "replace": "self.send_json(status, {\"code\": code, \"message\": message})"
+}

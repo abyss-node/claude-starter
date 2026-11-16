@@ -1,0 +1,8 @@
+{
+  "id": "094-skip-last-gate-counts",
+  "graded_item": 19,
+  "description": "a lap counts on the finish line when only the last gate is missing",
+  "file": "src/race.js",
+  "find": "  const gate = track.checkpoints[progress.next];",
+  "replace": "  const g0 = track.checkpoints[0];\n  if (progress.next === n - 1 && segmentsCross(from, to, g0.a, g0.b)) return { lap: progress.lap + 1, next: 1 % n };\n  const gate = track.checkpoints[progress.next];"
+}

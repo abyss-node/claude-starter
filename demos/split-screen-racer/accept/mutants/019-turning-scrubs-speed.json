@@ -1,0 +1,8 @@
+{
+  "id": "019-turning-scrubs-speed",
+  "graded_item": 5,
+  "description": "steering bleeds 40% of the velocity every tick",
+  "file": "src/vehicles.js",
+  "find": "  v.vx = fx * fwd + rx * lat;\n  v.vy = fy * fwd + ry * lat;",
+  "replace": "  const scrub = 1 - 0.4 * Math.abs(steer);\n  v.vx = (fx * fwd + rx * lat) * scrub;\n  v.vy = (fy * fwd + ry * lat) * scrub;"
+}

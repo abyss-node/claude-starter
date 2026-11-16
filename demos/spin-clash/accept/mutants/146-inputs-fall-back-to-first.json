@@ -1,0 +1,8 @@
+{
+  "id": "146-inputs-fall-back-to-first",
+  "graded_item": 16,
+  "description": "a missing input entry falls back to the first player's input",
+  "file": "src/physics.js",
+  "find": "const inp = Array.isArray(inputs) ? inputs[i] : null;",
+  "replace": "const inp = Array.isArray(inputs) ? (inputs[i] ?? inputs[0]) : null;"
+}

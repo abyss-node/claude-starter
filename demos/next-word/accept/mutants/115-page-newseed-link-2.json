@@ -1,0 +1,8 @@
+{
+  "id": "115-page-newseed-link-2",
+  "graded_item": 21,
+  "description": "#newseed is an <a>, not a button (unquoted id)",
+  "file": "index.html",
+  "find": "      <button id=\"newseed\" type=\"button\">New random seed</button>",
+  "replace": "      <a id=newseed href=\"#\">New random seed</a>"
+}

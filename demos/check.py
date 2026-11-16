@@ -5,16 +5,21 @@
 
 In a workspace that demos/start.py made, `npm test` runs this through the kit's launcher
 (`starter.py demo check <name>`), and the person at the keyboard runs the launcher directly, since the agent
-can change what `npm test` runs. It grades a copy of the workspace's plain files in a new temporary folder
-(demolib.copy_workspace), with demos/<name>/accept/ run from the kit, never from the workspace. The workspace's
-code runs in processes of its own (demos/probe.mjs), never in the one that asserts, under Node's permission
-model, which lets them read that copy and nothing of the kit's. Node and git are started by full path and from
-outside the workspace, so a program named like them in the workspace is never run. The agent can read the
-checks in the kit, which only its transcript shows; an edit to them is caught (below). Then four demo rules: one
-test entry point, no binary assets, original names (demos/denylist.txt) and no copying from
-demos/<name>/reference/. Every check prints one line; then `PASS k/n` or `FAIL k/n`, a NOT CHECKED line naming
-what no test can judge, a line saying what a local grade is worth, and a RECORD line shaped as a `Verified:`
-trailer, which the checkpoint copies into the commit.
+can change what `npm test` runs. A python demo has no package.json: its rules file names the launcher. It grades
+a copy of the workspace's plain files in a new temporary folder (demolib.copy_workspace; a copy_git demo's copy
+keeps a cleaned .git), with demos/<name>/accept/ run from the kit, never from the workspace: `node --test` with
+the kit's reporter, or the demo's own accept_runner (run_accept). The workspace's code runs in processes of its
+own, never in the one that asserts: in Node under Node's permission model (demos/probe.mjs), which lets them
+read that copy and, of the kit, only the probe files and a scenario's own modules; in Python, which has no such
+model, from a copy in a temporary folder (demos/acceptkit.py), where code that goes looking can still find the
+kit (demos/MEASURING.md). Node, Python and git are started by full path and from outside the
+workspace, so a program named like them in the workspace is never run. The agent can read the checks in the
+kit, which only its transcript shows; an edit to them is caught (below). Then five demo rules: one test entry
+point, no binary assets, original names (demos/denylist.txt), no copying from demos/<name>/reference/ and no
+code naming the kit's files. Every check prints one line; then `PASS k/n` or `FAIL k/n`, a NOT CHECKED line
+naming what no test can judge, a line saying what a local grade is worth, and a RECORD line shaped as a
+`Verified:` trailer, which the checkpoint copies into the commit. --accept-only runs the held-out checks alone
+on a folder, for a demo's own mutants runner; it prints no RECORD and grades nothing.
 
 A grade made here is feedback, not proof. The workspace's code, and the agent, run as the person at the
 keyboard, so anything with a shell on this machine can tamper with the clone or the grading processes. A
@@ -29,7 +34,7 @@ lets binary assets through, and either marks the RECORD recordable=no. The hash 
 store, so grading writes nothing to the clone and works where only the demo's folder can be written.
 
 Exit: 0 PASS, 1 FAIL, 2 nothing graded (unknown demo, not a demo workspace, grading files modified or not
-hashable, the install record names another clone, or no Node).
+hashable, the install record names another clone, no Node for a demo that needs it, or no Python 3.9+).
 """
 from __future__ import annotations
 
@@ -38,6 +43,7 @@ import json
 from collections import Counter
 import os
 import re
+import secrets
 import subprocess
 import sys
 import tempfile
@@ -51,8 +57,11 @@ import demolib as dl  # noqa: E402
 from demolib import Demo  # noqa: E402
 
 REPORTER = dl.DEMOS / "reporter.mjs"
-ACCEPT_TIMEOUT_S = 600
 ERROR_LINE = re.compile(r"\s*\w*Error\b")  # the line of a dead check file's stderr that says what killed it
+# How a Python accept runner starts: isolated (-I: no PYTHON* variables, no user site-packages, not its own folder
+# on sys.path), without site-packages (-S: it is the kit's code, standard library only), writing no bytecode into
+# the kit (-B), and printing UTF-8 whatever the console's code page (-X utf8; -I ignores PYTHONIOENCODING).
+PY_RUNNER_FLAGS = ("-I", "-S", "-B", "-X", "utf8")
 
 # One test entry point. The verifier ranks CI config first, then package.json scripts and a Makefile or
 # justfile (plugins/starter/agents/verifier.md), so a workspace that adds any of these could hand it a test
@@ -60,7 +69,8 @@ ERROR_LINE = re.compile(r"\s*\w*Error\b")  # the line of a dead check file's std
 CI_PATHS = (".github/workflows", ".gitlab-ci.yml", ".circleci", "azure-pipelines.yml", "Jenkinsfile", ".travis.yml",
             "bitbucket-pipelines.yml", ".woodpecker.yml", ".woodpecker", ".buildkite", ".drone.yml", "appveyor.yml",
             ".appveyor.yml")
-RUNNER_FILES = {"makefile", "gnumakefile", "justfile", ".justfile", "taskfile.yml", "taskfile.yaml"}
+RUNNER_FILES = {"makefile", "gnumakefile", "justfile", ".justfile", "taskfile.yml", "taskfile.yaml", "tox.ini",
+                "noxfile.py"}
 
 ASSET_KINDS = {
     "image": {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico", ".avif", ".tif", ".tiff", ".svg"},
@@ -103,45 +113,69 @@ def first_line(s: str | None) -> str:
 # Held-out checks
 # --------------------------------------------------------------------------
 
-def run_accept(demo: Demo, ws: Path, copied: bool = False) -> list[Check]:
-    """Run the kit's accept/ on a copy of `ws` (or on `ws` itself when it is that copy) with Node and return one
-    Check per held-out test, in the order run (see held_out_checks). The runner starts from the copy's parent
-    folder, never from the workspace."""
+def accept_command(demo: Demo) -> tuple[list[str], str]:
+    """(argv, what to call it in a message) of the demo's held-out checks. Without an accept_runner: `node --test`
+    with the kit's reporter on accept/*.test.mjs. With one: the demo's runner, a .py file run on the validated
+    Python with PY_RUNNER_FLAGS, or a .mjs file run on Node. Each program by its full path; "" when not found."""
+    runner = demo.accept_runner
+    if runner is None:
+        files = sorted((demo.dir / "accept").glob("*.test.mjs"))
+        if not files:
+            raise dl.DemoError(f"demos/{demo.name}/accept/ holds no *.test.mjs file")
+        per_test = max(60, demo.timeout_s // 10) * 1000
+        return ([dl.exe("node") or "", "--test", f"--test-reporter={REPORTER.as_uri()}", f"--test-timeout={per_test}",
+                 *map(str, files)], "node --test")
+    path = str(demo.dir / runner)
+    if runner.endswith(".py"):
+        return [dl.python_exe() or "", *PY_RUNNER_FLAGS, path], runner
+    return [dl.exe("node") or "", path], runner
+
+
+def run_accept(demo: Demo, ws: Path, copied: bool = False, failfast: bool = False) -> list[Check]:
+    """Run the kit's accept/ on a copy of `ws` (or on `ws` itself when it is that copy) and return one Check per
+    held-out test, in the order run (see held_out_checks). The runner starts from the copy's parent folder, never
+    from the workspace, with DEMO_WORKSPACE naming the copy, DEMO_PYTHON, DEMO_NODE and DEMO_GIT the programs it
+    may start (by full path; "" when there is none),
+    a fresh DEMO_RESULT_TOKEN that only its own result lines carry, and git kept to the copy. With `failfast` (the
+    mutants engine, which needs only a FAIL) DEMO_FAILFAST lets a runner stop at its first failed check."""
     if not copied:
         with tempfile.TemporaryDirectory(prefix="demo-grade-") as td:
-            dl.copy_workspace(ws, Path(td) / "ws")
-            return run_accept(demo, Path(td) / "ws", copied=True)
-    files = sorted((demo.dir / "accept").glob("*.test.mjs"))
-    if not files:
-        raise dl.DemoError(f"demos/{demo.name}/accept/ holds no *.test.mjs file")
-    env = {k: v for k, v in os.environ.items() if k not in ("NODE_OPTIONS", "NODE_TEST_CONTEXT")}
-    env["DEMO_WORKSPACE"] = str(ws)
-    node = dl.exe("node")
-    cmd = [node or "node", "--test", f"--test-reporter={REPORTER.as_uri()}", "--test-timeout=60000",
-           *map(str, files)]
-    try:
-        if not node:
-            raise OSError("no `node` on PATH")
-        r = subprocess.run(cmd, cwd=str(ws.parent), env=env, capture_output=True, text=True, encoding="utf-8",
-                           errors="replace", timeout=ACCEPT_TIMEOUT_S, stdin=subprocess.DEVNULL)
-        out, err = r.stdout, r.stderr
-    except subprocess.TimeoutExpired as e:
-        out = e.stdout.decode("utf-8", "replace") if isinstance(e.stdout, bytes) else e.stdout or ""
-        err = f"the held-out checks took longer than {ACCEPT_TIMEOUT_S} seconds and were stopped"
-        code = None
-    except OSError as e:
-        out, err, code = "", f"could not run node: {e}", None
-    else:
-        code = r.returncode
-    return held_out_checks(demo, out, err, code)
+            dl.copy_workspace(ws, Path(td) / "ws", git=demo.copy_git)
+            return run_accept(demo, Path(td) / "ws", copied=True, failfast=failfast)
+    cmd, called = accept_command(demo)
+    token = secrets.token_hex(16)
+    with tempfile.TemporaryDirectory(prefix="demo-run-") as run_dir:
+        env = dl.scrubbed_env(dl.git_isolation(Path(run_dir), ws.parent))
+        env.update(DEMO_WORKSPACE=str(ws), DEMO_PYTHON=dl.python_exe() or "", DEMO_NODE=dl.exe("node") or "",
+                   DEMO_GIT=dl.exe("git") or "", DEMO_RESULT_TOKEN=token, DEMO_TIMEOUT_S=str(demo.timeout_s))
+        if failfast:
+            env["DEMO_FAILFAST"] = "1"
+        try:
+            if not cmd[0]:
+                on_python = (demo.accept_runner or "").endswith(".py")
+                raise OSError((dl.python_problem() or "no Python") if on_python else "no `node` on PATH")
+            r = subprocess.run(cmd, cwd=str(ws.parent), env=env, capture_output=True, text=True, encoding="utf-8",
+                               errors="replace", timeout=demo.timeout_s, stdin=subprocess.DEVNULL)
+            out, err = r.stdout, r.stderr
+        except subprocess.TimeoutExpired as e:
+            out = e.stdout.decode("utf-8", "replace") if isinstance(e.stdout, bytes) else e.stdout or ""
+            err = f"the held-out checks took longer than {demo.timeout_s} seconds and were stopped"
+            code = None
+        except OSError as e:
+            out, err, code = "", f"could not run {called}: {e}", None
+        else:
+            code = r.returncode
+    return held_out_checks(demo, out, err, code, token=token, runner=called)
 
 
-def held_out_checks(demo: Demo, out: str, err: str, code: int | None) -> list[Check]:
-    """One Check per held-out test from the reporter's lines. A test that never reported (its file failed to
-    load, Node crashed or timed out) counts as a failed one. The results must also agree with themselves and
+def held_out_checks(demo: Demo, out: str, err: str, code: int | None, token: str | None = None,
+                    runner: str = "node --test") -> list[Check]:
+    """One Check per held-out test from the result lines. A test that never reported (its file failed to load,
+    the runner crashed or timed out) counts as a failed one. The results must also agree with themselves and
     with the runner: each check reported once, no more than demo.json's accept_count, and a runner that exited
-    0 when every check passed. The workspace's code runs as the same user as the runner, so code written to
-    forge the reporter's lines from outside it must then also make the real runner succeed."""
+    0 when every check passed. A line without the run's `token` is not a result: no process of the workspace's
+    is given the token, so a line it prints, through a runner that let its output through or from outside, is
+    counted as one that is not the reporter's, which fails the grade."""
     checks, load_errors, stderr, garbled = [], [], {}, 0
     for ln in out.splitlines():
         if not ln.startswith('{"demo_event"'):
@@ -150,8 +184,9 @@ def held_out_checks(demo: Demo, out: str, err: str, code: int | None) -> list[Ch
             ev = json.loads(ln)
         except ValueError:
             ev = None
-        if not isinstance(ev, dict) or not isinstance(ev.get("name", ""), str):
-            garbled += 1  # reporter.mjs writes neither
+        if (not isinstance(ev, dict) or not isinstance(ev.get("name", ""), str)
+                or (token is not None and ev.get("token") != token)):
+            garbled += 1  # the reporter, and acceptkit.result_line, write neither
             continue
         if ev["demo_event"] == "stderr":
             stderr.setdefault(ev.get("file"), []).append(str(ev.get("message") or ""))
@@ -176,9 +211,12 @@ def held_out_checks(demo: Demo, out: str, err: str, code: int | None) -> list[Ch
                             + (f"; {garbled} result lines that are not the reporter's" if garbled else "")))
     elif all(c.ok for c in checks) and code != 0:
         checks.append(Check("held-out results: the test runner agrees", False,
-                            f"every check reported ok, but node --test "
+                            f"every check reported ok, but {runner} "
                             f"{'did not finish' if code is None else f'exited {code}'}"
                             + (f" ({why})" if load_errors or err.strip() else "")))
+    elif not all(c.ok for c in checks) and code == 0:
+        checks.append(Check("held-out results: the test runner agrees", False,
+                            f"a check failed, but {runner} exited 0"))
     return checks
 
 
@@ -191,14 +229,25 @@ def rel(p: Path, root: Path) -> str:
 
 
 def entry_point_problems(ws: Path, name: str, home: Path | None = None, regrade: bool = False,
-                         kit: Path | None = None) -> list[str]:
+                         kit: Path | None = None, python: bool = False) -> list[str]:
     """What gives the workspace `ws` a test command other than start.py's `test`, which must name the kit at
     `kit` (default: this one). `home` is where the workspace lives when `ws` is a copy of it; with `regrade`
-    (CI's re-grade), `test` may name another clone of the kit."""
+    (CI's re-grade), `test` may name another clone of the kit. A `python` demo's one entry point is the
+    launcher its rules file names, so any package.json test script there is a second one."""
     probs = [f"{p}: CI config" for p in CI_PATHS if (ws / p).exists()]
     probs += [f"{rel(p, ws)}: a second way to run the tests" for p in dl.walk(ws) if p.name.lower() in RUNNER_FILES]
     if (ws / ".npmrc").exists():
         probs.append(".npmrc: npm settings, which can change what `npm test` runs (its script-shell, for one)")
+    if python:
+        for p in dl.walk(ws):
+            if p.name == "package.json":
+                try:
+                    more = json.loads(dl.read_text(p)).get("scripts") or {}
+                except (ValueError, AttributeError):
+                    more = {}
+                probs += [f"{rel(p, ws)}: a test script, {k!r}, beside the launcher" for k in more
+                          if "test" in str(k).lower()]
+        return probs
     pkg = ws / "package.json"
     if not pkg.is_file():
         return probs + ["package.json is missing; its `test` script is the demo's one test entry point"]
@@ -223,10 +272,14 @@ def entry_point_problems(ws: Path, name: str, home: Path | None = None, regrade:
     return probs
 
 
-def asset_problems(ws: Path) -> list[str]:
+def asset_problems(ws: Path, ignores: list[str] | None = None) -> list[str]:
+    """Binary assets in `ws`, but for files the skeleton's own .gitignore (`ignores`, dl.skeleton_ignores) leaves
+    out: what the program writes when it runs, such as a renderer's frames, is its output, not an asset."""
     probs = []
     for p in dl.walk(ws):
         r = rel(p, ws)
+        if ignores and dl.ignored(r, ignores):
+            continue
         kind = next((k for k, exts in ASSET_KINDS.items() if p.suffix.lower() in exts), None)
         if kind:
             probs.append(f"{r}: {'an' if kind[0] in 'aeiou' else 'a'} {kind} file")
@@ -315,15 +368,49 @@ def copy_problems(ws: Path, demo: Demo) -> list[str]:
             + ", ".join(list(shared.values())[:3])]
 
 
+def kit_reference_problems(ws: Path, name: str, kit: Path | None = None) -> list[str]:
+    """Where the workspace's code names the kit's files (dl.kit_needles): its clone's path, the default clone
+    folder, the install record or a demo's reference/. Not read: documentation (dl.KIT_TEXT_SKIP), the files
+    start.py writes at the top (BRIEF.md, the rules files) and package.json's `test`, which names the launcher."""
+    needles = dl.kit_needles(name, kit or dl.KIT)
+    kit_written = {"BRIEF.md"} | {v.repo_rules for v in dl.vocab.VOCAB.values()}
+    probs = []
+    for p in dl.walk(ws):
+        r = rel(p, ws)
+        data = p.read_bytes()
+        if r in kit_written or p.suffix.lower() in dl.KIT_TEXT_SKIP or b"\0" in data[:8192]:
+            continue
+        text = data.decode("utf-8", errors="replace")
+        if r == "package.json":
+            try:
+                pkg = json.loads(text)
+                if isinstance(pkg, dict) and isinstance(pkg.get("scripts"), dict):
+                    pkg["scripts"].pop("test", None)
+                text = json.dumps(pkg)
+            except ValueError:
+                pass
+        for n, ln in enumerate(text.split("\n"), 1):
+            seen = dl.kit_text(ln)
+            hit = next((x for x in needles if x in seen), None)
+            if hit:
+                probs.append(f"{r}:{n}: names the kit's files ({hit!r})")
+                break
+    return probs
+
+
 def rules(ws: Path, demo: Demo, allow_assets: bool, home: Path | None = None, regrade: bool = False) -> list[Check]:
     def check(name: str, probs: list[str], waived: bool = False) -> Check:
         if waived and probs:
             return Check(f"{name} (waived by --allow-assets)", True, "; ".join(probs))
         return Check(name, not probs, "; ".join(probs))
-    return [check("rule: one test entry point, package.json `test`", entry_point_problems(ws, demo.name, home, regrade)),
-            check("rule: no binary assets", asset_problems(ws), waived=allow_assets),
+    python = demo.runtime == "python"
+    entry = "the launcher its rules file names" if python else "package.json `test`"
+    return [check(f"rule: one test entry point, {entry}",
+                  entry_point_problems(ws, demo.name, home, regrade, python=python)),
+            check("rule: no binary assets", asset_problems(ws, dl.skeleton_ignores(demo)), waived=allow_assets),
             check("rule: original names (demos/denylist.txt)", denylist_problems(ws)),
-            check("rule: not copied from the kit's reference solution", copy_problems(ws, demo))]
+            check("rule: not copied from the kit's reference solution", copy_problems(ws, demo)),
+            check("rule: no code that names the kit's files", kit_reference_problems(ws, demo.name))]
 
 
 # --------------------------------------------------------------------------
@@ -369,6 +456,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--allow-assets", action="store_true", help="let binary assets through (not recordable)")
     ap.add_argument("--regrade", action="store_true", help="CI's re-grade of a committed workspace that another "
                     "clone made: its `test` may name that clone (demolib.regrade; not recordable)")
+    ap.add_argument("--accept-only", action="store_true", help="run the held-out checks alone on the folder, as "
+                    "a demo's own mutants runner does; no rules, no RECORD, not a grade")
     args = ap.parse_args(argv)
     try:
         demo = dl.load_demo(args.name)
@@ -376,6 +465,21 @@ def main(argv: list[str] | None = None) -> int:
         print(dl.unknown_demo(args.name), file=sys.stderr)
         return 2
     ws = (args.dir.expanduser() if args.dir else Path.cwd()).resolve()
+    if args.accept_only:
+        node_lines = dl.node_problem(demo, demo.app)
+        problem = (dl.python_problem() or (node_lines[0] if node_lines else None)
+                   or (None if ws.is_dir() else f"{ws} is not a folder"))
+        if problem:
+            print(f"error: {problem}", file=sys.stderr)
+            return 2
+        os.chdir(tempfile.gettempdir())
+        held = run_accept(demo, ws, failfast=False)
+        for c in held:
+            print(f"  {'ok  ' if c.ok else 'FAIL'}  {c.name}" + (f": {c.detail}" if c.detail else ""))
+        k = sum(c.ok for c in held)
+        print(f"{'PASS' if k == len(held) else 'FAIL'} {k}/{len(held)}")
+        print("ACCEPT ONLY: the held-out checks alone, for a mutants runner; not a grade, and no RECORD.")
+        return 0 if k == len(held) else 1
     if not (ws / "BRIEF.md").is_file():
         print(f"error: {ws} is not a demo workspace (no BRIEF.md). Run this in the folder demos/start.py made, or "
               "pass --dir <that folder>. Nothing was graded.", file=sys.stderr)
@@ -389,13 +493,16 @@ def main(argv: list[str] | None = None) -> int:
     if lines:
         print("\n".join(lines).replace("Nothing was written.", "Nothing was graded."), file=sys.stderr)
         return 2
+    if dl.python_problem():
+        print(f"error: {dl.python_problem()} Run the launcher with a newer Python. Nothing was graded.", file=sys.stderr)
+        return 2
     reasons += [f for f, on in (("allow-assets", args.allow_assets), ("regrade", args.regrade)) if on]
 
     os.chdir(tempfile.gettempdir())  # out of the workspace, which may hold programs named like node or git
     before = dl.grading_tree(demo.name)
     with tempfile.TemporaryDirectory(prefix="demo-grade-") as td:
         copy = Path(td) / "ws"
-        dl.copy_workspace(ws, copy)
+        dl.copy_workspace(ws, copy, git=demo.copy_git)
         held = run_accept(demo, copy, copied=True)
         checks = held + rules(copy, demo, args.allow_assets, home=ws, regrade=args.regrade)
     tree = dl.grading_tree(demo.name)
@@ -416,6 +523,7 @@ def main(argv: list[str] | None = None) -> int:
     cmd = "npm test" if os.environ.get("npm_lifecycle_event") == "test" else f"starter.py demo check {demo.name}"
     facts = [f"kit_sha={dl.head_sha() or 'unknown'}", f"accept_hash={tree or 'unknown'}",
              f"node={'.'.join(map(str, node)) if node else 'none'}",
+             f"python={'.'.join(map(str, sys.version_info[:3]))}",
              f"date={datetime.now(timezone.utc).date().isoformat()}",
              "recordable=" + ("yes" if not reasons else "no:" + ",".join(reasons))]
     print(f"RECORD: Verified: {cmd} (demo check {demo.name}, a local grade: feedback, not proof) -> {verdict} "

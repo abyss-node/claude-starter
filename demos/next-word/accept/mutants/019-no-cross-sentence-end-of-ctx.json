@@ -1,0 +1,8 @@
+{
+  "id": "019-no-cross-sentence-end-of-ctx",
+  "graded_item": 3,
+  "description": "no context that ends with a sentence end is counted",
+  "file": "src/lm.js",
+  "find": "    for (let len = 1; len <= order - 1 && len <= i; len++) {",
+  "replace": "    for (let len = 1; len <= order - 1 && len <= i; len++) {\n      if (/^[.!?]$/.test(tokens[i - 1])) break;"
+}

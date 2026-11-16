@@ -1,0 +1,8 @@
+{
+  "id": "005-dropped-climb-field",
+  "graded_item": 2,
+  "description": "climb_m removed from every trail",
+  "file": "backend/trails.py",
+  "find": "        \"climb_m\": trail[\"climb_m\"],\n",
+  "replace": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "144-lap-overshoots-at-the-finish",
+  "graded_item": 27,
+  "description": "lap reads one more than laps at the finish",
+  "file": "src/race.js",
+  "find": "      p.finished = true;",
+  "replace": "      p.finished = true;\n      p.lap = race.laps + 1;"
+}

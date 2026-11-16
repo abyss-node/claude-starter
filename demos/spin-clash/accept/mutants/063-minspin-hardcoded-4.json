@@ -1,0 +1,8 @@
+{
+  "id": "063-minspin-hardcoded-4",
+  "graded_item": 15,
+  "description": "spin-down is judged against 4 whatever minSpin says",
+  "file": "src/physics.js",
+  "find": "else if (top.spin <= minSpin) top.status",
+  "replace": "else if (top.spin <= 4) top.status"
+}

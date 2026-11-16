@@ -1,0 +1,8 @@
+{
+  "id": "015-difficulty-is-a-score",
+  "graded_item": 3,
+  "description": "difficulty served as the numeric effort score",
+  "file": "backend/trails.py",
+  "find": "        \"difficulty\": difficulty(trail[\"length_km\"], trail[\"climb_m\"]),",
+  "replace": "        \"difficulty\": trail[\"length_km\"] + trail[\"climb_m\"] / 100,"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "069-swirl-offset-drifts-across-loop",
+ "graded_item": 11,
+ "description": "swirl offset drifts a seventh of a turn per loop",
+ "file": "trippy.py",
+ "find": "    swirl_off = p[\"swirl_wobble\"] * sin(theta)\n",
+ "replace": "    swirl_off = p[\"swirl_wobble\"] * sin(theta) + 0.5 * ((theta / TAU) % 1.0) * TAU / 7\n"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "044-seed-wraps-at-2-32",
+  "graded_item": 11,
+  "description": "seed >>> 0: 5 and 2^32 + 5 give the same track",
+  "file": "src/track.js",
+  "find": "const key = seedKey(seed);",
+  "replace": "const key = seed >>> 0;"
+}

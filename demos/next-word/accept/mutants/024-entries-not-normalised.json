@@ -1,0 +1,8 @@
+{
+  "id": "024-entries-not-normalised",
+  "graded_item": 4,
+  "description": "probabilities are count/(total+1), so they sum to less than 1",
+  "file": "src/lm.js",
+  "find": "  for (const [token, c] of counts) entries.push({ token, p: c / total });",
+  "replace": "  for (const [token, c] of counts) entries.push({ token, p: c / (total + 1) });"
+}

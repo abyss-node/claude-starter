@@ -1,0 +1,8 @@
+{
+  "id": "013-difficulty-only-on-hard",
+  "graded_item": 3,
+  "description": "difficulty present only on trails that climb over 1000 m",
+  "file": "backend/trails.py",
+  "find": "        \"difficulty\": difficulty(trail[\"length_km\"], trail[\"climb_m\"]),",
+  "replace": "        **({\"difficulty\": \"hard\"} if trail[\"climb_m\"] > 1000 else {}),"
+}

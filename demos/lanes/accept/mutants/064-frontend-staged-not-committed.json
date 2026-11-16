@@ -1,0 +1,8 @@
+{
+  "id": "064-frontend-staged-not-committed",
+  "graded_item": 13,
+  "description": "the frontend change is staged but never committed",
+  "file": "make-workspace.mjs",
+  "find": "commit(\"frontend: show the difficulty badge\", \"frontend\");",
+  "replace": "git(\"add\", \"--\", \"frontend\");"
+}

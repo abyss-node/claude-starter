@@ -1,0 +1,8 @@
+{
+  "id": "051-render-touches-dom-on-import",
+  "graded_item": 9,
+  "description": "render.js reads the page when imported",
+  "file": "frontend/render.js",
+  "find": "const ESCAPES = {",
+  "replace": "const ROOT = document.querySelector(\"#board\");\nconst ESCAPES = {"
+}

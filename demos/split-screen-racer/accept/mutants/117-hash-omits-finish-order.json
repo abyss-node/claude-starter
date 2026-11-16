@@ -1,0 +1,8 @@
+{
+  "id": "117-hash-omits-finish-order",
+  "graded_item": 23,
+  "description": "hashRace leaves out finishOrder",
+  "file": "src/race.js",
+  "find": "const parts = [race.tick, race.laps, race.finishOrder.join(',')];",
+  "replace": "const parts = [race.tick, race.laps];"
+}

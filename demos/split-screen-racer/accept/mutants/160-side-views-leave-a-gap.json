@@ -1,0 +1,8 @@
+{
+  "id": "160-side-views-leave-a-gap",
+  "graded_item": 30,
+  "description": "the right side view starts one pixel late",
+  "file": "src/camera.js",
+  "find": "      { x: w0, y: 0, w: width - w0, h: height },",
+  "replace": "      { x: w0 + 1, y: 0, w: width - w0 - 1, h: height },"
+}

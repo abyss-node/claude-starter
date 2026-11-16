@@ -1,0 +1,8 @@
+{
+  "id": "091-ai-math-random-jitter",
+  "graded_item": 11,
+  "description": "the computer adds Math.random jitter",
+  "file": "src/ai.js",
+  "find": "return { x: clamp1(ix), y: clamp1(iy) };",
+  "replace": "return { x: clamp1(ix + (Math.random() - 0.5) * 0.01), y: clamp1(iy) };"
+}

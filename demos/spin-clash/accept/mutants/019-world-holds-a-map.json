@@ -1,0 +1,8 @@
+{
+  "id": "019-world-holds-a-map",
+  "graded_item": 3,
+  "description": "the world holds a Map",
+  "file": "src/physics.js",
+  "find": "config: settings, tops: [] };",
+  "replace": "config: settings, tops: [], cache: new Map() };"
+}

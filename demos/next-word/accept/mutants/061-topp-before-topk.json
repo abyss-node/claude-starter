@@ -1,0 +1,8 @@
+{
+  "id": "061-topp-before-topk",
+  "graded_item": 12,
+  "description": "applySettings applies top-p before top-k",
+  "file": "src/sampling.js",
+  "find": "  if (Number.isInteger(topK) && topK >= 1 && topK < list.length) {\n    list = normalize(list.slice(0, topK));\n  }\n\n  if (topP < 1) {\n    let cum = 0;\n    let keep = list.length;\n    for (let i = 0; i < list.length; i++) {\n      cum += list[i].p;\n      if (cum >= topP - 1e-12) {\n        keep = i + 1;\n        break;\n      }\n    }\n    list = normalize(list.slice(0, Math.max(1, keep)));",
+  "replace": "  if (topP < 1) {\n    let cum = 0;\n    let keep = list.length;\n    for (let i = 0; i < list.length; i++) {\n      cum += list[i].p;\n      if (cum >= topP - 1e-12) {\n        keep = i + 1;\n        break;\n      }\n    }\n    list = normalize(list.slice(0, Math.max(1, keep)));\n  }\n  if (Number.isInteger(topK) && topK >= 1 && topK < list.length) {\n    list = normalize(list.slice(0, topK));"
+}

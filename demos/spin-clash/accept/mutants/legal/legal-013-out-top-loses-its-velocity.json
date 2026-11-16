@@ -1,0 +1,8 @@
+{
+  "id": "legal-013-out-top-loses-its-velocity",
+  "graded_item": 17,
+  "description": "a top that goes out is stopped on that tick: a top's state is promised from the tick after it is out",
+  "file": "src/physics.js",
+  "find": "    if (Math.hypot(top.x, top.y) > arenaRadius) top.status = 'ringout';\n    else if (top.spin <= minSpin) top.status = 'spundown';",
+  "replace": "    if (Math.hypot(top.x, top.y) > arenaRadius) {\n      top.status = 'ringout';\n      top.vx = 0;\n      top.vy = 0;\n    } else if (top.spin <= minSpin) {\n      top.status = 'spundown';\n      top.vx = 0;\n      top.vy = 0;\n    }"
+}

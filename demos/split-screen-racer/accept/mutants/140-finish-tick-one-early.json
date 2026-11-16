@@ -1,0 +1,8 @@
+{
+  "id": "140-finish-tick-one-early",
+  "graded_item": 27,
+  "description": "finishTick is the tick before the finish",
+  "file": "src/race.js",
+  "find": "      p.finishTick = race.tick;",
+  "replace": "      p.finishTick = race.tick - 1;"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "091",
+  "graded_item": 15,
+  "description": "the new test file has a comment with Habbit",
+  "file": "workspace/tests/test_streak.py",
+  "find": "class LongestStreakTest(unittest.TestCase):",
+  "replace": "# Habbit streaks\nclass LongestStreakTest(unittest.TestCase):",
+  "expect": [
+    "test_12"
+  ]
+}

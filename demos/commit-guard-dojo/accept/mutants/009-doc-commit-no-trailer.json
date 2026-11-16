@@ -1,0 +1,11 @@
+{
+  "id": "009",
+  "graded_item": 3,
+  "description": "the README-entry commit message is only a subject",
+  "file": "commits.json",
+  "find": "\\n\\nUnverified: doc-only change, reread the Functions list, nothing was run\\n",
+  "replace": "\\n",
+  "expect": [
+    "test_03"
+  ]
+}

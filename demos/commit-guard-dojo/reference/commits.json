@@ -1,0 +1,19 @@
+{
+  "initial": {
+    "message": "chore: start the Pebble demo from the starter kit\n\nUnverified: the skeleton as the kit ships it; the demo check has not run on it\n"
+  },
+  "commits": [
+    {
+      "message": "Fix the habit typo in the README\n\nVerified: git grep -n habbit -> no matches\n",
+      "replace": [{"path": "README.md", "old": "habbit", "new": "habit"}]
+    },
+    {
+      "message": "Add longest_streak with its tests\n\nThe longest run of consecutive kept days; an empty log is 0.\n\nVerified: python -m unittest discover -s tests -> Ran 8 tests, OK\n",
+      "copy": ["habits.py", "tests/test_streak.py"]
+    },
+    {
+      "message": "Document longest_streak in the README\n\nUnverified: doc-only change, reread the Functions list, nothing was run\n",
+      "copy": ["README.md"]
+    }
+  ]
+}

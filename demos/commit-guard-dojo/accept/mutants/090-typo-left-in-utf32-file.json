@@ -1,0 +1,18 @@
+{
+  "id": "090",
+  "graded_item": 15,
+  "description": "the function commit adds a UTF-32 notes.txt containing Habbit",
+  "file": "commits.json",
+  "find": "\"copy\": [\"habits.py\", \"tests/test_streak.py\"]",
+  "replace": "\"copy\": [\"habits.py\", \"tests/test_streak.py\", \"notes.txt\"]",
+  "expect": [
+    "test_12"
+  ],
+  "also": [
+    {
+      "file": "workspace/notes.txt",
+      "create": "my Habbit notes\n",
+      "encoding": "utf-32"
+    }
+  ]
+}

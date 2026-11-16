@@ -1,0 +1,8 @@
+{
+  "id": "090-ai-memo-by-tick",
+  "graded_item": 11,
+  "description": "the computer caches its answer by tick and index in a module variable",
+  "file": "src/ai.js",
+  "find": "export function aiInput(world, index) {",
+  "replace": "const MEMO = new Map();\nexport function aiInput(world, index) {\n  const key = `${world.tick}:${index}`;\n  if (MEMO.has(key)) return MEMO.get(key);\n  const answer = aiInputUncached(world, index);\n  MEMO.set(key, answer);\n  return answer;\n}\n\nfunction aiInputUncached(world, index) {"
+}

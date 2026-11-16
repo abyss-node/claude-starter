@@ -1,0 +1,8 @@
+{
+  "id": "143-finish-flag-never-raised",
+  "graded_item": 27,
+  "description": "finished stays false",
+  "file": "src/race.js",
+  "find": "      p.finished = true;",
+  "replace": "      p.finished = false;"
+}

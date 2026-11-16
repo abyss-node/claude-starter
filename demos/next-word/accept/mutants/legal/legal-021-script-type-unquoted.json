@@ -1,0 +1,8 @@
+{
+  "id": "legal-021-script-type-unquoted",
+  "graded_item": 23,
+  "description": "<script type=module> without quotes",
+  "file": "index.html",
+  "find": "<script type=\"module\">",
+  "replace": "<script type=module>"
+}

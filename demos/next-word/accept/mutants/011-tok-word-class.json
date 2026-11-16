@@ -1,0 +1,8 @@
+{
+  "id": "011-tok-word-class",
+  "graded_item": 1,
+  "description": "tokenize uses \\w, so snake_case is one token",
+  "file": "src/lm.js",
+  "find": "const TOKEN_RE = /[a-z0-9']+|[.!?,;:]/g;",
+  "replace": "const TOKEN_RE = /[\\w']+|[.!?,;:]/g;"
+}

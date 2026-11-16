@@ -1,0 +1,11 @@
+{
+  "id": "006",
+  "graded_item": 2,
+  "description": "a fourth, empty commit after the three",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    git(dest, env, \"commit\", \"--allow-empty\", \"-q\", \"-m\", \"Extra\", \"-m\", \"Unverified: nothing\")\n    if tree_files(dest) != tree_files(finished):\n",
+  "expect": [
+    "test_02"
+  ]
+}

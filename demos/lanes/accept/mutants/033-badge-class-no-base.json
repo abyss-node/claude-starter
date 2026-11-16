@@ -1,0 +1,8 @@
+{
+  "id": "033-badge-class-no-base",
+  "graded_item": 6,
+  "description": "badge has difficulty-<level> only, no difficulty class",
+  "file": "frontend/render.js",
+  "find": "`difficulty difficulty-${level}`",
+  "replace": "`difficulty-${level}`"
+}

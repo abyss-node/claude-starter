@@ -1,0 +1,8 @@
+{
+ "id": "053-loop-spans-frames-minus-one",
+ "graded_item": 9,
+ "description": "theta = TAU*k/(frames-1), so the last frame repeats the first",
+ "file": "trippy.py",
+ "find": "theta = TAU * k / frames",
+ "replace": "theta = TAU * k / max(1, frames - 1)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "076-sample-scales-r",
+  "graded_item": 14,
+  "description": "sampleToken scales r by the list total, so a list summing to less than 1 is renormalised",
+  "file": "src/sampling.js",
+  "find": "  const r = rng();",
+  "replace": "  const r = rng() * entries.reduce((s, e) => s + e.p, 0);"
+}

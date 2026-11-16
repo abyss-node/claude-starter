@@ -1,0 +1,8 @@
+{
+  "id": "171-solo-viewport-ignores-scale",
+  "graded_item": 32,
+  "description": "the single viewport reports scale 1",
+  "file": "src/camera.js",
+  "find": "camY: targets[i]?.y ?? 0, scale }));",
+  "replace": "camY: targets[i]?.y ?? 0, scale: targets.length <= 1 ? 1 : scale }));"
+}

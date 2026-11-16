@@ -1,0 +1,8 @@
+{
+  "id": "076-config-writeback-arenaradius",
+  "graded_item": 9,
+  "description": "createWorld writes arenaRadius back into the config",
+  "file": "src/physics.js",
+  "find": "const R = settings.arenaRadius;",
+  "replace": "const R = (config.arenaRadius = settings.arenaRadius);"
+}

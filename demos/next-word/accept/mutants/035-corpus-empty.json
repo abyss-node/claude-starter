@@ -1,0 +1,8 @@
+{
+  "id": "035-corpus-empty",
+  "graded_item": 7,
+  "description": "CORPUS is an empty string",
+  "file": "src/corpus.js",
+  "find": "export const CORPUS = `",
+  "replace": "export const CORPUS = ''; const UNUSED = `"
+}

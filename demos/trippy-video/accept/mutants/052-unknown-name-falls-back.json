@@ -1,0 +1,8 @@
+{
+ "id": "052-unknown-name-falls-back",
+ "graded_item": 8,
+ "description": "an unknown palette name (not a built-in, not hex) falls back to the default instead of being rejected",
+ "file": "trippy.py",
+ "find": "    name = text.strip().lower()\n",
+ "replace": "    name = text.strip().lower()\n    if name not in PALETTES and not re.fullmatch(r\"[#0-9a-fA-F, ]+\", text):\n        name = DEFAULT_PALETTE\n"
+}

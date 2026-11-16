@@ -1,0 +1,8 @@
+{
+  "id": "066-gates-bunched-in-pairs",
+  "graded_item": 14,
+  "description": "gates come in coinciding pairs",
+  "file": "src/track.js",
+  "find": "const i = Math.round((k * n) / checkpointCount) % n;",
+  "replace": "const i = Math.round((Math.floor(k / 2) * 2 * n) / checkpointCount) % n;"
+}

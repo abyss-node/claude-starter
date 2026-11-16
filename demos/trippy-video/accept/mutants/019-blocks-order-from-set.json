@@ -1,0 +1,8 @@
+{
+ "id": "019-blocks-order-from-set",
+ "graded_item": 3,
+ "description": "block order comes from a set, which depends on string hashing",
+ "file": "trippy.py",
+ "find": "return {\"seed\": seed, \"blocks\": blocks, \"params\": params}",
+ "replace": "return {\"seed\": seed, \"blocks\": list(set(blocks)), \"params\": params}"
+}

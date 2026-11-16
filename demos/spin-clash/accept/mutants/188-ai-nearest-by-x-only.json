@@ -1,0 +1,8 @@
+{
+  "id": "188-ai-nearest-by-x-only",
+  "graded_item": 19,
+  "description": "the nearest top is judged on x distance only",
+  "file": "src/ai.js",
+  "find": "const d = Math.hypot(t.x - me.x, t.y - me.y);",
+  "replace": "const d = Math.abs(t.x - me.x);"
+}

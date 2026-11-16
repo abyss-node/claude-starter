@@ -1,0 +1,8 @@
+{
+  "id": "150-race-surface-road-for-player-1",
+  "graded_item": 28,
+  "description": "the second player is always on road",
+  "file": "src/race.js",
+  "find": "const surface = closestOnLoop(track.centerline, p.x, p.y).dist <= track.width / 2 ? 'road' : 'off';",
+  "replace": "const surface = i > 0 || closestOnLoop(track.centerline, p.x, p.y).dist <= track.width / 2 ? 'road' : 'off';"
+}

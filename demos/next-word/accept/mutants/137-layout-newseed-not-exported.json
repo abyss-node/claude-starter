@@ -1,0 +1,8 @@
+{
+  "id": "137-layout-newseed-not-exported",
+  "graded_item": 24,
+  "description": "seed.js does not export newSeed",
+  "file": "src/seed.js",
+  "find": "export function newSeed(",
+  "replace": "function newSeed("
+}

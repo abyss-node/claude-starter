@@ -1,0 +1,11 @@
+{
+  "id": "017",
+  "graded_item": 4,
+  "description": "the typo commit has a lowercase co-authored-by line",
+  "file": "commits.json",
+  "find": "Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n",
+  "replace": "Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\\nco-authored-by: Sam <sam@example.com>\\n",
+  "expect": [
+    "test_04"
+  ]
+}

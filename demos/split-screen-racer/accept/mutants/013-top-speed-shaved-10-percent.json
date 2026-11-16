@@ -1,0 +1,8 @@
+{
+  "id": "013-top-speed-shaved-10-percent",
+  "graded_item": 3,
+  "description": "every vehicle settles at 90% of its stated topSpeed",
+  "file": "src/vehicles.js",
+  "find": "  const top = s.topSpeed * (off ? s.offSpeedFactor : 1);",
+  "replace": "  const top = s.topSpeed * 0.9 * (off ? s.offSpeedFactor : 1);"
+}

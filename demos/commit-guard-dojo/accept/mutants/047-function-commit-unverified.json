@@ -1,0 +1,11 @@
+{
+  "id": "047",
+  "graded_item": 9,
+  "description": "the function commit has only an Unverified trailer",
+  "file": "commits.json",
+  "find": "Verified: python -m unittest discover -s tests -> Ran 8 tests, OK",
+  "replace": "Unverified: did not run the tests",
+  "expect": [
+    "test_08"
+  ]
+}

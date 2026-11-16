@@ -1,0 +1,8 @@
+{
+  "id": "039-apply-no-initial-normalise",
+  "graded_item": 8,
+  "description": "applySettings does not renormalise input that does not sum to 1",
+  "file": "src/sampling.js",
+  "find": "  list.sort(compareEntries);\n  list = normalize(list);",
+  "replace": "  list.sort(compareEntries);"
+}

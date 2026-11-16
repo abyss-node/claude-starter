@@ -1,0 +1,8 @@
+{
+  "id": "118-page-seed-only-in-script",
+  "graded_item": 21,
+  "description": "the #seed input is only a string the script inserts, not a tag of the page",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>\n      <button id=\"newseed\" type=\"button\">New random seed</button>\n      <button id=\"sample\" type=\"button\">Sample 12 words</button>\n    </div>\n  </div>\n\n  <div id=\"seed-note\" aria-live=\"polite\"></div>\n  <div id=\"status\" aria-live=\"polite\"></div>\n  <div id=\"bars\"></div>\n</main>\n\n<script type=\"module\">\n  import { CORPUS } from './src/corpus.js';\n  import { train, nextDistribution } from './src/lm.js';\n  import { applySettings, generate } from './src/sampling.js';\n  import { parseSeed, newSeed } from './src/seed.js';\n",
+  "replace": "      \n      <button id=\"newseed\" type=\"button\">New random seed</button>\n      <button id=\"sample\" type=\"button\">Sample 12 words</button>\n    </div>\n  </div>\n\n  <div id=\"seed-note\" aria-live=\"polite\"></div>\n  <div id=\"status\" aria-live=\"polite\"></div>\n  <div id=\"bars\"></div>\n</main>\n\n<script type=\"module\">\n  import { CORPUS } from './src/corpus.js';\n  import { train, nextDistribution } from './src/lm.js';\n  import { applySettings, generate } from './src/sampling.js';\n  import { parseSeed, newSeed } from './src/seed.js';\n\n  document.querySelector('.row').insertAdjacentHTML('afterbegin', '<label>Seed <input id=\"seed\" type=\"text\" value=\"7\"></label>');"
+}

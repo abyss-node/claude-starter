@@ -1,0 +1,8 @@
+{
+  "id": "103-progress-edits-the-to-point",
+  "graded_item": 20,
+  "description": "advanceProgress writes into the segment end point",
+  "file": "src/race.js",
+  "find": "  const n = track.checkpoints.length;\n  const gate",
+  "replace": "  const n = track.checkpoints.length;\n  to.x += 0;\n  to.y = to.y;\n  const gate"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "088-gen-default-length-12",
+  "graded_item": 17,
+  "description": "generate default length is 12",
+  "file": "src/sampling.js",
+  "find": "export function generate(model, prompt, { length = 10, seed = 1, temperature = 1, topK = 0, topP = 1 } = {}) {",
+  "replace": "export function generate(model, prompt, { length = 12, seed = 1, temperature = 1, topK = 0, topP = 1 } = {}) {"
+}

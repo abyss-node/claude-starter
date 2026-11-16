@@ -1,0 +1,8 @@
+{
+  "id": "001-health-not-ok",
+  "graded_item": 1,
+  "description": "/api/health answers ok:false",
+  "file": "backend/server.py",
+  "find": "{\"ok\": True}",
+  "replace": "{\"ok\": False}"
+}

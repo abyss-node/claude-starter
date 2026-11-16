@@ -1,0 +1,14 @@
+{
+ "id": "096-recipe-seed-null-when-picked",
+ "graded_item": 18,
+ "description": "recipe.json carries null when the seed was picked",
+ "file": "trippy.py",
+ "find": "    if args.seed is None:\n",
+ "replace": "    given = args.seed\n    if args.seed is None:\n",
+ "also": [
+  {
+   "find": "json.dump({\"seed\": args.seed,",
+   "replace": "json.dump({\"seed\": given,"
+  }
+ ]
+}

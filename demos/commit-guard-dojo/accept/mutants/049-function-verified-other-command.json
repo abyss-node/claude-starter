@@ -1,0 +1,11 @@
+{
+  "id": "049",
+  "graded_item": 9,
+  "description": "the function commit's Verified names a command that is not the test command",
+  "file": "commits.json",
+  "find": "Verified: python -m unittest discover -s tests -> Ran 8 tests, OK",
+  "replace": "Verified: python tests/test_streak.py -> OK",
+  "expect": [
+    "test_08"
+  ]
+}

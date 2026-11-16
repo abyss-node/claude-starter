@@ -1,0 +1,8 @@
+{
+ "id": "040-dusk-ignores-frequency",
+ "graded_item": 6,
+ "description": "cosine palette ignores its c (frequency) term, so dusk's 2.0 becomes 1.0",
+ "file": "trippy.py",
+ "find": "math.cos(TAU * (c[i] * t + d[i]))",
+ "replace": "math.cos(TAU * (t + d[i]))"
+}

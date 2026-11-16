@@ -1,0 +1,8 @@
+{
+ "id": "029-abs-seed-recipe-only",
+ "graded_item": 4,
+ "description": "recipe uses abs(seed), noise keeps the sign",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(abs(args.seed))\n"
+}

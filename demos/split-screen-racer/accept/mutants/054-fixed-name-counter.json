@@ -1,0 +1,8 @@
+{
+  "id": "054-fixed-name-counter",
+  "graded_item": 13,
+  "description": "the fixed track name carries a call counter",
+  "file": "src/track.js",
+  "find": "  return buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints);",
+  "replace": "  fixedTrack.calls = (fixedTrack.calls || 0) + 1;\n  return buildTrack(`Hollow Reach ${fixedTrack.calls}`, HOLLOW_REACH, checkpoints);"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "002-frames-rounded-up",
+ "graded_item": 1,
+ "description": "frame count rounds up (ceil) instead of to nearest",
+ "file": "trippy.py",
+ "find": "frames = max(1, int(round(args.fps * args.seconds)))",
+ "replace": "frames = max(1, math.ceil(args.fps * args.seconds))"
+}

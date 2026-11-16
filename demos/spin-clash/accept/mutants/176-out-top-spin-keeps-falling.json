@@ -1,0 +1,8 @@
+{
+  "id": "176-out-top-spin-keeps-falling",
+  "graded_item": 17,
+  "description": "a top that is out still loses spin",
+  "file": "src/physics.js",
+  "find": "    if (top.status !== 'in') return;\n    const [ix, iy]",
+  "replace": "    if (top.status !== 'in') { top.spin = Math.max(0, top.spin - 0.1); return; }\n    const [ix, iy]"
+}

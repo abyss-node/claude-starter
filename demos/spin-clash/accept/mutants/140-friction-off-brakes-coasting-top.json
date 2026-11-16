@@ -1,0 +1,8 @@
+{
+  "id": "140-friction-off-brakes-coasting-top",
+  "graded_item": 15,
+  "description": "friction off still brakes a coasting top",
+  "file": "src/physics.js",
+  "find": "    if (friction) {\n      const drag = BASE_DRAG + DRAG_PER_FRICTION * top.friction;\n      ax -= drag * top.vx;\n      ay -= drag * top.vy;",
+  "replace": "    {\n      const drag = BASE_DRAG + DRAG_PER_FRICTION * top.friction;\n      ax -= drag * top.vx;\n      ay -= drag * top.vy;\n    }\n    if (friction) {"
+}

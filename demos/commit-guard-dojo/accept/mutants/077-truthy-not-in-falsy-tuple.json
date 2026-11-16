@@ -1,0 +1,11 @@
+{
+  "id": "077",
+  "graded_item": 13,
+  "description": "a blocklist of 0, False, None and '' leaves [] and {} counting as kept",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n",
+  "replace": "        run = run + 1 if (day not in (0, False, None, \"\")) else 0\n",
+  "expect": [
+    "test_16"
+  ]
+}

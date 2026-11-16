@@ -1,0 +1,8 @@
+{
+  "id": "153-x-true-counts-as-one",
+  "graded_item": 16,
+  "description": "a boolean true x steers like 1",
+  "file": "src/physics.js",
+  "find": "clamp(num(inp.x, 0), -1, 1)",
+  "replace": "clamp(inp.x === true ? 1 : num(inp.x, 0), -1, 1)"
+}

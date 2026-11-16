@@ -1,0 +1,8 @@
+{
+  "id": "legal-009-brighter-start-spin",
+  "graded_item": 1,
+  "description": "which spin the seed fills in is the builder's",
+  "file": "src/physics.js",
+  "find": "spin: Math.max(0, num(spec.spin, 40 + 20 * spinJitter)),",
+  "replace": "spin: Math.max(0, num(spec.spin, 55 + 25 * spinJitter)),"
+}

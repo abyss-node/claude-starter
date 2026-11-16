@@ -1,0 +1,8 @@
+{
+  "id": "133-page-no-seedjs",
+  "graded_item": 23,
+  "description": "index.html does not import src/seed.js",
+  "file": "index.html",
+  "find": "  import { parseSeed, newSeed } from './src/seed.js';",
+  "replace": "  "
+}

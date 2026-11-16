@@ -1,0 +1,8 @@
+{
+  "id": "044-sort-in-place-2",
+  "graded_item": 8,
+  "description": "applySettings sorts the input array in place (second variant)",
+  "file": "src/sampling.js",
+  "find": "  let list = entries.filter((e) => e.p > 0).map((e) => ({ token: e.token, p: e.p }));\n  if (list.length === 0) return [];\n  list.sort(compareEntries);",
+  "replace": "  entries.sort(compareEntries);\n  let list = entries.filter((e) => e.p > 0).map((e) => ({ token: e.token, p: e.p }));\n  if (list.length === 0) return [];"
+}

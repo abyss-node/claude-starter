@@ -1,0 +1,8 @@
+{
+  "id": "040-impulse-wrong-mass-x",
+  "graded_item": 6,
+  "description": "the first top's x velocity change uses the other top's mass",
+  "file": "src/physics.js",
+  "find": "a.vx -= jn * ima * nx;",
+  "replace": "a.vx -= jn * imb * nx;"
+}

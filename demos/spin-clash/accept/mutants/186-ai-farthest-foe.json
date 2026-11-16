@@ -1,0 +1,8 @@
+{
+  "id": "186-ai-farthest-foe",
+  "graded_item": 19,
+  "description": "the computer steers at the farthest other top",
+  "file": "src/ai.js",
+  "find": "if (d < best) { best = d; foe = t; }",
+  "replace": "if (foe === null || d > best) { best = d; foe = t; }"
+}

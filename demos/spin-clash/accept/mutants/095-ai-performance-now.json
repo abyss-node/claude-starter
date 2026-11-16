@@ -1,0 +1,8 @@
+{
+  "id": "095-ai-performance-now",
+  "graded_item": 11,
+  "description": "the computer reads performance.now",
+  "file": "src/ai.js",
+  "find": "  const R = world.config.arenaRadius;",
+  "replace": "  const R = world.config.arenaRadius + 0 * performance.now();"
+}

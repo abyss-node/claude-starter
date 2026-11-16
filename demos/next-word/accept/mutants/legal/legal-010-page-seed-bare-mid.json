@@ -1,0 +1,8 @@
+{
+  "id": "legal-010-page-seed-bare-mid",
+  "graded_item": 22,
+  "description": "#seed unquoted, in the middle of the attributes",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <input type=text id=seed value=7>"
+}

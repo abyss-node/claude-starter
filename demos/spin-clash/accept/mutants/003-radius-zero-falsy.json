@@ -1,0 +1,8 @@
+{
+  "id": "003-radius-zero-falsy",
+  "graded_item": 1,
+  "description": "a radius of 0 falls back to the default 0.1 instead of clamping to 0.05",
+  "file": "src/physics.js",
+  "find": "radius: clamp(num(spec.radius, 0.1), ...LIMITS.radius),",
+  "replace": "radius: clamp(spec.radius || 0.1, ...LIMITS.radius),"
+}

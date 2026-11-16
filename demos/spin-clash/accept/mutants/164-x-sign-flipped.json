@@ -1,0 +1,8 @@
+{
+  "id": "164-x-sign-flipped",
+  "graded_item": 16,
+  "description": "a positive x pushes towards -x",
+  "file": "src/physics.js",
+  "find": "let ax = -slope * top.x + steer * ix;",
+  "replace": "let ax = -slope * top.x - steer * ix;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "117-given-vy-ignored",
+  "graded_item": 15,
+  "description": "the given vy is ignored",
+  "file": "src/physics.js",
+  "find": "vy: num(spec.vy, Math.cos(angle) * orbit),",
+  "replace": "vy: Math.cos(angle) * orbit,"
+}

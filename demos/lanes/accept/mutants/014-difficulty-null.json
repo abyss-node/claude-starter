@@ -1,0 +1,8 @@
+{
+  "id": "014-difficulty-null",
+  "graded_item": 3,
+  "description": "difficulty served as null",
+  "file": "backend/trails.py",
+  "find": "        \"difficulty\": difficulty(trail[\"length_km\"], trail[\"climb_m\"]),",
+  "replace": "        \"difficulty\": None,"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "094-seed-printed-twice",
+ "graded_item": 18,
+ "description": "the seed line is printed twice",
+ "file": "trippy.py",
+ "find": "        print(\"seed: %d\" % args.seed)\n",
+ "replace": "        print(\"seed: %d\" % args.seed)\n        print(\"seed: %d\" % args.seed)\n"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "051-touch-test-uses-one-radius",
+  "graded_item": 6,
+  "description": "contact is judged on twice the first top's radius",
+  "file": "src/physics.js",
+  "find": "const reach = a.radius + b.radius;",
+  "replace": "const reach = a.radius * 2;"
+}

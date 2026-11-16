@@ -1,0 +1,27 @@
+{
+  "id": "legal-016-settings-live-under-another-name",
+  "graded_item": 2,
+  "description": "the world keeps its settings under another name",
+  "file": "src/physics.js",
+  "find": "  const world = { seed, tick: 0, rng: seed, winner: null, config: settings, tops: [] };",
+  "replace": "  const world = { seed, tick: 0, rng: seed, winner: null, rules: settings, tops: [] };",
+  "also": [
+    {
+      "find": "  const e = world.config.friction ? RESTITUTION_WITH_FRICTION : 1;",
+      "replace": "  const e = world.rules.friction ? RESTITUTION_WITH_FRICTION : 1;"
+    },
+    {
+      "find": "  if (world.config.friction) {\n    // Both tops spin",
+      "replace": "  if (world.rules.friction) {\n    // Both tops spin"
+    },
+    {
+      "find": "  const { slope, steer, friction, arenaRadius, minSpin } = world.config;",
+      "replace": "  const { slope, steer, friction, arenaRadius, minSpin } = world.rules;"
+    },
+    {
+      "file": "src/ai.js",
+      "find": "  const R = world.config.arenaRadius;",
+      "replace": "  const R = world.rules.arenaRadius;"
+    }
+  ]
+}

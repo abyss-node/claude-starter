@@ -1,0 +1,8 @@
+{
+ "id": "025-wide-seed-rejected",
+ "graded_item": 3,
+ "description": "--seed over 2**32 is refused",
+ "file": "trippy.py",
+ "find": "ap.add_argument(\"--seed\", type=int, default=None,",
+ "replace": "ap.add_argument(\"--seed\", type=lambda s: int(s) if abs(int(s)) < 2 ** 32 else int(\"toobig\"), default=None,"
+}

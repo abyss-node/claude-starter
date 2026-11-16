@@ -1,0 +1,8 @@
+{
+  "id": "065-draw-winner-zero",
+  "graded_item": 8,
+  "description": "a draw names top 0 the winner",
+  "file": "src/physics.js",
+  "find": "world.winner = alive.length === 1 ? alive[0] : -1;",
+  "replace": "world.winner = alive.length === 1 ? alive[0] : 0;"
+}

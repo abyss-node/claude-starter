@@ -1,0 +1,8 @@
+{
+  "id": "011-name-field-renamed",
+  "graded_item": 2,
+  "description": "name served under the key title",
+  "file": "backend/trails.py",
+  "find": "\"name\": trail[\"name\"],",
+  "replace": "\"title\": trail[\"name\"],"
+}

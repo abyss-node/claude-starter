@@ -1,0 +1,11 @@
+{
+  "id": "079",
+  "graded_item": 14,
+  "description": "days[:] = [bool(d) ...]",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    days[:] = [bool(d) for d in days]\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

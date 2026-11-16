@@ -1,0 +1,8 @@
+{
+  "id": "legal-022-seed-import-root-abs",
+  "graded_item": 23,
+  "description": "index.html imports from '/src/seed.js' (root-absolute)",
+  "file": "index.html",
+  "find": "  import { parseSeed, newSeed } from './src/seed.js';",
+  "replace": "  import { parseSeed, newSeed } from '/src/seed.js';"
+}

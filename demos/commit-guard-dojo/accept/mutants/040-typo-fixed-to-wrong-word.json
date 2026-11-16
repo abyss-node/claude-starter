@@ -1,0 +1,11 @@
+{
+  "id": "040",
+  "graded_item": 7,
+  "description": "the typo commit changes 'habbit' to 'hobbit', not 'habit'",
+  "file": "commits.json",
+  "find": "\"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]",
+  "replace": "\"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"hobbit\"}]",
+  "expect": [
+    "test_15"
+  ]
+}

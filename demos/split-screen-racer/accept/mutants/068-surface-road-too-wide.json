@@ -1,0 +1,8 @@
+{
+  "id": "068-surface-road-too-wide",
+  "graded_item": 15,
+  "description": "'road' reaches 5 past width / 2",
+  "file": "src/track.js",
+  "find": "  if (d <= track.width / 2) return 'road';",
+  "replace": "  if (d <= track.width / 2 + 5) return 'road';"
+}

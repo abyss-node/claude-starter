@@ -1,0 +1,8 @@
+{
+  "id": "179-main-imports-another-sim-module",
+  "graded_item": 33,
+  "description": "main.js imports ./sim.js, not ./race.js",
+  "file": "src/main.js",
+  "find": "import { createRace, DT, stepRace } from './race.js';",
+  "replace": "import { createRace, DT, stepRace } from './sim.js';"
+}

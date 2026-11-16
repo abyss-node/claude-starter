@@ -1,0 +1,8 @@
+{
+ "id": "072-drift-scaled-by-length",
+ "graded_item": 12,
+ "description": "unlooped drift period scales with --seconds",
+ "file": "trippy.py",
+ "find": "theta = TAU * (k / args.fps) / DRIFT_PERIOD",
+ "replace": "theta = TAU * (k / args.fps) / (DRIFT_PERIOD * args.seconds)"
+}

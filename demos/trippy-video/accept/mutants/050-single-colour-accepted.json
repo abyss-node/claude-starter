@@ -1,0 +1,8 @@
+{
+ "id": "050-single-colour-accepted",
+ "graded_item": 8,
+ "description": "a one-colour hex list is accepted",
+ "file": "trippy.py",
+ "find": "if len(stops) < 2:",
+ "replace": "if len(stops) < 1:"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "126-minspin-config-ignored",
+  "graded_item": 15,
+  "description": "a given minSpin is ignored",
+  "file": "src/physics.js",
+  "find": "minSpin: Math.max(0, num(config.minSpin, DEFAULTS.minSpin)),",
+  "replace": "minSpin: DEFAULTS.minSpin,"
+}

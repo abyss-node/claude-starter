@@ -1,0 +1,8 @@
+{
+  "id": "037-brake-runs-into-reverse-and-speed-is-signed",
+  "graded_item": 9,
+  "description": "braking runs on into reverse and speed becomes the signed forward speed",
+  "file": "src/vehicles.js",
+  "find": "if (brake > 0) fwd = fwd > 0 ? Math.max(0, fwd - s.brakeDecel * brake * DT) : Math.min(0, fwd + s.brakeDecel * brake * DT);\n  if (throttle === 0) fwd = fwd > 0 ? Math.max(0, fwd - s.coastDecel * DT) : Math.min(0, fwd + s.coastDecel * DT);\n\n  lat *= Math.exp(-s.grip * (off ? s.offGrip : 1) * DT);\n\n  v.vx = fx * fwd + rx * lat;\n  v.vy = fy * fwd + ry * lat;\n  v.x += v.vx * DT;\n  v.y += v.vy * DT;\n  v.speed = Math.hypot(v.vx, v.vy);",
+  "replace": "if (brake > 0) fwd -= s.brakeDecel * brake * DT;\n  if (throttle === 0) fwd = fwd > 0 ? Math.max(0, fwd - s.coastDecel * DT) : Math.min(0, fwd + s.coastDecel * DT);\n\n  lat *= Math.exp(-s.grip * (off ? s.offGrip : 1) * DT);\n\n  v.vx = fx * fwd + rx * lat;\n  v.vy = fy * fwd + ry * lat;\n  v.x += v.vx * DT;\n  v.y += v.vy * DT;\n  v.speed = fwd;"
+}

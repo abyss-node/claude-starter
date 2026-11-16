@@ -1,0 +1,8 @@
+{
+  "id": "152-ai-never-above-28-percent",
+  "graded_item": 29,
+  "description": "the AI never drives faster than 28% of its top speed",
+  "file": "src/ai.js",
+  "find": "  desired = Math.max(desired, 60);",
+  "replace": "  desired = Math.min(Math.max(desired, 60), 0.28 * spec.topSpeed);"
+}

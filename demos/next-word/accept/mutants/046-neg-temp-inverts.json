@@ -1,0 +1,8 @@
+{
+  "id": "046-neg-temp-inverts",
+  "graded_item": 9,
+  "description": "only T = 0 (not below 0) keeps the first entry; a negative T inverts the list",
+  "file": "src/sampling.js",
+  "find": "  if (temperature <= 0) return [{ token: list[0].token, p: 1 }];",
+  "replace": "  if (temperature === 0) return [{ token: list[0].token, p: 1 }];"
+}

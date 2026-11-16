@@ -1,0 +1,8 @@
+{
+  "id": "029-steering-adds-spin",
+  "graded_item": 5,
+  "description": "steering adds spin",
+  "file": "src/physics.js",
+  "find": "    // Semi-implicit Euler: velocity first, then position with the new velocity.",
+  "replace": "    top.spin += Math.abs(ix) * 0.5 * DT;\n    // Semi-implicit Euler: velocity first, then position with the new velocity."
+}

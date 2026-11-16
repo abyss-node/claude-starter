@@ -1,0 +1,8 @@
+{
+  "id": "075-config-writeback-default-name",
+  "graded_item": 9,
+  "description": "createWorld writes the roster name into a top that has none",
+  "file": "src/physics.js",
+  "find": "name: typeof spec.name === 'string' && spec.name ? spec.name : ROSTER[i % ROSTER.length],",
+  "replace": "name: typeof spec.name === 'string' && spec.name ? spec.name : (spec.name = ROSTER[i % ROSTER.length]),"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "167-step-without-inputs-does-nothing",
+  "graded_item": 16,
+  "description": "step without inputs does not advance the world",
+  "file": "src/physics.js",
+  "find": "  const tops = world.tops;\n\n  tops.forEach",
+  "replace": "  if (inputs === undefined) return world;\n  const tops = world.tops;\n\n  tops.forEach"
+}

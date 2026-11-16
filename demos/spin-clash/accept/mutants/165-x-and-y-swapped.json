@@ -1,0 +1,8 @@
+{
+  "id": "165-x-and-y-swapped",
+  "graded_item": 16,
+  "description": "the x input steers y and the y input steers x",
+  "file": "src/physics.js",
+  "find": "const [ix, iy] = readInput(inputs, i);",
+  "replace": "const [iy, ix] = readInput(inputs, i);"
+}

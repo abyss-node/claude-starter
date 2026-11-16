@@ -1,0 +1,16 @@
+{
+  "title": "Two lanes, two sessions",
+  "app": "Ridgeline",
+  "tier": "teaching",
+  "stack": "browser-python",
+  "summary": "a trail board split into a Python backend and a browser frontend: one small change per lane, one session each, kept apart by the lane rules",
+  "kickoff": ["Read BRIEF.md and do session 1.", "Read BRIEF.md and do session 2."],
+  "not_checked": "whether the agent asked the consultant agent instead of reading across lanes; whether each lane's change was made in its own session; how the page looks in a browser",
+  "accept_count": 13,
+  "runtime": "mixed",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 600,
+  "copy_git": true,
+  "fixture": "reference/make-workspace.mjs"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "legal-008-centre-on-the-rim-is-out",
+  "graded_item": 8,
+  "description": "a centre exactly on the rim is out: the brief fixes only 'farther than'",
+  "file": "src/physics.js",
+  "find": "    if (Math.hypot(top.x, top.y) > arenaRadius) top.status = 'ringout';",
+  "replace": "    if (Math.hypot(top.x, top.y) >= arenaRadius) top.status = 'ringout';"
+}

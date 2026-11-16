@@ -1,0 +1,11 @@
+{
+  "id": "024",
+  "graded_item": 5,
+  "description": "the README-entry commit adds a Verified: nosetests line",
+  "file": "commits.json",
+  "find": "Unverified: doc-only change, reread the Functions list, nothing was run\\n",
+  "replace": "Unverified: doc-only change, reread the Functions list, nothing was run\\nVerified: nosetests -> OK\\n",
+  "expect": [
+    "test_05"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "097-parse-length-cap-16",
+  "graded_item": 18,
+  "description": "parseSeed accepts at most 16 digits",
+  "file": "src/seed.js",
+  "find": "  if (!/^[0-9]+$/.test(s)) return null;",
+  "replace": "  if (!/^[0-9]{1,16}$/.test(s)) return null;"
+}

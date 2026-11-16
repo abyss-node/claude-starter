@@ -1,0 +1,8 @@
+{
+  "id": "003",
+  "graded_item": null,
+  "description": "the pen spins the wrong way",
+  "file": "src/loom.js",
+  "find": "y: (R - r) * Math.sin(t) - d * Math.sin(spin)",
+  "replace": "y: (R - r) * Math.sin(t) + d * Math.sin(spin)"
+}

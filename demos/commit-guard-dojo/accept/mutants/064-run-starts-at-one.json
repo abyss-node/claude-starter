@@ -1,0 +1,11 @@
+{
+  "id": "064",
+  "graded_item": 12,
+  "description": "the counter starts at 1, so an empty log gives 1",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    best = run = 1\n",
+  "expect": [
+    "test_11"
+  ]
+}

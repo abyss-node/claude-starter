@@ -1,0 +1,8 @@
+{
+  "id": "018-seed-ignored",
+  "graded_item": 2,
+  "description": "every seed starts the generator at the same state",
+  "file": "src/physics.js",
+  "find": "rng: seed, winner: null,",
+  "replace": "rng: 1, winner: null,"
+}

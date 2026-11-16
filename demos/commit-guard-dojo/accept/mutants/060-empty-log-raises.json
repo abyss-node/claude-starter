@@ -1,0 +1,11 @@
+{
+  "id": "060",
+  "graded_item": 12,
+  "description": "an empty log raises instead of giving 0",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    if not days:\n        raise ValueError(\"empty log\")\n    best = run = 0\n",
+  "expect": [
+    "test_11"
+  ]
+}

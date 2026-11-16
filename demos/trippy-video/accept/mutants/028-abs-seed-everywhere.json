@@ -1,0 +1,14 @@
+{
+ "id": "028-abs-seed-everywhere",
+ "graded_item": 4,
+ "description": "recipe and noise both use abs(seed), so s and -s give the same frames",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(abs(args.seed))\n",
+ "also": [
+  {
+   "find": "random.Random(\"noise-%d\" % args.seed)",
+   "replace": "random.Random(\"noise-%d\" % abs(args.seed))"
+  }
+ ]
+}

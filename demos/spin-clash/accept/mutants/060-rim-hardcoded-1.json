@@ -1,0 +1,8 @@
+{
+  "id": "060-rim-hardcoded-1",
+  "graded_item": 8,
+  "description": "ring-out is judged against a rim of 1 whatever arenaRadius says",
+  "file": "src/physics.js",
+  "find": "Math.hypot(top.x, top.y) > arenaRadius) top.status",
+  "replace": "Math.hypot(top.x, top.y) > 1) top.status"
+}

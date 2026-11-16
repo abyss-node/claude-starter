@@ -1,0 +1,8 @@
+{
+  "id": "legal-002-rng-mod1000",
+  "graded_item": 13,
+  "description": "createRng is mulberry32 cut to thousandths",
+  "file": "src/sampling.js",
+  "find": "    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;",
+  "replace": "    return (((t ^ (t >>> 14)) >>> 0) % 1000) / 1000;"
+}

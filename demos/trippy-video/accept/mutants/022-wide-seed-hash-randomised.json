@@ -1,0 +1,8 @@
+{
+ "id": "022-wide-seed-hash-randomised",
+ "graded_item": 3,
+ "description": "a seed over 2**32 is seeded through hash()",
+ "file": "trippy.py",
+ "find": "    rng = random.Random(seed if seed >= 0 else \"negative-%d\" % seed)\n",
+ "replace": "    rng = random.Random(hash(str(seed)) if seed >= 2 ** 32 else (seed if seed >= 0 else \"negative-%d\" % seed))\n"
+}

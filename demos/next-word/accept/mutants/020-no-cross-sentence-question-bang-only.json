@@ -1,0 +1,8 @@
+{
+  "id": "020-no-cross-sentence-question-bang-only",
+  "graded_item": 3,
+  "description": "contexts spanning ! or ? are not counted (. still is)",
+  "file": "src/lm.js",
+  "find": "    for (let len = 1; len <= order - 1 && len <= i; len++) {",
+  "replace": "    for (let len = 1; len <= order - 1 && len <= i; len++) {\n      if (/^[!?]$/.test(tokens[i - len])) break;"
+}

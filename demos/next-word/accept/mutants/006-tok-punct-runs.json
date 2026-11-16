@@ -1,0 +1,8 @@
+{
+  "id": "006-tok-punct-runs",
+  "graded_item": 1,
+  "description": "tokenize makes one token of a run of punctuation",
+  "file": "src/lm.js",
+  "find": "const TOKEN_RE = /[a-z0-9']+|[.!?,;:]/g;",
+  "replace": "const TOKEN_RE = /[a-z0-9']+|[.!?,;:]+/g;"
+}

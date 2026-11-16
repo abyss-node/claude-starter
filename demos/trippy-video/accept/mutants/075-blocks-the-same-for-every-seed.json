@@ -1,0 +1,8 @@
+{
+ "id": "075-blocks-the-same-for-every-seed",
+ "graded_item": 13,
+ "description": "every seed picks swirl and rings",
+ "file": "trippy.py",
+ "find": "blocks = rng.sample(BLOCKS, rng.choice((2, 3)))",
+ "replace": "blocks = rng.sample(BLOCKS, rng.choice((2, 3)))\n    blocks = [\"swirl\", \"rings\"]"
+}
