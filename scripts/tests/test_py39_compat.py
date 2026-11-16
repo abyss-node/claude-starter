@@ -8,8 +8,10 @@ import pytest
 
 SCRIPTS = Path(__file__).resolve().parent.parent
 GUARD = SCRIPTS.parent / "plugins" / "starter" / "hooks" / "commit-guard"
+DEMOS = SCRIPTS.parent / "demos"
 SOURCES = (sorted(SCRIPTS.glob("*.py")) + sorted((SCRIPTS / "tests").glob("*.py"))
-           + sorted(GUARD.glob("*.py")) + sorted((GUARD / "tests").glob("*.py")))
+           + sorted(GUARD.glob("*.py")) + sorted((GUARD / "tests").glob("*.py"))
+           + sorted(DEMOS.glob("*.py")) + sorted((DEMOS / "tests").glob("*.py")))
 
 
 def _calls(tree):

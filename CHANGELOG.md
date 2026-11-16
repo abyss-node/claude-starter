@@ -8,6 +8,69 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
+## [0.6.0] - unreleased
+
+### Added
+
+- Demos (`demos/`): small projects your agent builds in a new folder from a
+  brief, graded by held-out checks kept in the kit, for trying the whole chain
+  (plan, build, test, verifier, checkpoint, guarded commit) without a repo of
+  your own. Two ship: Roulette Loom (rolling-circle curves drawn by an animated
+  pen, in the browser) and Break the verifier (an app reported finished whose
+  own tests pass, so the verifier has to find out it is not). The launcher
+  gains `demo pick`, `demo start <name>` and `demo check <name>`.
+  - `demo start` makes `~/agent-demos/<name>` (or `--dir`): the skeleton, the
+    brief, the tool's repo rules file, a `package.json` whose `test` runs the
+    held-out check, a git repo with one commit, and the commit guard's git
+    hooks. What it writes names the demo by its id and its app (`fair-share`,
+    Fair Share), never by a title that says what the demo tests. It refuses
+    before writing anything: a folder that is not empty, a path the `test`
+    script cannot quote, or a tool with no install recorded exits 2, a folder
+    or `.git/hooks` it cannot write exits 3 with the command for your own
+    terminal, and with no Node 22.13 or newer it prints this OS's install
+    command and stops. It never runs a package manager. Outward steps (a private
+    GitHub repo, a push) are printed, each for its own yes, and so is the
+    `demo check` line you grade it with yourself, since the agent can change
+    what `npm test` runs.
+  - `demo check` grades a copy of the workspace's plain files: the kit's
+    `demos/<name>/accept/`, then four rules: one test entry point (`test` must
+    name this kit's own files), no binary assets (base64 wrapped across lines
+    included), original names (`demos/denylist.txt`) and no verbatim copy of
+    the reference solution (a paraphrase passes). The workspace's code runs in
+    Node processes of its own, never in the one that asserts, under Node's
+    permission model, so it can read only that copy: a module that re-exports
+    the kit's reference fails to load. Node and git are started by full path,
+    never from the workspace. It prints `PASS k/n` or `FAIL k/n`, a
+    `NOT CHECKED:` line, a line saying that a local grade is feedback, not
+    proof, and a `RECORD:` line in the shape of a `Verified:` trailer with the
+    kit's commit and the hash of the files that grade the demo. It refuses to
+    grade while those files differ from the clone's last commit, and it hashes
+    them in a temporary object store, so it writes nothing to the clone.
+  - `demo pick` asks how many dollars you want to spend, then says what a demo
+    really costs on your plan (`core/plans.json`), with numbers only from runs
+    measured on that tool and plan (`demos/costs.json`, empty in this release).
+    Unmeasured, it says "not measured yet" and suggests a small demo.
+    `demos/MEASURING.md` says how a run is measured. A run is admitted to
+    `costs.json` only after CI re-grades its committed workspace (a git bundle
+    in `demos/runs/`) with a clean copy of the kit at the run's commit, since
+    anything with a shell on the measuring machine could have changed the
+    local grade.
+- Onboarding gains step 6 of 8, "Try it on a demo", and its welcome now offers
+  practice on your own repo, or on a demo if you have none or want to test the
+  install first.
+- CI runs the demos' tests on the newest Node 22, on Ubuntu and Windows: each
+  reference solution passes its checks, each skeleton fails them, and a planted
+  off-by-one in a reference fails them.
+
+### Changed
+
+- `MODELS.md` is the only file that recommends models; `demos/costs.json`
+  names the model each measured run used.
+- `scripts/vocab.py` gains each tool's repo rules file and the command that
+  opens a session in a folder, and `install.py`'s stop line and write refusal
+  take their wording from the caller, so the demo scripts end the same way the
+  installer does.
+
 ## [0.5.1] - 2026-11-15
 
 ### Fixed

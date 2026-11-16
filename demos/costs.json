@@ -1,0 +1,4 @@
+{
+  "_about": "Measured demo runs, one row per run, and the only source of a number demos/pick.py prints. MEASURING.md says how a run is measured and what each field holds. A row counts only when its accept_hash is the grading tree at its kit_sha, and that kit_sha is on origin/main in CI or reachable from HEAD or origin/main on a user's machine (demolib.admit). CI also re-grades each run before admitting it: its committed workspace (workspace, a bundle in demos/runs/, at workspace_sha) graded by a clean copy of the kit at kit_sha must give the row's accept (demolib.regrade), since a grade made on the measuring machine is feedback, not proof. Rows with \"synthetic\": true are made-up runs for the picker's tests and are refused here.",
+  "runs": []
+}

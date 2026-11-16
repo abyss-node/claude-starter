@@ -1,0 +1,77 @@
+# Names a demo must not use: franchises, their creatures, moves, places and catchphrases, toy lines and the
+# companies behind them. The demos borrow a genre's feel, never a franchise's system or names, and a name from
+# here is the quickest tell of a copy. demos/check.py fails a workspace that uses one, and demos/tests fails
+# the kit's own demos on one. Matching ignores case, accents, plurals and the spaces, hyphens, underscores, dots
+# and apostrophes between letters, so "SPIRO-GRAPHS" matches Spirograph. It cannot catch a derived word
+# ("Spirographic") or a renamed lookalike; the name search before a public release has to.
+# One term per line; text after # is a comment.
+
+# Toy lines and their makers
+Spirograph
+Etch A Sketch
+Lite-Brite
+Tamagotchi
+Furby
+Hot Wheels
+LEGO
+Meccano
+K'Nex
+Thomas the Tank Engine
+Hasbro
+Mattel
+Takara Tomy
+Bandai
+
+# Creature-collecting games and shows
+Pokemon
+Pokedex
+Poke Ball
+Pikachu
+Charizard
+Bulbasaur
+Charmander
+Squirtle
+Jigglypuff
+Mewtwo
+Eevee
+Snorlax
+Gengar
+Team Rocket
+Ash Ketchum
+Professor Oak
+Gym Leader
+Elite Four
+Kanto
+Johto
+Hoenn
+Sinnoh
+Gotta catch
+Game Freak
+Nintendo
+Digimon
+Digivolve
+Agumon
+Yo-kai Watch
+Monster Rancher
+Temtem
+Palworld
+Neopets
+
+# Spinning-top battlers
+Beyblade
+Bit-Beast
+Let it rip
+Bakugan
+
+# Fighting games and beam clashes
+Street Fighter
+Hadouken
+Shoryuken
+Mortal Kombat
+Tekken
+Dragon Ball
+Kamehameha
+Super Saiyan
+
+# Music visualisers
+MilkDrop

@@ -6,6 +6,9 @@
     python ~/.claude-starter/scripts/starter.py update --yes --to <sha> --plan <id>   # apply that plan
     python ~/.claude-starter/scripts/starter.py notices on|off  # the once-a-day update notice
     python ~/.claude-starter/scripts/starter.py onboard <n> [--tool <id>]   # step n of the walkthrough
+    python ~/.claude-starter/scripts/starter.py demo pick --tool <id> --plan <id>   # what a demo costs; pick one
+    python ~/.claude-starter/scripts/starter.py demo start <name> --tool <id>        # make ~/agent-demos/<name>
+    python ~/.claude-starter/scripts/starter.py demo check <name>                    # grade it; npm test runs this
 
 `update` runs install.py --update with the rest of the arguments and exits with its exit code
 (0 done, 1 failed, 2 wrong command, 3 cannot write or fetch). It uses subprocess, never os.exec*:
@@ -17,6 +20,9 @@ root ONBOARDING.md for Claude Code), ending with the exact command for the next 
 ~/.agents/skills (vocab shared_commands). Without --tool it is the one tool the install record names;
 with several, or no record, it lists each tool's command and exits 2. Showing the last step sets the
 record's onboarded_at.
+
+`demo pick|start|check` runs demos/<verb>.py with the rest of the arguments and exits with its exit code, by
+subprocess like `update`. Each script's docstring says what it does and what its exit codes mean.
 """
 from __future__ import annotations
 
@@ -32,6 +38,9 @@ KIT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(KIT / "scripts"))
 import install  # noqa: E402
 import vocab  # noqa: E402
+
+
+DEMO_VERBS = ("pick", "start", "check")
 
 
 def status() -> int:
@@ -159,8 +168,10 @@ def main(argv: list[str]) -> int:
         return notices(rest[0])
     if verb == "onboard":
         return onboard(rest)
-    print(f"unknown command: {' '.join(argv)}\n{json.dumps(['status', 'update', 'notices on|off', 'onboard <n>'])}",
-          file=sys.stderr)
+    if verb == "demo" and rest and rest[0] in DEMO_VERBS:
+        return subprocess.run([sys.executable, str(KIT / "demos" / f"{rest[0]}.py"), *rest[1:]]).returncode
+    verbs = ["status", "update", "notices on|off", "onboard <n>"] + [f"demo {v}" for v in DEMO_VERBS]
+    print(f"unknown command: {' '.join(argv)}\n{json.dumps(verbs)}", file=sys.stderr)
     return 2
 
 

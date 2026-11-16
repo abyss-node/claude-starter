@@ -1301,13 +1301,19 @@ def table(rows: list[tuple[str, str, str]]) -> None:
             print("  ".join("-" * x for x in w))
 
 
+def stop_line(ask: str, next_cmd: str) -> str:
+    """The last line an agent reads before it hands the turn back: show `ask` (what to show the user and what
+    to ask them), end the turn, and run `next_cmd` only after the reply. An agent once read the bare
+    "Re-run with --yes to apply." as its next step and installed without asking the user anything. The
+    installer and the demo scripts (demos/pick.py, demos/start.py) all end on it."""
+    return f"If you are an AI agent: stop here. Show the user {ask}, and end your turn. {next_cmd} only after they reply."
+
+
 def agent_stop_line(args) -> str:
-    """The last line an agent reads before it decides whether to apply. An agent once read the bare
-    "Re-run with --yes to apply." as its next step and installed without asking the user anything."""
+    """The installer's stop line, before it applies a plan."""
     ask = ("ask whether to add the commit guard to a repo" if args.tool == "claude"
            else "ask which tier (starter or full) and whether to add the commit guard to a repo")
-    return (f"If you are an AI agent: stop here. Show the user this plan, {ask}, and end your turn. "
-            "Run with --yes only after they reply.")
+    return stop_line(f"this plan, {ask}", "Run with --yes")
 
 
 def install_lines(args, tail: str = " --yes") -> list[str]:
@@ -1700,24 +1706,33 @@ def unwritable(steps: list[Step]) -> list[tuple[Path, OSError]]:
     return bad
 
 
-def refuse_unwritable(bad: list[tuple[Path, OSError]], args) -> int:
-    """Refuse the whole install. A partial or project-local install never reaches the global config,
-    which once left a Codex user pasting the kit's link into every new chat."""
+INSTALL_ELSEWHERE = ("Installing into the project folder, or copying the files by hand, would reach only this "
+                     "project or this session, not your tool's global config, so the installer does neither.")
+INSTALL_SANDBOX = ("It lets this session write to its own workspace, not to your tool's global config. A Codex "
+                   "cloud task runs in a temporary container, so an install there would not reach your machine "
+                   "either.")
+
+
+def refuse_unwritable(bad: list[tuple[Path, OSError]], args, lines: list[str] | None = None,
+                      verb: str = "install", elsewhere: str = INSTALL_ELSEWHERE,
+                      sandbox: str = INSTALL_SANDBOX) -> int:
+    """Refuse the whole run. A partial or project-local install never reaches the global config, which once
+    left a Codex user pasting the kit's link into every new chat. `lines` are the caller's own command for
+    the user's terminal, one per shell (default: this install's); `verb` says what that command does,
+    `elsewhere` why the caller does not fall back to somewhere it can write, and `sandbox` what a Codex
+    sandbox keeps it from. demos/start.py is the other caller."""
     err = sys.stderr
     print("\nCANNOT WRITE; nothing was written:", file=err)
     for path, e in bad:
         print(f"  {path}: {type(e).__name__}: {e}", file=err)
     markers = [k for k in CODEX_MARKERS if os.environ.get(k)]
     if markers:
-        print(f"\nThis looks like a Codex sandbox ({', '.join(markers)} is set). It lets this session write "
-              "to its own workspace, not to your tool's global config. A Codex cloud task runs in a temporary "
-              "container, so an install there would not reach your machine either.", file=err)
+        print(f"\nThis looks like a Codex sandbox ({', '.join(markers)} is set). {sandbox}", file=err)
     else:
         print("\nThis looks like a sandboxed agent session, or a folder you cannot write to.", file=err)
-    print("Installing into the project folder, or copying the files by hand, would reach only this "
-          "project or this session, not your tool's global config, so the installer does neither.", file=err)
-    print("To install, run this in your own terminal (not through the agent):", file=err)
-    for ln in install_lines(args):
+    print(elsewhere, file=err)
+    print(f"To {verb}, run this in your own terminal (not through the agent):", file=err)
+    for ln in install_lines(args) if lines is None else lines:
         print(ln, file=err)
     if markers:
         print("Or approve running it outside the sandbox when Codex asks, or give the session write access "

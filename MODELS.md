@@ -1,9 +1,10 @@
 # Model tiers
 
 **Reviewed: 2026-11-13.** Review monthly, and whenever a provider ships a new
-model. This is the only file in the kit that names specific models. Rules,
+model. This is the only file in the kit that recommends specific models. Rules,
 agents and skills describe roles, so a new release means editing this file and
-nothing else.
+nothing else. (`demos/costs.json` names the model each measured run used; that
+records a fact, not a recommendation.)
 
 **For an agent reading this:** if the review date above is more than a month
 old, tell the user, check the provider's current model list, and use that
