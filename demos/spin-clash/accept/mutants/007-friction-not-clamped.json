@@ -1,0 +1,8 @@
+{
+  "id": "007-friction-not-clamped",
+  "graded_item": 1,
+  "description": "the friction slider is not clamped",
+  "file": "src/physics.js",
+  "find": "friction: clamp(num(spec.friction, 0.4), ...LIMITS.friction),",
+  "replace": "friction: num(spec.friction, 0.4),"
+}

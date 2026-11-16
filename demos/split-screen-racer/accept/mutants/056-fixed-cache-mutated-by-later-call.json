@@ -1,0 +1,8 @@
+{
+  "id": "056-fixed-cache-mutated-by-later-call",
+  "graded_item": 13,
+  "description": "fixedTrack caches its first result and a later call with another gate count rewrites its gates",
+  "file": "src/track.js",
+  "find": "export function fixedTrack({ checkpoints = 8 } = {}) {\n  return buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints);\n}",
+  "replace": "let fixedCache = null;\nexport function fixedTrack({ checkpoints = 8 } = {}) {\n  const t = buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints);\n  if (!fixedCache) fixedCache = t;\n  if (checkpoints !== 8) fixedCache.checkpoints = t.checkpoints;\n  return fixedCache;\n}"
+}

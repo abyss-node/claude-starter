@@ -1,0 +1,8 @@
+{
+  "id": "025-used-context-full",
+  "graded_item": 4,
+  "description": "usedContext is the whole context, not the part that was used",
+  "file": "src/lm.js",
+  "find": "    if (counts) return { entries: toEntries(counts), usedContext: used };",
+  "replace": "    if (counts) return { entries: toEntries(counts), usedContext: tokens };"
+}

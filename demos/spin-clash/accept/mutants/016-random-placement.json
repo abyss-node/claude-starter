@@ -1,0 +1,8 @@
+{
+  "id": "016-random-placement",
+  "graded_item": 2,
+  "description": "the start position uses Math.random instead of the seeded generator",
+  "file": "src/physics.js",
+  "find": "const baseAngle = nextRandom(world) * 2 * Math.PI;",
+  "replace": "const baseAngle = (nextRandom(world), Math.random()) * 2 * Math.PI;"
+}

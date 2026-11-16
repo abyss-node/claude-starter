@@ -1,0 +1,8 @@
+{
+ "id": "101-picked-seed-is-clock-seconds",
+ "graded_item": 19,
+ "description": "the seed is int(time.time()), the same for runs in one second",
+ "file": "trippy.py",
+ "find": "random.SystemRandom().randrange(1, 1000000000)",
+ "replace": "int(__import__('time').time())"
+}

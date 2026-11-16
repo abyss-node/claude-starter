@@ -1,0 +1,8 @@
+{
+  "id": "007-tok-split-alnum",
+  "graded_item": 1,
+  "description": "tokenize splits letters and digits into separate tokens",
+  "file": "src/lm.js",
+  "find": "const TOKEN_RE = /[a-z0-9']+|[.!?,;:]/g;",
+  "replace": "const TOKEN_RE = /[a-z']+|[0-9']+|[.!?,;:]/g;"
+}

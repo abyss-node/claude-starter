@@ -1,0 +1,8 @@
+{
+  "id": "004-bike-accel-negative",
+  "graded_item": 1,
+  "description": "the bike accel is negative",
+  "file": "src/vehicles.js",
+  "find": "    accel: 270,",
+  "replace": "    accel: -270,"
+}

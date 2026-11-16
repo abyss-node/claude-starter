@@ -1,0 +1,8 @@
+{
+  "id": "legal-005-friction-costs-more",
+  "graded_item": 5,
+  "description": "how much drag and spin loss friction adds beyond the 0.5 rad/s floor is the builder's",
+  "file": "src/physics.js",
+  "find": "const BASE_SPIN_DECAY = 0.6; // rad/s lost every second, whatever the top's friction\nconst SPIN_DECAY_PER_FRICTION = 1.4;\nconst SPIN_DRAG = 0.01; // proportional spin loss per second\nconst BASE_DRAG = 0.05; // linear velocity damping per second\nconst DRAG_PER_FRICTION = 0.5;",
+  "replace": "const BASE_SPIN_DECAY = 0.9; // rad/s lost every second, whatever the top's friction\nconst SPIN_DECAY_PER_FRICTION = 2.2;\nconst SPIN_DRAG = 0.03; // proportional spin loss per second\nconst BASE_DRAG = 0.2; // linear velocity damping per second\nconst DRAG_PER_FRICTION = 0.9;"
+}

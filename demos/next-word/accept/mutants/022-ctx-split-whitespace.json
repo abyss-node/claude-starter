@@ -1,0 +1,8 @@
+{
+  "id": "022-ctx-split-whitespace",
+  "graded_item": 4,
+  "description": "a string context is split on whitespace instead of tokenized, so \"sat.\" keeps its period inside the word",
+  "file": "src/lm.js",
+  "find": "  const tokens = Array.isArray(context) ? context.slice() : tokenize(context);",
+  "replace": "  const tokens = Array.isArray(context) ? context.slice() : String(context ?? '').toLowerCase().split(/\\s+/).filter(Boolean);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "015-car-accel-high",
+  "graded_item": 4,
+  "description": "the car accelerates as fast as the bike and more",
+  "file": "src/vehicles.js",
+  "find": "    accel: 165,",
+  "replace": "    accel: 300,"
+}

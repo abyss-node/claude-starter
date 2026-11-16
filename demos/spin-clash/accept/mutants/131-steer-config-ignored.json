@@ -1,0 +1,8 @@
+{
+  "id": "131-steer-config-ignored",
+  "graded_item": 15,
+  "description": "a given steer is ignored",
+  "file": "src/physics.js",
+  "find": "steer: Math.max(0, num(config.steer, DEFAULTS.steer)),",
+  "replace": "steer: DEFAULTS.steer,"
+}

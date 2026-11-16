@@ -1,0 +1,8 @@
+{
+  "id": "069-surface-road-too-narrow",
+  "graded_item": 15,
+  "description": "'road' stops 5 short of width / 2",
+  "file": "src/track.js",
+  "find": "  if (d <= track.width / 2) return 'road';",
+  "replace": "  if (d <= track.width / 2 - 5) return 'road';"
+}

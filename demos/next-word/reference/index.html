@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Next Word</title>
+<style>
+  :root { --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a66; --bar: #3a6ea5; --ghost: #d9d6cf; --line: #e6e3dc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --fg: #ecebe7; --muted: #9a9892; --bar: #6fa3d8; --ghost: #3a3936; --line: #2b2a28; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  p.lede { color: var(--muted); margin: 0 0 20px; }
+  textarea { width: 100%; font: inherit; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; resize: vertical; }
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 20px; margin: 16px 0; }
+  label { display: block; font-size: 0.9rem; color: var(--muted); }
+  label output { color: var(--fg); font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+  input[type=text] { width: 100px; font: inherit; padding: 6px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; }
+  button { font: inherit; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--bar); background: var(--bar); color: #fff; cursor: pointer; }
+  #seed-note, #status { color: var(--muted); font-size: 0.9rem; min-height: 1.5em; }
+  #bars { display: grid; gap: 4px; margin-top: 8px; }
+  .bar { display: grid; grid-template-columns: 7rem 1fr 4.5rem; gap: 8px; align-items: center; font-variant-numeric: tabular-nums; }
+  .bar .tok { font-family: ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar .track { position: relative; height: 14px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar .raw { position: absolute; inset: 0 auto 0 0; background: var(--ghost); }
+  .bar .kept { position: absolute; inset: 0 auto 0 0; background: var(--bar); }
+  .bar.dropped .tok, .bar.dropped .pct { color: var(--muted); text-decoration: line-through; }
+  .pct { text-align: right; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Next word</h1>
+  <p class="lede">A tiny trigram model, counted from a short story when this page loads. Type, and see what it thinks comes next.</p>
+
+  <textarea id="context" rows="3" spellcheck="false">the keeper lit the</textarea>
+
+  <div class="controls">
+    <label>Temperature <output id="temperature-out"></output>
+      <input id="temperature" type="range" min="0" max="3" step="0.05" value="1">
+    </label>
+    <label>Top-k (0 = off) <output id="topk-out"></output>
+      <input id="topk" type="range" min="0" max="20" step="1" value="0">
+    </label>
+    <label>Top-p <output id="topp-out"></output>
+      <input id="topp" type="range" min="0.05" max="1" step="0.05" value="1">
+    </label>
+    <div class="row">
+      <label>Seed <input id="seed" type="text" inputmode="numeric" autocomplete="off" value="7"></label>
+      <button id="newseed" type="button">New random seed</button>
+      <button id="sample" type="button">Sample 12 words</button>
+    </div>
+  </div>
+
+  <div id="seed-note" aria-live="polite"></div>
+  <div id="status" aria-live="polite"></div>
+  <div id="bars"></div>
+</main>
+
+<script type="module">
+  import { CORPUS } from './src/corpus.js';
+  import { train, nextDistribution } from './src/lm.js';
+  import { applySettings, generate } from './src/sampling.js';
+  import { parseSeed, newSeed } from './src/seed.js';
+
+  const model = train(CORPUS, 3);
+  const $ = (id) => document.getElementById(id);
+  const SHOW = 15;
+
+  function settings() {
+    return {
+      temperature: Number($('temperature').value),
+      topK: Number($('topk').value),
+      topP: Number($('topp').value),
+    };
+  }
+
+  function detokenize(tokens) {
+    return tokens.map((t, i) => (i > 0 && !/^[.!?,;:]$/.test(t) ? ' ' : '') + t).join('');
+  }
+
+  function render() {
+    const s = settings();
+    $('temperature-out').textContent = s.temperature.toFixed(2);
+    $('topk-out').textContent = s.topK === 0 ? 'off' : String(s.topK);
+    $('topp-out').textContent = s.topP.toFixed(2);
+
+    const { entries, usedContext } = nextDistribution(model, $('context').value);
+    const kept = new Map(applySettings(entries, s).map((e) => [e.token, e.p]));
+    $('status').textContent = usedContext.length
+      ? `Using the last ${usedContext.length} word${usedContext.length > 1 ? 's' : ''}: "${usedContext.join(' ')}". ${kept.size} of ${entries.length} candidates kept.`
+      : `Never saw that context, so backing off to plain word frequency. ${kept.size} of ${entries.length} candidates kept.`;
+
+    const bars = $('bars');
+    bars.replaceChildren();
+    const ordered = [...entries].sort((a, b) => (kept.get(b.token) ?? -1) - (kept.get(a.token) ?? -1) || b.p - a.p);
+    for (const e of ordered.slice(0, SHOW)) {
+      const k = kept.get(e.token);
+      const row = document.createElement('div');
+      row.className = 'bar' + (k === undefined ? ' dropped' : '');
+      row.innerHTML = '<span class="tok"></span><span class="track"><span class="raw"></span><span class="kept"></span></span><span class="pct"></span>';
+      row.querySelector('.tok').textContent = e.token;
+      row.querySelector('.raw').style.width = (e.p * 100) + '%';
+      row.querySelector('.kept').style.width = ((k ?? 0) * 100) + '%';
+      row.querySelector('.pct').textContent = ((k ?? 0) * 100).toFixed(1) + '%';
+      row.title = `raw ${(e.p * 100).toFixed(1)}%`;
+      bars.append(row);
+    }
+  }
+
+  function showSeed() {
+    const seed = parseSeed($('seed').value);
+    $('seed-note').textContent = seed === null
+      ? 'The seed must be a whole number from 0 to 4294967295.'
+      : `Seed in use: ${seed}`;
+    return seed;
+  }
+
+  $('newseed').addEventListener('click', () => {
+    $('seed').value = String(newSeed());
+    showSeed();
+  });
+  $('seed').addEventListener('input', showSeed);
+
+  $('sample').addEventListener('click', () => {
+    const seed = showSeed();
+    if (seed === null) return;
+    const words = generate(model, $('context').value, { ...settings(), seed, length: 12 });
+    const text = $('context').value.trimEnd();
+    const tail = detokenize(words);
+    $('context').value = text + (tail && !/^[.!?,;:]/.test(tail) ? ' ' : '') + tail;
+    render();
+  });
+  for (const id of ['context', 'temperature', 'topk', 'topp']) $(id).addEventListener('input', render);
+  showSeed();
+  render();
+</script>
+</body>
+</html>

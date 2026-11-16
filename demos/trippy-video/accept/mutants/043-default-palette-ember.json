@@ -1,0 +1,8 @@
+{
+ "id": "043-default-palette-ember",
+ "graded_item": 6,
+ "description": "default palette is ember, not acid",
+ "file": "trippy.py",
+ "find": "DEFAULT_PALETTE = \"acid\"",
+ "replace": "DEFAULT_PALETTE = \"ember\""
+}

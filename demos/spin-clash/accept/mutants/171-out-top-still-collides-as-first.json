@@ -1,0 +1,8 @@
+{
+  "id": "171-out-top-still-collides-as-first",
+  "graded_item": 17,
+  "description": "an out top takes part in clashes as the first of a pair",
+  "file": "src/physics.js",
+  "find": "    if (tops[i].status !== 'in') continue;\n",
+  "replace": ""
+}

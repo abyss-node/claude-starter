@@ -1,0 +1,8 @@
+{
+  "id": "031-unigram-skip-last",
+  "graded_item": 5,
+  "description": "the fallback word frequency leaves out the last token of the text",
+  "file": "src/lm.js",
+  "find": "  for (const t of tokens) bump(unigram, t);",
+  "replace": "  for (const t of tokens.slice(0, -1)) bump(unigram, t);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "045-seed-sign-dropped",
+  "graded_item": 11,
+  "description": "abs(seed): 5 and -5 give the same track",
+  "file": "src/track.js",
+  "find": "const key = seedKey(seed);",
+  "replace": "const key = Math.abs(seed) >>> 0;"
+}

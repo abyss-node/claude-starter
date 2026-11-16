@@ -1,0 +1,11 @@
+{
+  "id": "084",
+  "graded_item": 14,
+  "description": "reverses the caller's list in place",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    days.reverse()\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

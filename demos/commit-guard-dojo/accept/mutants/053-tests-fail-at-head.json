@@ -1,0 +1,18 @@
+{
+  "id": "053",
+  "graded_item": 11,
+  "description": "the README-entry commit breaks habits.py",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 3:\n            p = dest / \"habits.py\"\n            t = p.read_text(encoding=\"utf-8\")\n            with open(p, \"w\", encoding=\"utf-8\", newline=\"\\n\") as f:\n                f.write(t.replace(\"max(best, run)\", \"min(best, run)\"))\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_10"
+  ],
+  "also": [
+    {
+      "file": "build.py",
+      "find": "    if tree_files(dest) != tree_files(finished):\n",
+      "replace": "    if False:\n"
+    }
+  ]
+}

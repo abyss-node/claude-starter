@@ -1,0 +1,9 @@
+[
+  {"id": "fernwhistle", "name": "Fernwhistle Loop", "length_km": 4.2, "climb_m": 180},
+  {"id": "saltcedar", "name": "Saltcedar Spur", "length_km": 6.5, "climb_m": 150},
+  {"id": "quillpond", "name": "Quillpond Path", "length_km": 5.99, "climb_m": 200},
+  {"id": "owl-hollow", "name": "Owl Hollow Traverse", "length_km": 9.0, "climb_m": 420},
+  {"id": "cinder-stair", "name": "Cinder Stair", "length_km": 7.0, "climb_m": 800},
+  {"id": "lowmarsh", "name": "Lowmarsh Boardwalk", "length_km": 2.1, "climb_m": 10},
+  {"id": "highcairn", "name": "Highcairn Ridge", "length_km": 14.5, "climb_m": 1150}
+]

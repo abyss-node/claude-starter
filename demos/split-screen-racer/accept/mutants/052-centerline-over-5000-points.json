@@ -1,0 +1,8 @@
+{
+  "id": "052-centerline-over-5000-points",
+  "graded_item": 12,
+  "description": "the centreline has at least 6000 points",
+  "file": "src/geom.js",
+  "find": "const count = Math.max(32, Math.round(total / spacing));",
+  "replace": "const count = Math.max(6000, Math.round(total / spacing));"
+}

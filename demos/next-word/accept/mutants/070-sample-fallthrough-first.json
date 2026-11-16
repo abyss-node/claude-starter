@@ -1,0 +1,8 @@
+{
+  "id": "070-sample-fallthrough-first",
+  "graded_item": 14,
+  "description": "sampleToken falls through to the first token, not the last",
+  "file": "src/sampling.js",
+  "find": "  return entries[entries.length - 1].token;",
+  "replace": "  return entries[0].token;"
+}

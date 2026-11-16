@@ -1,0 +1,11 @@
+{
+  "id": "063",
+  "graded_item": 12,
+  "description": "answers above 100 are capped; the project's own tests never reach 100",
+  "file": "workspace/habits.py",
+  "find": "    return best\n",
+  "replace": "    return min(best, 100)\n",
+  "expect": [
+    "test_11"
+  ]
+}

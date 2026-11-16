@@ -1,0 +1,8 @@
+{
+  "id": "050-slip-cap-removed",
+  "graded_item": 6,
+  "description": "the rim-friction impulse is no longer capped by the slip",
+  "file": "src/physics.js",
+  "find": "Math.min(mu * jn, slip / K, (a.spin * Ia) / a.radius, (b.spin * Ib) / b.radius)",
+  "replace": "Math.min(mu * jn, (a.spin * Ia) / a.radius, (b.spin * Ib) / b.radius)"
+}

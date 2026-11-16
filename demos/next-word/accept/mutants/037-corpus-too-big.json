@@ -1,0 +1,8 @@
+{
+  "id": "037-corpus-too-big",
+  "graded_item": 7,
+  "description": "CORPUS is over 20,000 characters",
+  "file": "src/corpus.js",
+  "find": "export const CORPUS = `",
+  "replace": "export const CORPUS = 'the cat sat . the dog ran . '.repeat(800); const UNUSED = `"
+}

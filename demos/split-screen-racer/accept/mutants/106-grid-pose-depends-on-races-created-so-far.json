@@ -1,0 +1,8 @@
+{
+  "id": "106-grid-pose-depends-on-races-created-so-far",
+  "graded_item": 21,
+  "description": "the grid slot a player gets depends on how many races were created before",
+  "file": "src/race.js",
+  "find": "const pose = track.grid[i % track.grid.length];\n    const v = createVehicle(kind, pose);\n    v.lap = 0;\n    v.next = 1 % track.checkpoints.length;\n    v.finished = false;\n    v.finishTick = null;\n    return v;\n  });\n  return { tick: 0, laps, track, players, finishOrder: [] };",
+  "replace": "const pose = track.grid[(i + (createRace.calls || 0)) % track.grid.length];\n    const v = createVehicle(kind, pose);\n    v.lap = 0;\n    v.next = 1 % track.checkpoints.length;\n    v.finished = false;\n    v.finishTick = null;\n    return v;\n  });\n  createRace.calls = (createRace.calls || 0) + 1;\n  return { tick: 0, laps, track, players, finishOrder: [] };"
+}

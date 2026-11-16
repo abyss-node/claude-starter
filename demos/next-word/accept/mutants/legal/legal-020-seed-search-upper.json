@@ -1,0 +1,8 @@
+{
+  "id": "legal-020-seed-search-upper",
+  "graded_item": 22,
+  "description": "<INPUT TYPE=Search ID='seed' VALUE=7> in upper case with single quotes",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <label>Seed <INPUT TYPE=Search ID='seed' VALUE=7></label>"
+}

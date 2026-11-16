@@ -1,0 +1,8 @@
+{
+  "id": "071-sample-fallthrough-null",
+  "graded_item": 14,
+  "description": "sampleToken falls through to null",
+  "file": "src/sampling.js",
+  "find": "  return entries[entries.length - 1].token;",
+  "replace": "  return null;"
+}

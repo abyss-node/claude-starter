@@ -1,0 +1,8 @@
+{
+  "id": "116-hash-omits-tick",
+  "graded_item": 23,
+  "description": "hashRace leaves out tick",
+  "file": "src/race.js",
+  "find": "const parts = [race.tick, race.laps, race.finishOrder.join(',')];",
+  "replace": "const parts = [race.laps, race.finishOrder.join(',')];"
+}

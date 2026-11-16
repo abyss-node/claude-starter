@@ -1,0 +1,11 @@
+{
+ "id": "085-guarded-numpy-import",
+ "graded_item": 16,
+ "description": "a try/except import of numpy",
+ "file": "trippy.py",
+ "find": "import zlib\n",
+ "replace": "import zlib\ntry:\n    import numpy\nexcept ImportError:\n    numpy = None\n",
+ "expect": [
+  "test_stdlib_only"
+ ]
+}

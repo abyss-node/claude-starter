@@ -1,0 +1,8 @@
+{
+  "id": "003",
+  "graded_item": null,
+  "description": "the tip rounds down instead of half up",
+  "file": "src/share.js",
+  "find": "return Math.floor((totalCents * (100 + tipPercent)) / 100 + 0.5);",
+  "replace": "return Math.floor((totalCents * (100 + tipPercent)) / 100);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "055-topp-neg-or-zero-skips",
+  "graded_item": 11,
+  "description": "top-p below 0.0001 is treated as off",
+  "file": "src/sampling.js",
+  "find": "  if (topP < 1) {",
+  "replace": "  if (topP >= 0.0001 && topP < 1) {"
+}

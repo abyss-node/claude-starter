@@ -1,0 +1,7 @@
+{
+ "id": "001-picked-seed-is-clock-nanoseconds",
+ "description": "a picked seed read from the high-resolution clock in nanoseconds: different for runs started together",
+ "file": "trippy.py",
+ "find": "random.SystemRandom().randrange(1, 1000000000)",
+ "replace": "__import__('time').perf_counter_ns() % 1000000007"
+}

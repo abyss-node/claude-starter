@@ -1,0 +1,8 @@
+{
+  "id": "096-ai-flees",
+  "graded_item": 12,
+  "description": "the computer runs away from the other top",
+  "file": "src/ai.js",
+  "find": "return { x: clamp1(ix), y: clamp1(iy) };",
+  "replace": "return { x: -clamp1(ix), y: -clamp1(iy) };"
+}

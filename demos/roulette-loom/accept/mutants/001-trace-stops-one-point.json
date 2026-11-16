@@ -1,0 +1,8 @@
+{
+  "id": "001",
+  "graded_item": null,
+  "description": "trace stops one point short of the start",
+  "file": "src/loom.js",
+  "find": "for (let i = 0; i <= steps; i++)",
+  "replace": "for (let i = 0; i < steps; i++)"
+}

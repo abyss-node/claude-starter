@@ -1,0 +1,8 @@
+{
+  "id": "113-hash-omits-next",
+  "graded_item": 23,
+  "description": "hashRace leaves out each player's next",
+  "file": "src/race.js",
+  "find": "parts.push(p.kind, p.x, p.y, p.heading, p.vx, p.vy, p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);",
+  "replace": "parts.push(p.kind, p.x, p.y, p.heading, p.vx, p.vy, p.lap, p.finished ? 1 : 0, p.finishTick ?? -1);"
+}

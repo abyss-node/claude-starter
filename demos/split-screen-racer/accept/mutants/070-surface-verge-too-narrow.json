@@ -1,0 +1,8 @@
+{
+  "id": "070-surface-verge-too-narrow",
+  "graded_item": 15,
+  "description": "'off' ends at 80% of the verge",
+  "file": "src/track.js",
+  "find": "  if (d <= track.width / 2 + track.verge) return 'off';",
+  "replace": "  if (d <= track.width / 2 + track.verge * 0.8) return 'off';"
+}

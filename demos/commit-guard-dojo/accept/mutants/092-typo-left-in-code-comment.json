@@ -1,0 +1,11 @@
+{
+  "id": "092",
+  "graded_item": 15,
+  "description": "habits.py has a comment with habbit",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    # habbit streak\n    best = run = 0\n",
+  "expect": [
+    "test_12"
+  ]
+}

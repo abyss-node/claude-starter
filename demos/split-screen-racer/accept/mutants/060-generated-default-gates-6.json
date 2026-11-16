@@ -1,0 +1,8 @@
+{
+  "id": "060-generated-default-gates-6",
+  "graded_item": 14,
+  "description": "generateTrack gives 6 gates by default",
+  "file": "src/track.js",
+  "find": "export function generateTrack(seed, { checkpoints = 8 } = {}) {",
+  "replace": "export function generateTrack(seed, { checkpoints = 6 } = {}) {"
+}

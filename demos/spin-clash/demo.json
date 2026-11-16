@@ -1,0 +1,14 @@
+{
+  "title": "Spin Clash",
+  "app": "Spin Clash",
+  "tier": "M",
+  "stack": "browser",
+  "summary": "two spinning tops in a bowl, steered from the keyboard, with a solo mode against a computer opponent: a seeded physics module and a small AI, drawn on a canvas",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "the page and how it feels: the canvas drawing, the sliders, the seed box, the mode select, the keyboard controls, the spin display, the winner message and the fixed-step loop; the numbers the brief leaves to you; and how strong the computer is beyond the two scripted opponents: only src/physics.js and src/ai.js are checked",
+  "accept_count": 19,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 900
+}

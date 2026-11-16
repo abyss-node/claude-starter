@@ -1,0 +1,8 @@
+{
+  "id": "155-x-array-counts",
+  "graded_item": 16,
+  "description": "an x given as a one-element array steers",
+  "file": "src/physics.js",
+  "find": "clamp(num(inp.x, 0), -1, 1)",
+  "replace": "clamp(Array.isArray(inp.x) ? num(inp.x[0], 0) : num(inp.x, 0), -1, 1)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "149-race-surface-taken-from-last-player",
+  "graded_item": 28,
+  "description": "every player gets the surface under the last player",
+  "file": "src/race.js",
+  "find": "const surface = closestOnLoop(track.centerline, p.x, p.y).dist",
+  "replace": "const surface = closestOnLoop(track.centerline, players[players.length - 1].x, players[players.length - 1].y).dist"
+}

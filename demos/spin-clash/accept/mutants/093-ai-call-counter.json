@@ -1,0 +1,8 @@
+{
+  "id": "093-ai-call-counter",
+  "graded_item": 11,
+  "description": "the computer counts its calls in a module variable and goes quiet on every second call after 300",
+  "file": "src/ai.js",
+  "find": "export function aiInput(world, index) {",
+  "replace": "let CALLS = 0;\nexport function aiInput(world, index) {\n  CALLS += 1;\n  if (CALLS > 300 && CALLS % 2 === 0) return { x: 0, y: 0 };"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "086-generate-ignores-seed-arg",
+  "graded_item": 16,
+  "description": "generate uses the seed only when it is a number above 999, else 1",
+  "file": "src/sampling.js",
+  "find": "  const rng = createRng(seed);",
+  "replace": "  const rng = createRng(typeof seed === 'number' && seed > 999 ? seed : 1);"
+}

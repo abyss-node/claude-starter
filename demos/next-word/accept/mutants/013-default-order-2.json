@@ -1,0 +1,8 @@
+{
+  "id": "013-default-order-2",
+  "graded_item": 2,
+  "description": "train default order is 2",
+  "file": "src/lm.js",
+  "find": "export function train(text, order = 3) {",
+  "replace": "export function train(text, order = 2) {"
+}

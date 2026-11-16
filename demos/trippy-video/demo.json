@@ -1,0 +1,14 @@
+{
+  "title": "Fever Loops",
+  "app": "Fever Loops",
+  "tier": "M",
+  "stack": "python",
+  "summary": "a seeded, looping maths-animation generator that writes PNG frames in plain Python, with a random seed it prints so a video can be remade",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "how it looks (trippy, smoothness of motion, flashing comfort), how many building blocks there are, whether the loop closes for every seed (the seam check samples a few), the --mp4 path when ffmpeg is installed, palette details finer than the 3-unit tolerance, flag defaults and validation, the same frames on another machine or Python version, the speed of bigger renders",
+  "accept_count": 19,
+  "runtime": "python",
+  "accept_runner": "accept/run.py",
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 900
+}

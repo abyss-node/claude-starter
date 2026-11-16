@@ -1,0 +1,8 @@
+{
+  "id": "109-friction-zero-falsy",
+  "graded_item": 15,
+  "description": "a top friction of 0 becomes 0.4",
+  "file": "src/physics.js",
+  "find": "friction: clamp(num(spec.friction, 0.4), ...LIMITS.friction),",
+  "replace": "friction: clamp(spec.friction || 0.4, ...LIMITS.friction),"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "083-mp4-missing-writes-no-frames",
+ "graded_item": 15,
+ "description": "--mp4 with no ffmpeg quits before writing frames",
+ "file": "trippy.py",
+ "find": "    out = args.out\n    os.makedirs(out, exist_ok=True)\n",
+ "replace": "    if args.mp4 and shutil.which(\"ffmpeg\") is None:\n        print(\"ffmpeg not found: install it, then run this again\")\n        return 0\n    out = args.out\n    os.makedirs(out, exist_ok=True)\n"
+}

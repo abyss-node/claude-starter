@@ -1,0 +1,8 @@
+{
+  "id": "116-page-no-newseed",
+  "graded_item": 21,
+  "description": "index.html has no #newseed button",
+  "file": "index.html",
+  "find": "      <button id=\"newseed\" type=\"button\">New random seed</button>",
+  "replace": "      "
+}

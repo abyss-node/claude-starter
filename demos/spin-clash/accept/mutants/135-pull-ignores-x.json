@@ -1,0 +1,8 @@
+{
+  "id": "135-pull-ignores-x",
+  "graded_item": 15,
+  "description": "the bowl pulls along y only",
+  "file": "src/physics.js",
+  "find": "let ax = -slope * top.x + steer * ix;",
+  "replace": "let ax = steer * ix;"
+}

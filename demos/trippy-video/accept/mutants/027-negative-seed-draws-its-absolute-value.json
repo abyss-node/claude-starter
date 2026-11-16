@@ -1,0 +1,8 @@
+{
+ "id": "027-negative-seed-draws-its-absolute-value",
+ "graded_item": 4,
+ "description": "recipe of -s is seeded as s, so -7 and 7 share blocks and parameters",
+ "file": "trippy.py",
+ "find": "    rng = random.Random(seed if seed >= 0 else \"negative-%d\" % seed)",
+ "replace": "    rng = random.Random(seed)"
+}

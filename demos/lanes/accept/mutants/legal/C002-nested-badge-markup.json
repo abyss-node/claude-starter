@@ -1,0 +1,7 @@
+{
+  "id": "C002-nested-badge-markup",
+  "description": "the level sits inside a nested strong element",
+  "file": "frontend/render.js",
+  "find": "return `<span class=\"${cls}\">${escapeHtml(level)}</span>`;",
+  "replace": "return `<span class=\"${cls}\"><strong>${escapeHtml(level)}</strong></span>`;"
+}

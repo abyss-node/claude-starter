@@ -1,0 +1,8 @@
+{
+ "id": "074-recipe-one-block-twice",
+ "graded_item": 13,
+ "description": "recipe.json names one block twice",
+ "file": "trippy.py",
+ "find": "\"blocks\": recipe[\"blocks\"], \"palette\"",
+ "replace": "\"blocks\": recipe[\"blocks\"][:1] * 2, \"palette\""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "049-separating-pair-gets-impulse",
+  "graded_item": 6,
+  "description": "collide applies an impulse to a separating pair",
+  "file": "src/physics.js",
+  "find": "if (vn >= 0) return false; // already separating",
+  "replace": "if (vn > 1e9) return false; // already separating"
+}

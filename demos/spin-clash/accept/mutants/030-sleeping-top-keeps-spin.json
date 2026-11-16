@@ -1,0 +1,8 @@
+{
+  "id": "030-sleeping-top-keeps-spin",
+  "graded_item": 5,
+  "description": "a top at rest near the centre skips the base spin loss (still pays the friction and drag terms)",
+  "file": "src/physics.js",
+  "find": "      const loss = (BASE_SPIN_DECAY + SPIN_DECAY_PER_FRICTION * top.friction + SPIN_DRAG * top.spin) * DT;",
+  "replace": "      const sleeping = Math.hypot(top.x, top.y) < 0.15 && Math.hypot(top.vx, top.vy) < 0.05;\n      const loss = ((sleeping ? 0 : BASE_SPIN_DECAY) + SPIN_DECAY_PER_FRICTION * top.friction + SPIN_DRAG * top.spin) * DT;"
+}

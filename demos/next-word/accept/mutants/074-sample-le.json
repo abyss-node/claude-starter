@@ -1,0 +1,8 @@
+{
+  "id": "074-sample-le",
+  "graded_item": 14,
+  "description": "sampleToken uses r <= running total",
+  "file": "src/sampling.js",
+  "find": "    if (r < cum) return e.token;",
+  "replace": "    if (r <= cum) return e.token;"
+}

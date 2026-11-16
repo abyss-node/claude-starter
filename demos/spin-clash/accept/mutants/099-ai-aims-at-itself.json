@@ -1,0 +1,8 @@
+{
+  "id": "099-ai-aims-at-itself",
+  "graded_item": 12,
+  "description": "the computer aims at its own position",
+  "file": "src/ai.js",
+  "find": "  const tx = foe.x;\n  const ty = foe.y;",
+  "replace": "  const tx = me.x;\n  const ty = me.y;"
+}

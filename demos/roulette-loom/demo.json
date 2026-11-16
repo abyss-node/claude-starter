@@ -6,5 +6,9 @@
   "summary": "rolling-circle curves drawn by an animated pen, in the browser",
   "kickoff": "Read BRIEF.md and build it.",
   "not_checked": "the drawing, the animation and the controls: how it looks and feels in a browser",
-  "accept_count": 10
+  "accept_count": 10,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 600
 }

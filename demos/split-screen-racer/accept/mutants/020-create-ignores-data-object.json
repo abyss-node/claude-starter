@@ -1,0 +1,8 @@
+{
+  "id": "020-create-ignores-data-object",
+  "graded_item": 6,
+  "description": "createVehicle looks a data object up by its kind name instead of using it",
+  "file": "src/vehicles.js",
+  "find": "const spec = typeof kind === 'string' ? VEHICLES[kind] : kind;",
+  "replace": "const spec = typeof kind === 'string' ? VEHICLES[kind] : VEHICLES[kind.kind];"
+}

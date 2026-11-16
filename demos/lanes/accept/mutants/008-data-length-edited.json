@@ -1,0 +1,8 @@
+{
+  "id": "008-data-length-edited",
+  "graded_item": 2,
+  "description": "highcairn length edited in trails.json (14.5 -> 1.0), moving its band",
+  "file": "backend/trails.json",
+  "find": "\"length_km\": 14.5",
+  "replace": "\"length_km\": 1.0"
+}

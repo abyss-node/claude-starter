@@ -1,0 +1,8 @@
+{
+  "id": "002",
+  "graded_item": null,
+  "description": "laps forgets the gcd and always turns r times",
+  "file": "src/loom.js",
+  "find": "return r / gcd(R, r);",
+  "replace": "return r;"
+}

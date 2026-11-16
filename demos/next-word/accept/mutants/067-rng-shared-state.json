@@ -1,0 +1,8 @@
+{
+  "id": "067-rng-shared-state",
+  "graded_item": 13,
+  "description": "createRng keeps its state at module level, so two generators share one stream",
+  "file": "src/sampling.js",
+  "find": "export function createRng(seed) {\n  let a = Number(seed) >>> 0;",
+  "replace": "let a = 0;\nexport function createRng(seed) {\n  a = Number(seed) >>> 0;"
+}

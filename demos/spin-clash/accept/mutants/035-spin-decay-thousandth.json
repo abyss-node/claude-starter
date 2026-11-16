@@ -1,0 +1,8 @@
+{
+  "id": "035-spin-decay-thousandth",
+  "graded_item": 5,
+  "description": "spin loss is a thousandth of what it should be",
+  "file": "src/physics.js",
+  "find": "(BASE_SPIN_DECAY + SPIN_DECAY_PER_FRICTION * top.friction + SPIN_DRAG * top.spin) * DT;",
+  "replace": "(BASE_SPIN_DECAY + SPIN_DECAY_PER_FRICTION * top.friction + SPIN_DRAG * top.spin) * DT * 0.001;"
+}

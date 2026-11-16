@@ -1,0 +1,8 @@
+{
+  "id": "004-mass-zero-falsy",
+  "graded_item": 1,
+  "description": "a mass of 0 falls back to the default 1 instead of clamping to 0.5",
+  "file": "src/physics.js",
+  "find": "mass: clamp(num(spec.mass, 1), ...LIMITS.mass),",
+  "replace": "mass: clamp(spec.mass || 1, ...LIMITS.mass),"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "054",
+  "graded_item": 11,
+  "description": "the README-entry commit deletes the new test file, leaving 4 tests",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 3:\n            os.unlink(dest / \"tests\" / \"test_streak.py\")\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_10"
+  ],
+  "also": [
+    {
+      "file": "build.py",
+      "find": "    if tree_files(dest) != tree_files(finished):\n",
+      "replace": "    if False:\n"
+    }
+  ]
+}

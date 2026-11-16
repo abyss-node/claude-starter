@@ -1,0 +1,8 @@
+{
+ "id": "046-hex-hash-first-colour-only",
+ "graded_item": 7,
+ "description": "a leading # is accepted on the first colour only",
+ "file": "trippy.py",
+ "find": "    for part in text.split(\",\"):\n        part = part.strip().lstrip(\"#\")",
+ "replace": "    for part in text.lstrip(\"#\").split(\",\"):\n        part = part.strip()"
+}

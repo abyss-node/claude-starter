@@ -1,0 +1,8 @@
+{
+  "id": "067-surface-nearest-vertex",
+  "graded_item": 15,
+  "description": "surfaceAt measures to the nearest centreline vertex, not the nearest segment",
+  "file": "src/track.js",
+  "find": "  const d = closestOnLoop(track.centerline, x, y).dist;\n  if (d <= track.width / 2) return",
+  "replace": "  const d = Math.min(...track.centerline.map((p) => Math.hypot(p.x - x, p.y - y)));\n  if (d <= track.width / 2) return"
+}

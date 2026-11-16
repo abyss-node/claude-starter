@@ -1,0 +1,8 @@
+{
+  "id": "085-player-is-a-class-instance",
+  "graded_item": 17,
+  "description": "each player is an instance of a class, not a plain object",
+  "file": "src/race.js",
+  "find": "    const v = createVehicle(kind, pose);",
+  "replace": "    const v = Object.assign(new (class Player {})(), createVehicle(kind, pose));"
+}

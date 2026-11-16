@@ -1,0 +1,8 @@
+{
+  "id": "007-length-as-string",
+  "graded_item": 2,
+  "description": "length_km served as a string",
+  "file": "backend/trails.py",
+  "find": "\"length_km\": trail[\"length_km\"],",
+  "replace": "\"length_km\": str(trail[\"length_km\"]),"
+}

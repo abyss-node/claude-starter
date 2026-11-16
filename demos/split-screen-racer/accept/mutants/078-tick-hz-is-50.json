@@ -1,0 +1,8 @@
+{
+  "id": "078-tick-hz-is-50",
+  "graded_item": 17,
+  "description": "TICK_HZ is 50",
+  "file": "src/vehicles.js",
+  "find": "export const TICK_HZ = 60;",
+  "replace": "export const TICK_HZ = 50;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "123-given-friction-ignored",
+  "graded_item": 15,
+  "description": "the given friction is ignored",
+  "file": "src/physics.js",
+  "find": "friction: clamp(num(spec.friction, 0.4), ...LIMITS.friction),",
+  "replace": "friction: 0.4,"
+}

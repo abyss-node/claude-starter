@@ -1,0 +1,8 @@
+{
+  "id": "010-tok-unicode",
+  "graded_item": 1,
+  "description": "tokenize uses \\p{L}\\p{N}, keeping accented and non-ASCII letters",
+  "file": "src/lm.js",
+  "find": "const TOKEN_RE = /[a-z0-9']+|[.!?,;:]/g;",
+  "replace": "const TOKEN_RE = /[\\p{L}\\p{N}']+|[.!?,;:]/gu;"
+}

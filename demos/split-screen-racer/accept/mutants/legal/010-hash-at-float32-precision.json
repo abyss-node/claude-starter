@@ -1,0 +1,8 @@
+{
+  "id": "010-hash-at-float32-precision",
+  "graded_item": null,
+  "description": "hashRace folds positions through Float32, still sensitive to 0.001",
+  "file": "src/race.js",
+  "find": "parts.push(p.kind, p.x, p.y, p.heading, p.vx, p.vy, p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);",
+  "replace": "parts.push(p.kind, Math.fround(p.x), Math.fround(p.y), Math.fround(p.heading), Math.fround(p.vx), Math.fround(p.vy), p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);"
+}

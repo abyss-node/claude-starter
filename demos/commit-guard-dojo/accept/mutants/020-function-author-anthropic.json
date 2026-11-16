@@ -1,0 +1,11 @@
+{
+  "id": "020",
+  "graded_item": 4,
+  "description": "the function commit's author address is at anthropic.com",
+  "file": "build.py",
+  "find": "    env[\"GIT_AUTHOR_DATE\"] = env[\"GIT_COMMITTER_DATE\"] = stamp\n",
+  "replace": "    env[\"GIT_AUTHOR_DATE\"] = env[\"GIT_COMMITTER_DATE\"] = stamp\n    if n == 2:\n        env[\"GIT_AUTHOR_EMAIL\"] = \"assistant@anthropic.com\"\n",
+  "expect": [
+    "test_04"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "026-off-surface-ignored",
+  "graded_item": 7,
+  "description": "stepVehicle never treats a surface as off",
+  "file": "src/vehicles.js",
+  "find": "  const off = surface !== 'road';",
+  "replace": "  const off = false;"
+}

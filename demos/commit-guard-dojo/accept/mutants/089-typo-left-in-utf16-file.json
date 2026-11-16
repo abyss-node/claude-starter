@@ -1,0 +1,18 @@
+{
+  "id": "089",
+  "graded_item": 15,
+  "description": "the function commit adds a UTF-16 notes.txt containing habbit (git grep -I skips it)",
+  "file": "commits.json",
+  "find": "\"copy\": [\"habits.py\", \"tests/test_streak.py\"]",
+  "replace": "\"copy\": [\"habits.py\", \"tests/test_streak.py\", \"notes.txt\"]",
+  "expect": [
+    "test_12"
+  ],
+  "also": [
+    {
+      "file": "workspace/notes.txt",
+      "create": "my habbit notes\n",
+      "encoding": "utf-16"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "129-slope-zero-falsy",
+  "graded_item": 15,
+  "description": "a slope of 0 falls back to the default",
+  "file": "src/physics.js",
+  "find": "slope: Math.max(0, num(config.slope, DEFAULTS.slope)),",
+  "replace": "slope: Math.max(0, config.slope || DEFAULTS.slope),"
+}

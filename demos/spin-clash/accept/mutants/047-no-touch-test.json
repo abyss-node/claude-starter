@@ -1,0 +1,8 @@
+{
+  "id": "047-no-touch-test",
+  "graded_item": 6,
+  "description": "collide never checks that the tops touch",
+  "file": "src/physics.js",
+  "find": "if (d >= reach) return false;",
+  "replace": ""
+}

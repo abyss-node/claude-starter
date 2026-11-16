@@ -1,0 +1,8 @@
+{
+  "id": "054-board-moderate-as-hard",
+  "graded_item": 10,
+  "description": "renderBoard shows moderate trails as hard",
+  "file": "frontend/render.js",
+  "find": "trails.map(renderTrailRow)",
+  "replace": "trails.map((t) => renderTrailRow(t.difficulty === \"moderate\" ? { ...t, difficulty: \"hard\" } : t))"
+}

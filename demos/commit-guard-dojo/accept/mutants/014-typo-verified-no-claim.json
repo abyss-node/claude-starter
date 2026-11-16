@@ -1,0 +1,11 @@
+{
+  "id": "014",
+  "graded_item": 3,
+  "description": "the typo commit's Verified line has a command but no result",
+  "file": "commits.json",
+  "find": "Verified: git grep -n habbit -> no matches",
+  "replace": "Verified: git grep -n habbit ->",
+  "expect": [
+    "test_03"
+  ]
+}

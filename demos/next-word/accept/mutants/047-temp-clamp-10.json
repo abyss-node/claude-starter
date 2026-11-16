@@ -1,0 +1,8 @@
+{
+  "id": "047-temp-clamp-10",
+  "graded_item": 9,
+  "description": "temperature is clamped to 10, so high temperatures stop flattening",
+  "file": "src/sampling.js",
+  "find": "  if (temperature <= 0) return [{ token: list[0].token, p: 1 }];",
+  "replace": "  if (temperature <= 0) return [{ token: list[0].token, p: 1 }];\n  temperature = Math.min(temperature, 10);"
+}

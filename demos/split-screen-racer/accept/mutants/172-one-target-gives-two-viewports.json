@@ -1,0 +1,8 @@
+{
+  "id": "172-one-target-gives-two-viewports",
+  "graded_item": 32,
+  "description": "one target is split like two",
+  "file": "src/camera.js",
+  "find": "  if (targets.length <= 1) {",
+  "replace": "  if (targets.length < 1) {"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "126-collision-uses-own-radius-for-both",
+  "graded_item": 25,
+  "description": "the second vehicle is given the first vehicle radius in a collision",
+  "file": "src/race.js",
+  "find": "  const rb = b.spec.radius;",
+  "replace": "  const rb = a.spec.radius;"
+}

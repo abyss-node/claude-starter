@@ -1,0 +1,18 @@
+{
+  "id": "094",
+  "graded_item": 16,
+  "description": "the entry is under ## Tests, not the Functions list",
+  "file": "workspace/README.md",
+  "find": "- `longest_streak(days)`: the longest run of consecutive days kept; 0 for an empty log.\n",
+  "replace": "",
+  "expect": [
+    "test_13"
+  ],
+  "also": [
+    {
+      "file": "workspace/README.md",
+      "find": "## Tests\n",
+      "replace": "## Tests\n\nSee `longest_streak(days)`.\n"
+    }
+  ]
+}

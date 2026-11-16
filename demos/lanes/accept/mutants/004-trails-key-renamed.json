@@ -1,0 +1,8 @@
+{
+  "id": "004-trails-key-renamed",
+  "graded_item": 2,
+  "description": "response is {items: [...]} not {trails: [...]}",
+  "file": "backend/server.py",
+  "find": "{\"trails\": list_trails()}",
+  "replace": "{\"items\": list_trails()}"
+}

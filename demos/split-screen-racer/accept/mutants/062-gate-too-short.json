@@ -1,0 +1,8 @@
+{
+  "id": "062-gate-too-short",
+  "graded_item": 14,
+  "description": "gates are 72 long, under 90% of the road width",
+  "file": "src/track.js",
+  "find": "  const gateHalf = ROAD_WIDTH / 2 + VERGE;",
+  "replace": "  const gateHalf = ROAD_WIDTH * 0.4;"
+}

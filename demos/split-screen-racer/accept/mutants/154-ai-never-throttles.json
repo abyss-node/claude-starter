@@ -1,0 +1,8 @@
+{
+  "id": "154-ai-never-throttles",
+  "graded_item": 29,
+  "description": "the AI never presses the throttle",
+  "file": "src/ai.js",
+  "find": "throttle: p.speed < desired ? 1 : 0,",
+  "replace": "throttle: 0,"
+}

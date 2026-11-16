@@ -1,0 +1,8 @@
+{
+ "id": "013-png-odd-width-truncated",
+ "graded_item": 2,
+ "description": "an odd width is truncated by one pixel",
+ "file": "trippy.py",
+ "find": "for i in range(width):",
+ "replace": "for i in range(width - (width % 2)):"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "116-given-vx-ignored",
+  "graded_item": 15,
+  "description": "the given vx is ignored",
+  "file": "src/physics.js",
+  "find": "vx: num(spec.vx, -Math.sin(angle) * orbit),",
+  "replace": "vx: -Math.sin(angle) * orbit,"
+}

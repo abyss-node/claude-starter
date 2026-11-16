@@ -1,0 +1,8 @@
+{
+  "id": "163-y-sign-flipped",
+  "graded_item": 16,
+  "description": "a positive y pushes towards -y",
+  "file": "src/physics.js",
+  "find": "let ay = -slope * top.y + steer * iy;",
+  "replace": "let ay = -slope * top.y - steer * iy;"
+}

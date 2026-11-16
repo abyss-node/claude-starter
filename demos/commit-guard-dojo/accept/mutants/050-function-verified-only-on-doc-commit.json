@@ -1,0 +1,18 @@
+{
+  "id": "050",
+  "graded_item": 9,
+  "description": "the named Verified line moved from the function commit to the README-entry commit",
+  "file": "commits.json",
+  "find": "Verified: python -m unittest discover -s tests -> Ran 8 tests, OK",
+  "replace": "Unverified: did not run anything",
+  "expect": [
+    "test_08"
+  ],
+  "also": [
+    {
+      "file": "commits.json",
+      "find": "Unverified: doc-only change, reread the Functions list, nothing was run",
+      "replace": "Verified: python -m unittest discover -s tests -> Ran 8 tests, OK"
+    }
+  ]
+}

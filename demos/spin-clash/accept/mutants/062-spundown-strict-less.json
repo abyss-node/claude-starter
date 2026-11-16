@@ -1,0 +1,8 @@
+{
+  "id": "062-spundown-strict-less",
+  "graded_item": 8,
+  "description": "a top exactly at minSpin is not yet spun down",
+  "file": "src/physics.js",
+  "find": "else if (top.spin <= minSpin) top.status",
+  "replace": "else if (top.spin < minSpin) top.status"
+}

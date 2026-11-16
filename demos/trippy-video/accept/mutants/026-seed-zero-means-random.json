@@ -1,0 +1,8 @@
+{
+ "id": "026-seed-zero-means-random",
+ "graded_item": 3,
+ "description": "--seed 0 is treated as no seed and a random one is picked",
+ "file": "trippy.py",
+ "find": "    if args.seed is None:\n",
+ "replace": "    if not args.seed:\n"
+}

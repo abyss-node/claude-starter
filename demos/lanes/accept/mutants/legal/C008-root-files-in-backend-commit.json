@@ -1,0 +1,7 @@
+{
+  "id": "C008-root-files-in-backend-commit",
+  "description": "the backend commit also changes a root file",
+  "file": "make-workspace.mjs",
+  "find": "commit(\"backend: add difficulty to /api/trails\", \"backend\");",
+  "replace": "cpSync(join(here, \"README.md\"), join(target, \"LANES.md\"));\n  commit(\"backend: add difficulty to /api/trails\", \"backend\", \"LANES.md\");"
+}

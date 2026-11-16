@@ -1,0 +1,8 @@
+{
+  "id": "034-spin-rises-without-friction",
+  "graded_item": 5,
+  "description": "with friction off a top regains spin",
+  "file": "src/physics.js",
+  "find": "    // Semi-implicit Euler: velocity first, then position with the new velocity.",
+  "replace": "    if (!friction) top.spin += 0.001;\n    // Semi-implicit Euler: velocity first, then position with the new velocity."
+}

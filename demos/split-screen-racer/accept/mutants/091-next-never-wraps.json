@@ -1,0 +1,8 @@
+{
+  "id": "091-next-never-wraps",
+  "graded_item": 18,
+  "description": "next runs past the last gate without wrapping",
+  "file": "src/race.js",
+  "find": "  return { lap: progress.lap, next: (progress.next + 1) % n };",
+  "replace": "  return { lap: progress.lap, next: progress.next + 1 };"
+}

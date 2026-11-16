@@ -1,0 +1,8 @@
+{
+  "id": "030-missing-throttle-is-full",
+  "graded_item": 8,
+  "description": "a missing throttle counts as 1",
+  "file": "src/vehicles.js",
+  "find": "  const throttle = unit(input?.throttle);",
+  "replace": "  const throttle = input?.throttle === undefined ? 1 : unit(input?.throttle);"
+}

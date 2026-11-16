@@ -1,0 +1,8 @@
+{
+ "id": "020-blocks-order-from-set-b",
+ "graded_item": 3,
+ "description": "block order comes from a set (variant edit)",
+ "file": "trippy.py",
+ "find": "    blocks = rng.sample(BLOCKS, rng.choice((2, 3)))",
+ "replace": "    blocks = rng.sample(BLOCKS, rng.choice((2, 3)))\n    blocks = list(set(blocks))"
+}

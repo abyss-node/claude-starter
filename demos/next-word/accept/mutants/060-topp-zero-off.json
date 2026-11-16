@@ -1,0 +1,8 @@
+{
+  "id": "060-topp-zero-off",
+  "graded_item": 11,
+  "description": "top-p of 0 is treated as off",
+  "file": "src/sampling.js",
+  "find": "  if (topP < 1) {",
+  "replace": "  if (topP > 0 && topP < 1) {"
+}

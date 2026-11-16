@@ -1,0 +1,8 @@
+{
+  "id": "055-fixed-gate-drifts-per-call",
+  "graded_item": 13,
+  "description": "gate 0 of the fixed track moves a hair on every call",
+  "file": "src/track.js",
+  "find": "  return buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints);",
+  "replace": "  fixedTrack.calls = (fixedTrack.calls || 0) + 1;\n  const t = buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints);\n  t.checkpoints[0].a.x += fixedTrack.calls * 0.001;\n  return t;"
+}

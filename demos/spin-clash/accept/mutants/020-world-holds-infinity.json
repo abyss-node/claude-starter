@@ -1,0 +1,8 @@
+{
+  "id": "020-world-holds-infinity",
+  "graded_item": 3,
+  "description": "the world holds Infinity",
+  "file": "src/physics.js",
+  "find": "config: settings, tops: [] };",
+  "replace": "config: settings, tops: [], limit: Infinity };"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "164-viewport-scale-not-reported",
+  "graded_item": 31,
+  "description": "the viewport has no scale field",
+  "file": "src/camera.js",
+  "find": "camY: targets[i]?.y ?? 0, scale }));",
+  "replace": "camY: targets[i]?.y ?? 0 }));"
+}

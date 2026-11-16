@@ -1,0 +1,11 @@
+{
+  "id": "052",
+  "graded_item": 10,
+  "description": "the function commit's habits.py is broken; the README-entry commit repairs it",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 2:\n            p = dest / \"habits.py\"\n            t = p.read_text(encoding=\"utf-8\")\n            with open(p, \"w\", encoding=\"utf-8\", newline=\"\\n\") as f:\n                f.write(t.replace(\"max(best, run)\", \"min(best, run)\"))\n        if n == 3:\n            shutil.copyfile(finished / \"habits.py\", dest / \"habits.py\")\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_09"
+  ]
+}

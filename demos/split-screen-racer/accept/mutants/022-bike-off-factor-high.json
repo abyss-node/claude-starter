@@ -1,0 +1,8 @@
+{
+  "id": "022-bike-off-factor-high",
+  "graded_item": 7,
+  "description": "the bike keeps 70% of its top speed off track",
+  "file": "src/vehicles.js",
+  "find": "    offSpeedFactor: 0.42,",
+  "replace": "    offSpeedFactor: 0.7,"
+}

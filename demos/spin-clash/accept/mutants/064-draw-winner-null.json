@@ -1,0 +1,8 @@
+{
+  "id": "064-draw-winner-null",
+  "graded_item": 8,
+  "description": "a draw leaves the winner null instead of -1",
+  "file": "src/physics.js",
+  "find": "world.winner = alive.length === 1 ? alive[0] : -1;",
+  "replace": "world.winner = alive.length === 1 ? alive[0] : null;"
+}

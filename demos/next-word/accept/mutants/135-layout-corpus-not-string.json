@@ -1,0 +1,8 @@
+{
+  "id": "135-layout-corpus-not-string",
+  "graded_item": 24,
+  "description": "corpus.js exports CORPUS as an array of lines",
+  "file": "src/corpus.js",
+  "find": "sea.\n`;",
+  "replace": "sea.\n`.split('\\n');"
+}

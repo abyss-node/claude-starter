@@ -1,0 +1,14 @@
+{
+  "id": "055-workspace-not-own-repo",
+  "graded_item": 11,
+  "description": "the workspace has no repository of its own: its .git is removed when the builder exits",
+  "file": "make-workspace.mjs",
+  "find": "git(\"init\", \"-q\");",
+  "replace": "git(\"init\", \"-q\");\nprocess.on(\"exit\", () => rmSync(join(target, \".git\"), { recursive: true, force: true }));",
+  "also": [
+    {
+      "find": "import { cpSync, existsSync, readdirSync } from \"node:fs\";",
+      "replace": "import { cpSync, existsSync, readdirSync, rmSync } from \"node:fs\";"
+    }
+  ]
+}

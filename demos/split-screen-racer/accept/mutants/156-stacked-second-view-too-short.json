@@ -1,0 +1,8 @@
+{
+  "id": "156-stacked-second-view-too-short",
+  "graded_item": 30,
+  "description": "the second stacked viewport is as tall as the first",
+  "file": "src/camera.js",
+  "find": "      { x: 0, y: h0, w: width, h: height - h0 },",
+  "replace": "      { x: 0, y: h0, w: width, h: h0 },"
+}

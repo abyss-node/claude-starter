@@ -1,0 +1,8 @@
+{
+  "id": "031-badge-class-underscore",
+  "graded_item": 6,
+  "description": "class is difficulty_<level>",
+  "file": "frontend/render.js",
+  "find": "`difficulty difficulty-${level}`",
+  "replace": "`difficulty difficulty_${level}`"
+}

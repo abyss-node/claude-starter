@@ -1,0 +1,8 @@
+{
+  "id": "053-momentum-leak-second-top-x",
+  "graded_item": 6,
+  "description": "the second top gets a 5 percent stronger x impulse",
+  "file": "src/physics.js",
+  "find": "b.vx += jn * imb * nx;\n  b.vy += jn * imb * ny;\n\n  if (world.config.friction) {",
+  "replace": "b.vx += jn * imb * nx * 1.05;\n  b.vy += jn * imb * ny;\n\n  if (world.config.friction) {"
+}

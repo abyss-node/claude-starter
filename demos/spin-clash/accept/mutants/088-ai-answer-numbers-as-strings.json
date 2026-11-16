@@ -1,0 +1,8 @@
+{
+  "id": "088-ai-answer-numbers-as-strings",
+  "graded_item": 10,
+  "description": "the answer carries its numbers as strings",
+  "file": "src/ai.js",
+  "find": "return { x: clamp1(ix), y: clamp1(iy) };",
+  "replace": "return { x: String(clamp1(ix)), y: String(clamp1(iy)) };"
+}

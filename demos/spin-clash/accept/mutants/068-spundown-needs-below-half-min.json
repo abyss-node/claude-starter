@@ -1,0 +1,8 @@
+{
+  "id": "068-spundown-needs-below-half-min",
+  "graded_item": 8,
+  "description": "a top is only spun down below half of minSpin",
+  "file": "src/physics.js",
+  "find": "else if (top.spin <= minSpin) top.status",
+  "replace": "else if (top.spin <= minSpin / 2) top.status"
+}

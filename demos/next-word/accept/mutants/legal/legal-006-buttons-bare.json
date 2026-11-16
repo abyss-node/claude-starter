@@ -1,0 +1,8 @@
+{
+  "id": "legal-006-buttons-bare",
+  "graded_item": 21,
+  "description": "both buttons written with unquoted attributes",
+  "file": "index.html",
+  "find": "      <button id=\"newseed\" type=\"button\">New random seed</button>\n      <button id=\"sample\" type=\"button\">Sample 12 words</button>",
+  "replace": "      <button type=button id=newseed>New random seed</button>\n      <button id=sample>Sample 12 words</button>"
+}

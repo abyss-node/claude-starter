@@ -1,0 +1,8 @@
+{
+ "id": "071-loop-always-on",
+ "graded_item": 12,
+ "description": "loop timing is used without --loop, so --seconds sets the speed",
+ "file": "trippy.py",
+ "find": "        if args.loop:\n            theta",
+ "replace": "        if True:\n            theta"
+}

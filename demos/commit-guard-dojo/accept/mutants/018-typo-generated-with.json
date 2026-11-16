@@ -1,0 +1,11 @@
+{
+  "id": "018",
+  "graded_item": 4,
+  "description": "the typo commit has a 'Generated with' line",
+  "file": "commits.json",
+  "find": "Fix the habit typo in the README\\n\\n",
+  "replace": "Fix the habit typo in the README\\n\\nGenerated with Claude Code\\n\\n",
+  "expect": [
+    "test_04"
+  ]
+}

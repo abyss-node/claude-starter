@@ -1,0 +1,8 @@
+{
+  "id": "125-walls-past-verge-by-3-radii",
+  "graded_item": 24,
+  "description": "the wall limit is 3 radii past the verge",
+  "file": "src/race.js",
+  "find": "  const limit = track.width / 2 + track.verge - v.spec.radius;",
+  "replace": "  const limit = track.width / 2 + track.verge + 3 * v.spec.radius;"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "038",
+  "graded_item": 7,
+  "description": "the typo commit also renames a README heading",
+  "file": "commits.json",
+  "find": "\"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]",
+  "replace": "\"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}, {\"path\": \"README.md\", \"old\": \"## Tests\", \"new\": \"## Testing\"}]",
+  "expect": [
+    "test_15"
+  ]
+}

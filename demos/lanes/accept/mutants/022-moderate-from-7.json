@@ -1,0 +1,8 @@
+{
+  "id": "022-moderate-from-7",
+  "graded_item": 4,
+  "description": "moderate starts at 7",
+  "file": "backend/trails.py",
+  "find": "MODERATE_FROM = 8",
+  "replace": "MODERATE_FROM = 7"
+}

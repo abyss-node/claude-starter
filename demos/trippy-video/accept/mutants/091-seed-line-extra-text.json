@@ -1,0 +1,8 @@
+{
+ "id": "091-seed-line-extra-text",
+ "graded_item": 18,
+ "description": "the line reads 'seed: N (picked at random)'",
+ "file": "trippy.py",
+ "find": "print(\"seed: %d\" % args.seed)",
+ "replace": "print(\"seed: %d (picked at random)\" % args.seed)"
+}

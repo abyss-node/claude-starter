@@ -1,0 +1,8 @@
+{
+  "name": "ridgeline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "echo \"start.py writes this script\" && exit 1"
+  }
+}

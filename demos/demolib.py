@@ -1,15 +1,17 @@
-"""What demos/start.py, check.py and pick.py share: the demo catalogue, the install record, Node, the hash of
-the files that grade a demo, the originality denylist and the measured runs in costs.json.
+"""What demos/start.py, check.py, pick.py and mutants.py share: the demo catalogue, the install record, Node
+and Python, the hash of the files that grade a demo, the copy of a workspace that is graded, the originality
+denylist and the measured runs in costs.json.
 
 A demo is a folder demos/<name>/ holding demo.json (what the picker and the scripts need to know), BRIEF.md
 (the brief, then what the person at the keyboard watches for), skeleton/ (copied into the workspace),
 accept/ (the held-out checks, run from the kit, never copied) and reference/ (one solution that passes
 accept/; CI runs it, and check.py compares a workspace with it, but it is never copied either). <name> and
 demo.json's `app` are what the workspace sees; `title` is the name the person picks it by, and it can say
-what the demo tests, so it never reaches the workspace.
+what the demo tests, so it never reaches the workspace. demos/AUTHORING.md says what each part must hold.
 """
 from __future__ import annotations
 
+import fnmatch
 import json
 import os
 import re
@@ -21,10 +23,11 @@ import sys
 import tarfile
 import tempfile
 import unicodedata
+import urllib.parse
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Union
 
 sys.dont_write_bytecode = True  # a check leaves the clone as it was: no __pycache__, no git objects, no index
 DEMOS = Path(__file__).resolve().parent
@@ -38,10 +41,19 @@ import vocab  # noqa: E402
 # demos job runs on the newest 22.x.
 NODE_FLOOR = (22, 13)
 NODE_FLOOR_TEXT = ".".join(map(str, NODE_FLOOR))
+# The oldest Python the kit's scripts support (AGENTS.md, step 2); CI's demo-mutants job grades on it.
+PY_FLOOR = (3, 9)
 TIERS = {"S": "small", "M": "medium", "L": "large", "teaching": "teaching"}
 TIER_ORDER = ("S", "M", "L", "teaching")
-NEEDS_NODE = {"browser": True, "node": True, "python": False}
-DEMO_KEYS = {"title", "app", "tier", "stack", "summary", "kickoff", "not_checked", "accept_count"}
+# What runs a demo's held-out checks and the workspace's code: Node, Python, or both (a Node frontend and a
+# Python backend, say). Each stack, which is what the agent builds and what its rules file says, has one.
+RUNTIMES = ("node", "python", "mixed")
+STACK_RUNTIME = {"browser": "node", "node": "node", "python": "python", "browser-python": "mixed"}
+DEMO_KEYS = {"title", "app", "tier", "stack", "summary", "kickoff", "not_checked", "accept_count", "runtime",
+             "accept_runner", "mutants_runner", "timeout_s"}
+OPTIONAL_DEMO_KEYS = {"copy_git": False, "fixture": None}
+KIT_MUTANTS = "demos/mutants.py"   # demo.json's mutants_runner for a demo whose mutants the kit's engine runs
+TIMEOUT_RANGE = (30, 7200)
 NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 # BRIEF.md holds the brief, this line, then what the person watches for. start.py copies the part above it into
 # the workspace and prints the part below it, so the agent is not told what the person is watching for.
@@ -50,8 +62,11 @@ WATCH_MARK = "<!-- for the person at the keyboard: start.py prints what follows 
 # grade while they differ from the clone's last commit, and costs.json admits a run only when the hash
 # matches the tree at the run's kit_sha.
 GRADERS = ("demos/check.py", "demos/demolib.py", "demos/reporter.mjs", "demos/npm-test.mjs", "demos/probe.mjs",
-           "demos/probe-child.mjs", "demos/denylist.txt")
-SKIP_DIRS = {".git", "node_modules"}
+           "demos/probe-child.mjs", "demos/acceptkit.py", "demos/denylist.txt")
+# Never graded or copied: git's own folder (copy_git demos get a cleaned copy of the top one), npm's, and
+# Python's bytecode cache, which an honest Python workspace grows the first time its own tests run and which
+# the no-binary-assets rule would otherwise read as binary content.
+SKIP_DIRS = {".git", "node_modules", "__pycache__"}
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"  # git's hash of a tree with nothing in it
 
 
@@ -67,9 +82,15 @@ class Demo:
     tier: str
     stack: str
     summary: str
-    kickoff: str
+    kickoff: Union[str, tuple]   # one first message per session the demo takes
     not_checked: str
     accept_count: int
+    runtime: str = "node"
+    accept_runner: Optional[str] = None   # None: `node --test` with the kit's reporter on accept/*.test.mjs
+    mutants_runner: str = KIT_MUTANTS
+    timeout_s: int = 600
+    copy_git: bool = False                # the grade reads the workspace's git history, so the copy keeps it
+    fixture: Optional[str] = None         # reference/<builder>: makes a finished workspace, history and all
 
     @property
     def dir(self) -> Path:
@@ -77,15 +98,28 @@ class Demo:
 
     @property
     def needs_node(self) -> bool:
-        return NEEDS_NODE[self.stack]
+        return self.runtime in ("node", "mixed")
 
     @property
     def size(self) -> str:
         return TIERS[self.tier]
 
+    @property
+    def kickoffs(self) -> tuple:
+        return (self.kickoff,) if isinstance(self.kickoff, str) else tuple(self.kickoff)
+
 
 def demo_names() -> list[str]:
     return sorted(p.parent.name for p in DEMOS.glob("*/demo.json"))
+
+
+def _demo_file(name: str, value, where: str, key: str, under: str, exts: tuple) -> None:
+    """A demo.json path value: relative to demos/<name>/, below `under`, with one of `exts`, and a file."""
+    rel = Path(value) if isinstance(value, str) else None
+    if (rel is None or rel.is_absolute() or ".." in rel.parts or not value.startswith(under + "/")
+            or rel.suffix not in exts or not (DEMOS / name / rel).is_file()):
+        raise DemoError(f"{where}: {key} is a file in demos/{name}/{under}/ ending {' or '.join(exts)}, "
+                        f"given as a path relative to demos/{name}/ (got {value!r})")
 
 
 def load_demo(name: str) -> Demo:
@@ -93,18 +127,87 @@ def load_demo(name: str) -> Demo:
         raise KeyError(name)
     where = f"demos/{name}/demo.json"
     data = json.loads((DEMOS / name / "demo.json").read_text(encoding="utf-8"))
-    if not isinstance(data, dict) or set(data) != DEMO_KEYS:
-        raise DemoError(f"{where}: keys must be {', '.join(sorted(DEMO_KEYS))}")
-    if data["tier"] not in TIERS or data["stack"] not in NEEDS_NODE:
-        raise DemoError(f"{where}: tier is one of {', '.join(TIERS)} and stack one of {', '.join(NEEDS_NODE)}")
-    if not isinstance(data["accept_count"], int) or data["accept_count"] < 1:
+    if not isinstance(data, dict) or not DEMO_KEYS <= set(data) <= DEMO_KEYS | set(OPTIONAL_DEMO_KEYS):
+        raise DemoError(f"{where}: keys must be {', '.join(sorted(DEMO_KEYS))} (optional: "
+                        f"{', '.join(sorted(OPTIONAL_DEMO_KEYS))})")
+    data = dict(OPTIONAL_DEMO_KEYS, **data)
+    if data["tier"] not in TIERS or data["stack"] not in STACK_RUNTIME:
+        raise DemoError(f"{where}: tier is one of {', '.join(TIERS)} and stack one of {', '.join(STACK_RUNTIME)}")
+    if data["runtime"] != STACK_RUNTIME[data["stack"]]:
+        raise DemoError(f"{where}: a {data['stack']} demo's runtime is {STACK_RUNTIME[data['stack']]!r}, one of "
+                        f"{', '.join(RUNTIMES)}")
+    if not isinstance(data["accept_count"], int) or isinstance(data["accept_count"], bool) or data["accept_count"] < 1:
         raise DemoError(f"{where}: accept_count is the number of held-out checks in accept/")
-    if not all(isinstance(data[k], str) and data[k] for k in DEMO_KEYS - {"accept_count"}):
-        raise DemoError(f"{where}: every value but accept_count is a non-empty string")
+    texts = ("title", "app", "tier", "stack", "summary", "not_checked", "runtime")
+    if not all(isinstance(data[k], str) and data[k] for k in texts):
+        raise DemoError(f"{where}: {', '.join(texts)} are non-empty strings")
+    k = data["kickoff"]
+    if isinstance(k, list) and k and all(isinstance(s, str) and s for s in k):
+        data["kickoff"] = k[0] if len(k) == 1 else tuple(k)
+    elif not (isinstance(k, str) and k):
+        raise DemoError(f"{where}: kickoff is the first message of the session, or a list of one per session")
+    t = data["timeout_s"]
+    if not isinstance(t, int) or isinstance(t, bool) or not TIMEOUT_RANGE[0] <= t <= TIMEOUT_RANGE[1]:
+        raise DemoError(f"{where}: timeout_s is the seconds the held-out checks may take, {TIMEOUT_RANGE[0]} to "
+                        f"{TIMEOUT_RANGE[1]}")
+    runner = data["accept_runner"]
+    if data["runtime"] == "python" and runner is None:
+        raise DemoError(f"{where}: a python demo names its accept_runner, a .py file in accept/ (AUTHORING.md)")
+    if runner is not None:
+        _demo_file(name, runner, where, "accept_runner", "accept",
+                   (".py",) if data["runtime"] == "python" else (".py", ".mjs"))
+    m = data["mutants_runner"]
+    if m != KIT_MUTANTS:
+        if not (isinstance(m, str) and m.startswith(f"demos/{name}/")):
+            raise DemoError(f"{where}: mutants_runner is {KIT_MUTANTS!r}, the kit's engine, or a runner of the "
+                            f"demo's own under demos/{name}/accept/ (got {m!r})")
+        _demo_file(name, m[len(f"demos/{name}/"):], where, "mutants_runner", "accept", (".py", ".mjs"))
+    if not isinstance(data["copy_git"], bool):
+        raise DemoError(f"{where}: copy_git is true or false")
+    if data["fixture"] is not None:
+        _demo_file(name, data["fixture"], where, "fixture", "reference", (".py", ".mjs"))
+    elif data["copy_git"]:
+        raise DemoError(f"{where}: a copy_git demo names its fixture, the builder in reference/ that makes a "
+                        "finished workspace with its history (a git folder cannot be committed to the kit)")
     for part in ("BRIEF.md", "skeleton", "accept"):
         if not (DEMOS / name / part).exists():
             raise DemoError(f"demos/{name}/{part} is missing")
     return Demo(name=name, **data)
+
+
+def skeleton_package(demo: Demo) -> Optional[dict]:
+    """The skeleton's package.json, which start.py keeps but for `scripts.test`, or None when it has none.
+    A python demo has none: its held-out check is the launcher, and npm needs Node."""
+    p = demo.dir / "skeleton" / "package.json"
+    if not p.is_file():
+        return None
+    where = f"demos/{demo.name}/skeleton/package.json"
+    if demo.runtime == "python":
+        raise DemoError(f"{where}: a python demo ships no package.json; its test entry point is the launcher")
+    try:
+        pkg = json.loads(read_text(p))
+    except ValueError as e:
+        raise DemoError(f"{where}: {e}") from None
+    scripts = pkg.get("scripts", {}) if isinstance(pkg, dict) else None
+    if not isinstance(scripts, dict):
+        raise DemoError(f"{where}: an object whose `scripts`, if any, is an object")
+    extra = sorted(k for k in scripts if k != "test" and "test" in k.lower())
+    if extra:
+        raise DemoError(f"{where}: scripts {', '.join(extra)} would be a second test entry point in every workspace")
+    return pkg
+
+
+def nested_rules_name(tool: str) -> str:
+    """What a lane's rules file in a skeleton sub-folder is called for `tool`. Skeletons ship them as AGENTS.md;
+    a tool whose repo rules file is CLAUDE.md gets CLAUDE.md, the name Claude Code loads from a sub-folder."""
+    return vocab.VOCAB[tool].repo_rules
+
+
+def graded_items(demo: Demo) -> list[int]:
+    """The numbers of the brief's `## Graded` list, the contracts the held-out checks hold; [] without one."""
+    brief = split_brief(demo)[0]
+    m = re.search(r"^## Graded[ \t]*\n(.*?)(?=^## |\Z)", brief, re.M | re.S)
+    return [int(n) for n in re.findall(r"^(\d+)\.\s", m.group(1), re.M)] if m else []
 
 
 def all_demos() -> list[Demo]:
@@ -260,6 +363,55 @@ def node_problem(demo: Demo, called: Optional[str] = None) -> Optional[list[str]
             + ["Nothing was written. These scripts never install anything themselves."])
 
 
+def python_exe() -> Optional[str]:
+    """The Python that runs these scripts, by absolute path, when it is a file and PY_FLOOR or newer: the one
+    the held-out checks and the workspace's Python code run on (DEMO_PYTHON), never a `python` from PATH.
+    abspath, not resolve: resolving a Windows app execution alias can name a file that does not start."""
+    p = os.path.abspath(sys.executable or "")
+    return p if sys.executable and os.path.isfile(p) and sys.version_info[:2] >= PY_FLOOR else None
+
+
+def python_problem() -> Optional[str]:
+    if python_exe():
+        return None
+    return (f"the Python running this ({sys.executable or 'unknown'}, {sys.version.split()[0]}) is not a Python "
+            f"{'.'.join(map(str, PY_FLOOR))} or newer that can be started by its path, and the held-out checks run "
+            "on it.")
+
+
+# --------------------------------------------------------------------------
+# The environment the held-out checks run in
+# --------------------------------------------------------------------------
+
+# A variable that changes what Node, Python, npm, git or the grade itself does is dropped from the checks'
+# environment, and check.py sets the DEMO_ ones afresh: NODE_OPTIONS can preload a module into every Node
+# process, PYTHONPATH or PYTHONSTARTUP into every Python one, and GIT_CONFIG_COUNT/KEY/VALUE add git config
+# (a core.fsmonitor command runs on `git status`). A variable whose value names the kit's clone goes too, and a
+# PATH folder inside it: Python has no permission model, so a workspace process that learnt the clone's path (from
+# PWD, when the grade was started in the clone, say) could read the reference solution.
+def scrubbed_env(extra: Optional[dict] = None, kit: Optional[Path] = None) -> dict:
+    needle = kit_text((kit or KIT).resolve().as_posix()).rstrip("/") + "/"
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("NODE_OPTIONS", "NODE_TEST_CONTEXT", "NODE_PATH")
+           and not k.upper().startswith(("PYTHON", "GIT_", "NPM_", "COMMIT_GUARD_", "DEMO_"))}
+    if needle.count("/") >= 3:   # a kit at a drive's or a disk's top would match every path (kit_needles)
+        for k in list(env):
+            if k.upper() == "PATH":
+                env[k] = os.pathsep.join(d for d in env[k].split(os.pathsep) if needle not in kit_text(d) + "/")
+            elif needle in kit_text(env[k]) + "/":
+                del env[k]
+    env.update(extra or {})
+    return env
+
+
+def git_isolation(folder: Path, ceiling: Path) -> dict:
+    """GIT_ variables that keep git in a graded copy to that copy and its own config: no system or global
+    config (an empty file in `folder`) and no walking up from `ceiling` into a repo above it."""
+    empty = folder / "empty.gitconfig"
+    empty.write_text("", encoding="utf-8")
+    return {"GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": str(empty), "GIT_CEILING_DIRECTORIES": str(ceiling)}
+
+
 # --------------------------------------------------------------------------
 # Git, and the hash of the files that grade a demo
 # --------------------------------------------------------------------------
@@ -383,10 +535,11 @@ def is_link(p: Path) -> bool:
     return stat.S_ISLNK(st.st_mode) or bool(getattr(st, "st_file_attributes", 0) & 0x400)  # REPARSE_POINT
 
 
-def copy_workspace(ws: Path, dest: Path) -> None:
-    """Copy the workspace's plain files into `dest`, which check.py then grades, outside .git and node_modules
-    and without any link: Node's permission model follows a symbolic link out of the folders it allows (its
-    documentation says so), so one in the workspace could reach the kit's reference/ again."""
+def copy_workspace(ws: Path, dest: Path, git: bool = False) -> None:
+    """Copy the workspace's plain files into `dest`, which check.py then grades, outside .git, node_modules and
+    __pycache__ and without any link: Node's permission model follows a symbolic link out of the folders it
+    allows (its documentation says so), so one in the workspace could reach the kit's reference/ again. With
+    `git` (a copy_git demo, graded on its history) the top .git folder is copied too, cleaned (copy_git_dir)."""
     for dirpath, dirnames, filenames in os.walk(ws):
         here = Path(dirpath)
         dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS and not is_link(here / d))
@@ -395,6 +548,48 @@ def copy_workspace(ws: Path, dest: Path) -> None:
         for f in sorted(filenames):
             if not is_link(here / f):
                 shutil.copyfile(str(here / f), str(into / f))
+    if git and (ws / ".git").is_dir() and not is_link(ws / ".git"):
+        copy_git_dir(ws / ".git", dest / ".git")
+
+
+# The repo config keys a graded copy keeps: what git needs to read the repo (its format and extensions) and what
+# decides whether a file reads as changed (line endings, file modes, case). Every other key is dropped, since
+# git runs commands that config names: core.fsmonitor and core.hooksPath on `git status`, diff and filter drivers,
+# a pager, includes of other files. A workspace's .git is its own to write.
+GIT_KEEP_KEYS = re.compile(r"core\.(repositoryformatversion|filemode|logallrefupdates|symlinks|ignorecase|"
+                           r"precomposeunicode|autocrlf|eol|safecrlf|checkstat|trustctime)|extensions\.[a-z0-9]+|"
+                           r"index\.(version|skiphash|sparse)")
+
+
+def copy_git_dir(src: Path, dest: Path) -> None:
+    """Copy a workspace's .git without its hooks, an alternates file (objects from elsewhere) or links, and with a
+    config of GIT_KEEP_KEYS only. The reflog, the index and its flags (assume-unchanged, skip-worktree) stay: a
+    grade reads them."""
+    for dirpath, dirnames, filenames in os.walk(src):
+        here = Path(dirpath)
+        top = here == src
+        dirnames[:] = sorted(d for d in dirnames if not is_link(here / d) and not (top and d == "hooks"))
+        into = dest / here.relative_to(src)
+        into.mkdir(parents=True, exist_ok=True)
+        for f in sorted(filenames):
+            rel = (here / f).relative_to(src).as_posix()
+            if not is_link(here / f) and rel not in ("config", "objects/info/alternates"):
+                shutil.copyfile(str(here / f), str(into / f))
+    rc, out = run_git(["config", "--file", str(src / "config"), "--list", "-z"], strip=False, cwd=src.parent)
+    keep = {}
+    for entry in (out.split("\0") if rc == 0 else []):
+        key, _, value = entry.partition("\n")
+        # Every kept key takes a word or a number; anything else is not a value git wrote, so it goes too.
+        if GIT_KEEP_KEYS.fullmatch(key.lower()) and re.fullmatch(r"[A-Za-z0-9._-]*", value):
+            keep[key.lower()] = value
+    keep["core.bare"] = "false"
+    keep.setdefault("core.repositoryformatversion", "0")
+    sections: dict = {}
+    for key, value in keep.items():
+        section, name = key.split(".", 1)
+        sections.setdefault(section, []).append(f"\t{name} = {value}")
+    text = "".join(f"[{s}]\n" + "\n".join(lines) + "\n" for s, lines in sections.items())
+    (dest / "config").write_text(text, encoding="utf-8")
 
 
 def read_text(p: Path) -> str:
@@ -429,6 +624,61 @@ def denylist_hits(text: str, terms: list[tuple[str, re.Pattern]]) -> list[tuple[
     for n, ln in enumerate(fold(text).split("\n"), 1):
         hits += [(n, term) for term, rx in terms if rx.search(ln)]
     return hits
+
+
+def skeleton_ignores(demo: Demo) -> list[str]:
+    """The patterns of the skeleton's own .gitignore, as the kit ships it (the workspace's copy is the agent's
+    to change, so it is never read): what the program writes when it runs, such as rendered frames, which the
+    no-binary-assets rule leaves alone. Only the plain forms are read; a negation or `**` is refused."""
+    p = demo.dir / "skeleton" / ".gitignore"
+    pats = [ln.strip() for ln in (read_text(p).split("\n") if p.is_file() else [])]
+    pats = [x for x in pats if x and not x.startswith("#")]
+    bad = [x for x in pats if x.startswith("!") or "**" in x]
+    if bad:
+        raise DemoError(f"demos/{demo.name}/skeleton/.gitignore: {bad[0]!r}; the grade reads plain patterns only")
+    return pats
+
+
+def ignored(rel: str, patterns: list[str]) -> bool:
+    """Whether the file at `rel` (relative, with /) is ignored by `patterns` read as git reads its plain forms:
+    `name` or `*.ext` at any depth, `dir/` for a folder at any depth, and a pattern holding a / anchored at the
+    top."""
+    parts = rel.split("/")
+    for pat in patterns:
+        dir_only, pat = pat.endswith("/"), pat.rstrip("/")
+        anchored, pat = "/" in pat, pat.lstrip("/")   # tested before the strip: "/frames" is anchored
+        cands = parts[:-1] if dir_only else parts
+        if anchored:
+            depth = pat.count("/") + 1
+            if len(cands) >= depth and fnmatch.fnmatchcase("/".join(cands[:depth]), pat):
+                return True
+        elif any(fnmatch.fnmatchcase(c, pat) for c in cands):
+            return True
+    return False
+
+
+# Text that names the kit's own files, which the workspace's code has no business reading: the clone's path in
+# any spelling, the default clone folder's name, the install record (it holds the clone's path) and a demo's
+# reference/ by its kit-relative path. Python has no permission model like Node's, so in a python or mixed demo
+# a module that names the kit's reference/ could read and run it, and this rule fails it; one that looks the kit
+# up at run time instead is not caught here (demos/MEASURING.md, "Python code that finds the kit").
+# Documentation files are not read: an honest README may name the launcher's path.
+KIT_TEXT_SKIP = {".md", ".markdown", ".txt", ".rst"}
+
+
+def kit_needles(name: str, kit: Path) -> list[str]:
+    k = kit.resolve().as_posix().lower()
+    needles = [".claude-starter", "installs.json", f"demos/{name}/reference"]
+    if k.count("/") >= 2:   # a kit at a drive's or a disk's top would match every path
+        needles.append(re.sub(r"/+", "/", k))
+    return needles
+
+
+def kit_text(text: str) -> str:
+    """`text` as kit_needles are matched against it: lower case, URL escapes undone, \\ and \\\\ read as /, and
+    runs of / read as one, so "C:\\\\Users\\\\x", "file:///c:/users/x" and "c:/USERS/x" are one path."""
+    t = urllib.parse.unquote(text.lower()).replace("\\", "/")
+    return re.sub(r"/+", "/", t)
 
 
 # --------------------------------------------------------------------------
@@ -568,10 +818,11 @@ def regrade(row: dict, where: str, kit: Path = KIT) -> None:
         env = {k: v for k, v in os.environ.items()
                if k not in REPO_ENV and k != "NODE_OPTIONS" and not k.startswith(("npm_", "COMMIT_GUARD_", "CODEX_"))}
         env.update(HOME=str(home), USERPROFILE=str(home), GIT_CEILING_DIRECTORIES=str(t), PYTHONIOENCODING="utf-8")
+        timeout = max(REGRADE_TIMEOUT_S, load_demo(row["demo"]).timeout_s + 300)   # a slow demo's checks fit
         try:
             r = subprocess.run([sys.executable, str(clean / "demos" / "check.py"), row["demo"], "--dir", str(ws),
                                 "--regrade"], cwd=str(t), env=env, capture_output=True, text=True, encoding="utf-8",
-                               errors="replace", stdin=subprocess.DEVNULL, timeout=REGRADE_TIMEOUT_S)
+                               errors="replace", stdin=subprocess.DEVNULL, timeout=timeout)
         except (OSError, subprocess.TimeoutExpired) as e:
             raise CostsError(f"{where}: cannot re-grade it ({type(e).__name__}: {e})") from None
     got = next((ln for ln in r.stdout.splitlines() if ACCEPT.fullmatch(ln)), None)

@@ -1,0 +1,8 @@
+{
+  "id": "052-collide-returns-false-after-impulse",
+  "graded_item": 6,
+  "description": "collide applies the impulse but returns false",
+  "file": "src/physics.js",
+  "find": "  }\n  return true;\n}\n\nfunction readInput",
+  "replace": "  }\n  return false;\n}\n\nfunction readInput"
+}

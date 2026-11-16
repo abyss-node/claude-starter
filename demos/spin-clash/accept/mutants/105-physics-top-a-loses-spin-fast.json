@@ -1,0 +1,8 @@
+{
+  "id": "105-physics-top-a-loses-spin-fast",
+  "graded_item": 13,
+  "description": "top A loses spin a thousand times faster",
+  "file": "src/physics.js",
+  "find": "      top.spin = Math.max(0, top.spin - loss);",
+  "replace": "      top.spin = Math.max(0, top.spin - loss * (i === 0 ? 1000 : 1));"
+}

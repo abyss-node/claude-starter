@@ -1,0 +1,8 @@
+{
+  "id": "102-parse-returns-string",
+  "graded_item": 18,
+  "description": "parseSeed returns a string, not a number",
+  "file": "src/seed.js",
+  "find": "  return n <= PARSE_MAX ? n : null;",
+  "replace": "  return n <= PARSE_MAX ? String(n) : null;"
+}

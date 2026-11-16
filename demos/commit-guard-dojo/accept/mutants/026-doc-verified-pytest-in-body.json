@@ -1,0 +1,11 @@
+{
+  "id": "026",
+  "graded_item": 5,
+  "description": "a Verified: pytest line sits in the README-entry commit's body, not the last paragraph",
+  "file": "commits.json",
+  "find": "Document longest_streak in the README\\n\\n",
+  "replace": "Document longest_streak in the README\\n\\nVerified: pytest -q -> 8 passed\\n\\n",
+  "expect": [
+    "test_05"
+  ]
+}

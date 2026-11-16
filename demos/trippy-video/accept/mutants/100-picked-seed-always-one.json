@@ -1,0 +1,8 @@
+{
+ "id": "100-picked-seed-always-one",
+ "graded_item": 19,
+ "description": "the random pick is always 1",
+ "file": "trippy.py",
+ "find": "randrange(1, 1000000000)",
+ "replace": "randrange(1, 2)"
+}

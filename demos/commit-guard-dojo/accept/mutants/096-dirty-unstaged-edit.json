@@ -1,0 +1,11 @@
+{
+  "id": "096",
+  "graded_item": 17,
+  "description": "habits.py edited after the last commit, not staged",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    with open(dest / \"habits.py\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n        f.write(\"# wip\\n\")\n    if False:\n",
+  "expect": [
+    "test_14"
+  ]
+}

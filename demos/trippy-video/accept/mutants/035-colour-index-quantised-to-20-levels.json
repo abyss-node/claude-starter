@@ -1,0 +1,8 @@
+{
+ "id": "035-colour-index-quantised-to-20-levels",
+ "graded_item": 5,
+ "description": "palette position quantised to 20 levels, so under 24 colours per frame",
+ "file": "trippy.py",
+ "find": "            s = 0.5 - 0.5 * cos(cyc * v + theta)\n",
+ "replace": "            s = 0.5 - 0.5 * cos(cyc * v + theta)\n            s = round(s * 19) / 19.0\n"
+}

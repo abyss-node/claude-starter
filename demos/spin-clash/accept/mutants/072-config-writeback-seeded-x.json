@@ -1,0 +1,8 @@
+{
+  "id": "072-config-writeback-seeded-x",
+  "graded_item": 9,
+  "description": "createWorld writes the seeded start x back into the config",
+  "file": "src/physics.js",
+  "find": "x: num(spec.x, Math.cos(angle) * dist),",
+  "replace": "x: (spec.x = num(spec.x, Math.cos(angle) * dist)),"
+}

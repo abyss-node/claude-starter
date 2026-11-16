@@ -1,0 +1,8 @@
+{
+  "id": "044-friction-off-changes-spin",
+  "graded_item": 6,
+  "description": "the rim-friction branch runs with friction off too",
+  "file": "src/physics.js",
+  "find": "  if (world.config.friction) {\n    // Both tops spin",
+  "replace": "  if (true) {\n    // Both tops spin"
+}

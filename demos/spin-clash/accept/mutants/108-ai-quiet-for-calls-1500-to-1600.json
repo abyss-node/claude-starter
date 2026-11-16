@@ -1,0 +1,8 @@
+{
+  "id": "108-ai-quiet-for-calls-1500-to-1600",
+  "graded_item": 11,
+  "description": "the computer goes quiet for a stretch of calls counted in a module variable",
+  "file": "src/ai.js",
+  "find": "export function aiInput(world, index) {",
+  "replace": "let SEEN_CALLS = 0;\nexport function aiInput(world, index) {\n  SEEN_CALLS += 1;\n  if (SEEN_CALLS > 1500 && SEEN_CALLS < 1600) return { x: 1, y: 0 };"
+}

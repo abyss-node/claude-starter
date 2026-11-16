@@ -1,0 +1,8 @@
+{
+  "id": "122-given-name-ignored",
+  "graded_item": 15,
+  "description": "the given name is ignored",
+  "file": "src/physics.js",
+  "find": "name: typeof spec.name === 'string' && spec.name ? spec.name : ROSTER[i % ROSTER.length],",
+  "replace": "name: ROSTER[i % ROSTER.length],"
+}

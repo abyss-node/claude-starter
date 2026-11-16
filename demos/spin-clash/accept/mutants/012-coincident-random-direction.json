@@ -1,0 +1,8 @@
+{
+  "id": "012-coincident-random-direction",
+  "graded_item": 2,
+  "description": "tops sharing a centre are pushed apart in a Math.random direction",
+  "file": "src/physics.js",
+  "find": "    nx = 1; // coincident centres: push apart along +x, deterministically\n    ny = 0;",
+  "replace": "    const ang = Math.random() * 2 * Math.PI;\n    nx = Math.cos(ang);\n    ny = Math.sin(ang);"
+}

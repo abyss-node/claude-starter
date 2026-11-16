@@ -1,0 +1,11 @@
+{
+  "id": "013",
+  "graded_item": 3,
+  "description": "the README-entry commit's Unverified trailer has no claim",
+  "file": "commits.json",
+  "find": "Unverified: doc-only change, reread the Functions list, nothing was run",
+  "replace": "Unverified:",
+  "expect": [
+    "test_03"
+  ]
+}

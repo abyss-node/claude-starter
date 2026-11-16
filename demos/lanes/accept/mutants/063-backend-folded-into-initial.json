@@ -1,0 +1,8 @@
+{
+  "id": "063-backend-folded-into-initial",
+  "graded_item": 13,
+  "description": "the backend change is part of the initial commit, so no later commit touches backend/",
+  "file": "make-workspace.mjs",
+  "find": "commit(\"Initial skeleton\", \".\");\nif (mode === \"lanes\") {\n  copy(\"backend\");\n  commit(\"backend: add difficulty to /api/trails\", \"backend\");",
+  "replace": "copy(\"backend\");\ncommit(\"Initial skeleton\", \".\");\nif (mode === \"lanes\") {"
+}

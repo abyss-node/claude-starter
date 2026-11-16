@@ -1,0 +1,8 @@
+{
+  "id": "063-gate-off-centre",
+  "graded_item": 14,
+  "description": "every gate is shifted 24 to one side of the centreline",
+  "file": "src/track.js",
+  "find": "a: { x: p.x + nx * gateHalf, y: p.y + ny * gateHalf },\n      b: { x: p.x - nx * gateHalf, y: p.y - ny * gateHalf },",
+  "replace": "a: { x: p.x + nx * (gateHalf + 24), y: p.y + ny * (gateHalf + 24) },\n      b: { x: p.x - nx * (gateHalf - 24), y: p.y - ny * (gateHalf - 24) },"
+}

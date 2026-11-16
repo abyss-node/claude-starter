@@ -1,0 +1,8 @@
+{
+  "id": "120-page-temperature-number",
+  "graded_item": 21,
+  "description": "#temperature is a number input, not a range",
+  "file": "index.html",
+  "find": "      <input id=\"temperature\" type=\"range\" min=\"0\" max=\"3\" step=\"0.05\" value=\"1\">",
+  "replace": "      <input id=temperature type=number value=1>"
+}

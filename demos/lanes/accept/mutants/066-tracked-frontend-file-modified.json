@@ -1,0 +1,8 @@
+{
+  "id": "066-tracked-frontend-file-modified",
+  "graded_item": 13,
+  "description": "a tracked frontend file edited after the last commit",
+  "file": "make-workspace.mjs",
+  "find": "console.log(git(\"log\", \"--oneline\").trim());",
+  "replace": "cpSync(join(here, \"README.md\"), join(target, \"frontend/app.js\"));\nconsole.log(git(\"log\", \"--oneline\").trim());"
+}

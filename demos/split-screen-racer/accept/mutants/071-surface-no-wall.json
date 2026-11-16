@@ -1,0 +1,8 @@
+{
+  "id": "071-surface-no-wall",
+  "graded_item": 15,
+  "description": "beyond the verge is 'off', never 'wall'",
+  "file": "src/track.js",
+  "find": "  return 'wall';",
+  "replace": "  return 'off';"
+}

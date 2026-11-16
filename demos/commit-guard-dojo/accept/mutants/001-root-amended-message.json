@@ -1,0 +1,11 @@
+{
+  "id": "001",
+  "graded_item": 1,
+  "description": "the starting commit is amended (message only) before the three commits",
+  "file": "build.py",
+  "find": "    commit(dest, env, plan[\"initial\"][\"message\"], 0)\n",
+  "replace": "    commit(dest, env, plan[\"initial\"][\"message\"], 0)\n    git(dest, env, \"commit\", \"-q\", \"--amend\", \"-m\", \"Reworded start\", \"-m\", \"Unverified: reworded\")\n",
+  "expect": [
+    "test_01"
+  ]
+}

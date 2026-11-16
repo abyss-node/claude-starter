@@ -1,0 +1,11 @@
+{
+  "id": "011",
+  "graded_item": 3,
+  "description": "the README-entry commit is one paragraph that starts with Unverified:",
+  "file": "commits.json",
+  "find": "Document longest_streak in the README\\n\\nUnverified: doc-only change, reread the Functions list, nothing was run\\n",
+  "replace": "Unverified: documented longest_streak in the README\\n",
+  "expect": [
+    "test_03"
+  ]
+}

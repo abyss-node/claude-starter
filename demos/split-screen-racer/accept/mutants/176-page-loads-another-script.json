@@ -1,0 +1,8 @@
+{
+  "id": "176-page-loads-another-script",
+  "graded_item": 33,
+  "description": "index.html loads src/game.js, not src/main.js",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script type=\"module\" src=\"src/game.js\"></script>"
+}

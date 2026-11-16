@@ -1,0 +1,8 @@
+{
+  "id": "168-tick-advances-twice-with-inputs",
+  "graded_item": 16,
+  "description": "tick goes up by two when inputs are given",
+  "file": "src/physics.js",
+  "find": "  world.tick += 1;",
+  "replace": "  world.tick += Array.isArray(inputs) ? 2 : 1;"
+}

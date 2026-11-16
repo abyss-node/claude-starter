@@ -1,0 +1,8 @@
+{
+  "id": "058-fixed-gate-count-ignored",
+  "graded_item": 14,
+  "description": "fixedTrack always gives 8 gates",
+  "file": "src/track.js",
+  "find": "buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints)",
+  "replace": "buildTrack('Hollow Reach', HOLLOW_REACH, 8)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "069-no-draw-single",
+  "graded_item": 14,
+  "description": "sampleToken skips the draw when there is one entry",
+  "file": "src/sampling.js",
+  "find": "  if (entries.length === 0) return null;",
+  "replace": "  if (entries.length === 0) return null;\n  if (entries.length === 1) return entries[0].token;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "128-slope-default-zero",
+  "graded_item": 15,
+  "description": "slope defaults to 0",
+  "file": "src/physics.js",
+  "find": "  slope: 1.2,",
+  "replace": "  slope: 0,"
+}

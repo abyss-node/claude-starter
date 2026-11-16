@@ -1,0 +1,8 @@
+{
+ "id": "004-frames-numbered-from-one",
+ "graded_item": 1,
+ "description": "frames are named frame_0001.png onwards",
+ "file": "trippy.py",
+ "find": "\"frame_%04d.png\" % k), \"wb\")",
+ "replace": "\"frame_%04d.png\" % (k + 1)), \"wb\")"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "178-adjacent-pairs-only",
+  "graded_item": 18,
+  "description": "only neighbouring tops clash",
+  "file": "src/physics.js",
+  "find": "for (let j = i + 1; j < tops.length; j++) {",
+  "replace": "for (let j = i + 1; j < Math.min(tops.length, i + 2); j++) {"
+}

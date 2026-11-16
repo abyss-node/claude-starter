@@ -1,0 +1,8 @@
+{
+  "id": "150-y-infinity-becomes-one",
+  "graded_item": 16,
+  "description": "a y of Infinity becomes 1",
+  "file": "src/physics.js",
+  "find": "clamp(num(inp.y, 0), -1, 1)",
+  "replace": "clamp(typeof inp.y === 'number' && !Number.isNaN(inp.y) ? inp.y : 0, -1, 1)"
+}

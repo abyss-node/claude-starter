@@ -1,0 +1,8 @@
+{
+  "id": "192-ai-nudges-foe-velocity-live-only",
+  "graded_item": 14,
+  "description": "the computer nudges the other top's velocity each call, which a replay never repeats",
+  "file": "src/ai.js",
+  "find": "  const tx = foe.x;\n  const ty = foe.y;",
+  "replace": "  foe.vx += 1e-9;\n  const tx = foe.x;\n  const ty = foe.y;"
+}

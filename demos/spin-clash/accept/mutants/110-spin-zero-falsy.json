@@ -1,0 +1,8 @@
+{
+  "id": "110-spin-zero-falsy",
+  "graded_item": 15,
+  "description": "a given spin of 0 becomes a seeded 40 to 60",
+  "file": "src/physics.js",
+  "find": "spin: Math.max(0, num(spec.spin, 40 + 20 * spinJitter)),",
+  "replace": "spin: Math.max(0, num(spec.spin || undefined, 40 + 20 * spinJitter)),"
+}

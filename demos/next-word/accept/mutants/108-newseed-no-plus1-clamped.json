@@ -1,0 +1,8 @@
+{
+  "id": "108-newseed-no-plus1-clamped",
+  "graded_item": 19,
+  "description": "newSeed is floor(r*1000000) clamped to 999999: starts at 0",
+  "file": "src/seed.js",
+  "find": "  return SEED_MIN + Math.floor(rng() * SEED_MAX);",
+  "replace": "  return Math.min(SEED_MAX, Math.floor(rng() * (SEED_MAX + 1)));"
+}

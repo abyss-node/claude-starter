@@ -1,0 +1,8 @@
+{
+  "id": "160-step-returns-nothing",
+  "graded_item": 16,
+  "description": "step returns undefined",
+  "file": "src/physics.js",
+  "find": "    if (alive.length <= 1) world.winner = alive.length === 1 ? alive[0] : -1;\n  }\n  return world;",
+  "replace": "    if (alive.length <= 1) world.winner = alive.length === 1 ? alive[0] : -1;\n  }\n  return undefined;"
+}

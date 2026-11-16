@@ -1,0 +1,8 @@
+{
+  "id": "032-base-decay-scaled-by-friction",
+  "graded_item": 5,
+  "description": "the base spin loss is multiplied by the top's friction",
+  "file": "src/physics.js",
+  "find": "(BASE_SPIN_DECAY + SPIN_DECAY_PER_FRICTION * top.friction + SPIN_DRAG * top.spin) * DT;",
+  "replace": "(BASE_SPIN_DECAY * top.friction + SPIN_DECAY_PER_FRICTION * top.friction + SPIN_DRAG * top.spin) * DT;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "049-name-dropped-from-row",
+  "graded_item": 9,
+  "description": "the row has no trail name",
+  "file": "frontend/render.js",
+  "find": "`<span class=\"trail-name\">${escapeHtml(trail.name)}</span>`",
+  "replace": "`<span class=\"trail-name\"></span>`"
+}

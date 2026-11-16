@@ -1,0 +1,8 @@
+{
+  "id": "132-heavier-vehicle-moves-more",
+  "graded_item": 26,
+  "description": "the push is split the wrong way round: the heavy vehicle moves more",
+  "file": "src/race.js",
+  "find": "  const wa = mb / (ma + mb);\n  const wb = ma / (ma + mb);",
+  "replace": "  const wa = ma / (ma + mb);\n  const wb = mb / (ma + mb);"
+}

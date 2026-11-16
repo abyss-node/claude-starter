@@ -1,0 +1,8 @@
+{
+  "id": "082-ai-mutates-foe-status",
+  "graded_item": 10,
+  "description": "the computer rings the other top out itself",
+  "file": "src/ai.js",
+  "find": "  const tx = foe.x;\n  const ty = foe.y;",
+  "replace": "  if (Math.hypot(foe.x, foe.y) > 0.5) foe.status = 'ringout';\n  const tx = foe.x;\n  const ty = foe.y;"
+}

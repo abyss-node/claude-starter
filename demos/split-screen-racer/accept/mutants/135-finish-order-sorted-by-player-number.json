@@ -1,0 +1,8 @@
+{
+  "id": "135-finish-order-sorted-by-player-number",
+  "graded_item": 27,
+  "description": "finishOrder is kept sorted by player number",
+  "file": "src/race.js",
+  "find": "race.finishOrder.push(i);",
+  "replace": "race.finishOrder.push(i);\n      race.finishOrder.sort((x, y) => x - y);"
+}

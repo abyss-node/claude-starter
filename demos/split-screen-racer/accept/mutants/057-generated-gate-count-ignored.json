@@ -1,0 +1,8 @@
+{
+  "id": "057-generated-gate-count-ignored",
+  "graded_item": 14,
+  "description": "generateTrack always gives 8 gates",
+  "file": "src/track.js",
+  "find": "const track = buildTrack(`Seed ${seed}`, ctrl, checkpoints);",
+  "replace": "const track = buildTrack(`Seed ${seed}`, ctrl, 8);"
+}

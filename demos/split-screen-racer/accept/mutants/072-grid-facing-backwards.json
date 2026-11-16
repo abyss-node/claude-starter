@@ -1,0 +1,8 @@
+{
+  "id": "072-grid-facing-backwards",
+  "graded_item": 16,
+  "description": "grid poses face against the driving direction",
+  "file": "src/track.js",
+  "find": "  const heading = Math.atan2(t.y, t.x);",
+  "replace": "  const heading = Math.atan2(-t.y, -t.x);"
+}

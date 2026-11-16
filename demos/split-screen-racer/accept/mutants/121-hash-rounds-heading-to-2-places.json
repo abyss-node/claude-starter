@@ -1,0 +1,8 @@
+{
+  "id": "121-hash-rounds-heading-to-2-places",
+  "graded_item": 23,
+  "description": "hashRace rounds the heading to 2 decimal places",
+  "file": "src/race.js",
+  "find": "parts.push(p.kind, p.x, p.y, p.heading, p.vx, p.vy, p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);",
+  "replace": "parts.push(p.kind, p.x, p.y, p.heading.toFixed(2), p.vx, p.vy, p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);"
+}

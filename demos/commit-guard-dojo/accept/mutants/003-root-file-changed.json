@@ -1,0 +1,11 @@
+{
+  "id": "003",
+  "graded_item": 1,
+  "description": "the starting commit holds habits.py with an extra line (not the skeleton's file)",
+  "file": "build.py",
+  "find": "    commit(dest, env, plan[\"initial\"][\"message\"], 0)\n",
+  "replace": "    with open(dest / \"habits.py\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n        f.write(\"# edited\\n\")\n    commit(dest, env, plan[\"initial\"][\"message\"], 0)\n",
+  "expect": [
+    "test_01"
+  ]
+}

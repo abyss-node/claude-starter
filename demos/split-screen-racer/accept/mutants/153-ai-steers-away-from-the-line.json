@@ -1,0 +1,8 @@
+{
+  "id": "153-ai-steers-away-from-the-line",
+  "graded_item": 29,
+  "description": "the AI steers the wrong way",
+  "file": "src/ai.js",
+  "find": "const steer = Math.max(-1, Math.min(1, err * 2.2));",
+  "replace": "const steer = Math.max(-1, Math.min(1, -err * 2.2));"
+}

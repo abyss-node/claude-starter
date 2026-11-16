@@ -1,0 +1,18 @@
+{
+  "id": "055",
+  "graded_item": 11,
+  "description": "the function commit's tests exist, but the README-entry commit renames the class so none are discovered",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 3:\n            q = dest / \"tests\" / \"test_streak.py\"\n            u = q.read_text(encoding=\"utf-8\")\n            with open(q, \"w\", encoding=\"utf-8\", newline=\"\\n\") as f:\n                f.write(u.replace(\"(unittest.TestCase)\", \"(object)\"))\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_10"
+  ],
+  "also": [
+    {
+      "file": "build.py",
+      "find": "    if tree_files(dest) != tree_files(finished):\n",
+      "replace": "    if False:\n"
+    }
+  ]
+}

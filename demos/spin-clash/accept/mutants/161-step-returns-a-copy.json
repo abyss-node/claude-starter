@@ -1,0 +1,8 @@
+{
+  "id": "161-step-returns-a-copy",
+  "graded_item": 16,
+  "description": "step returns a copy of the world",
+  "file": "src/physics.js",
+  "find": "    if (alive.length <= 1) world.winner = alive.length === 1 ? alive[0] : -1;\n  }\n  return world;",
+  "replace": "    if (alive.length <= 1) world.winner = alive.length === 1 ? alive[0] : -1;\n  }\n  return JSON.parse(JSON.stringify(world));"
+}

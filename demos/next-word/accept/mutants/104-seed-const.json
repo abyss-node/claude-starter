@@ -1,0 +1,8 @@
+{
+  "id": "104-seed-const",
+  "graded_item": 18,
+  "description": "parseSeed always returns 1",
+  "file": "src/seed.js",
+  "find": "  const n = Number(s);\n  return n <= PARSE_MAX ? n : null;",
+  "replace": "  return 1;"
+}

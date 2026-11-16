@@ -1,0 +1,8 @@
+{
+  "id": "046-escape-no-less-than",
+  "graded_item": 8,
+  "description": "escapeHtml leaves < alone",
+  "file": "frontend/render.js",
+  "find": "/[&<>\"']/g",
+  "replace": "/[&>\"']/g"
+}

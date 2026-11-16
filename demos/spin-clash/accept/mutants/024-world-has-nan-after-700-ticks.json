@@ -1,0 +1,8 @@
+{
+  "id": "024-world-has-nan-after-700-ticks",
+  "graded_item": 3,
+  "description": "a NaN shows up in the world after 700 ticks",
+  "file": "src/physics.js",
+  "find": "  world.tick += 1;",
+  "replace": "  world.tick += 1;\n  if (world.tick > 700) world.drift = Number.NaN;"
+}

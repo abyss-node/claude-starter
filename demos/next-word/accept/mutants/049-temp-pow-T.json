@@ -1,0 +1,8 @@
+{
+  "id": "049-temp-pow-T",
+  "graded_item": 9,
+  "description": "temperature reshapes as p^T instead of p^(1/T)",
+  "file": "src/sampling.js",
+  "find": "      list.map((e) => ({ token: e.token, p: Math.exp((Math.log(e.p) - logMax) / temperature) })),",
+  "replace": "      list.map((e) => ({ token: e.token, p: Math.exp((Math.log(e.p) - logMax) * temperature) })),"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "legal-012-fewer-tops-allowed",
+  "description": "more than four tops is an unusual config the brief does not grade",
+  "file": "src/physics.js",
+  "find": "const MAX_TOPS = 8;",
+  "replace": "const MAX_TOPS = 4;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "156-inputs-not-clamped",
+  "graded_item": 16,
+  "description": "inputs are not clamped to -1..1",
+  "file": "src/physics.js",
+  "find": "return [clamp(num(inp.x, 0), -1, 1), clamp(num(inp.y, 0), -1, 1)];",
+  "replace": "return [num(inp.x, 0), num(inp.y, 0)];"
+}

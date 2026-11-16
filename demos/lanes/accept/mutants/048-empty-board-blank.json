@@ -1,0 +1,8 @@
+{
+  "id": "048-empty-board-blank",
+  "graded_item": 9,
+  "description": "an empty board renders an empty list, not the message",
+  "file": "frontend/render.js",
+  "find": "if (!trails.length) return `<p class=\"empty\">No trails yet.</p>`;",
+  "replace": "if (!trails.length) return `<ul class=\"board\"></ul>`;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "009-data-name-edited",
+  "graded_item": 2,
+  "description": "Lowmarsh Boardwalk renamed Lowmarsh in trails.json",
+  "file": "backend/trails.json",
+  "find": "\"name\": \"Lowmarsh Boardwalk\"",
+  "replace": "\"name\": \"Lowmarsh\""
+}

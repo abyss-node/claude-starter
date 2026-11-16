@@ -1,0 +1,8 @@
+{
+  "id": "083-rng-per-step",
+  "graded_item": 15,
+  "description": "generate makes a fresh generator from the seed for every step",
+  "file": "src/sampling.js",
+  "find": "    const token = sampleToken(kept, rng);",
+  "replace": "    const token = sampleToken(kept, createRng(seed));"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "059-file-moved-across-lanes",
+  "graded_item": 12,
+  "description": "the frontend commit moves a stylesheet into backend/",
+  "file": "make-workspace.mjs",
+  "find": "commit(\"frontend: show the difficulty badge\", \"frontend\");",
+  "replace": "git(\"mv\", \"frontend/style.css\", \"backend/style.css\");\n  commit(\"frontend: show the difficulty badge\", \"frontend\", \"backend\");"
+}

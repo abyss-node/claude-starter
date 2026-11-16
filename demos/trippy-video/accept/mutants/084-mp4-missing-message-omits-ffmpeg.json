@@ -1,0 +1,8 @@
+{
+ "id": "084-mp4-missing-message-omits-ffmpeg",
+ "graded_item": 15,
+ "description": "the no-ffmpeg message never says ffmpeg",
+ "file": "trippy.py",
+ "find": "            print(\"ffmpeg was not found, so no video was made. Install ffmpeg, then run:\")\n            print(\"  \" + \" \".join(_quote(c) for c in cmd))\n",
+ "replace": "            print(\"no video encoder was found, so no video was made\")\n"
+}

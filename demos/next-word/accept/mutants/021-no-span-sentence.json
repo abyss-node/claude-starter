@@ -1,0 +1,8 @@
+{
+  "id": "021-no-span-sentence",
+  "graded_item": 3,
+  "description": "a context longer than one token that holds a sentence end is not counted",
+  "file": "src/lm.js",
+  "find": "    for (let len = 1; len <= order - 1 && len <= i; len++) {",
+  "replace": "    for (let len = 1; len <= order - 1 && len <= i; len++) {\n      if (len > 1 && tokens.slice(i - len, i - 1).some((t) => /^[.!?]$/.test(t))) break;"
+}

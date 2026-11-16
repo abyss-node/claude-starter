@@ -1,0 +1,8 @@
+{
+  "id": "085-gen-topk-first-step-only",
+  "graded_item": 16,
+  "description": "generate applies top-k only at the first step",
+  "file": "src/sampling.js",
+  "find": "    const kept = applySettings(entries, { temperature, topK, topP });",
+  "replace": "    const kept = applySettings(entries, { temperature, topK: i === 0 ? topK : 0, topP });"
+}

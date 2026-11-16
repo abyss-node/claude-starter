@@ -1,0 +1,8 @@
+{
+ "id": "047-hex-hash-rejected",
+ "graded_item": 7,
+ "description": "a leading # on a colour is refused",
+ "file": "trippy.py",
+ "find": "part = part.strip().lstrip(\"#\")",
+ "replace": "part = part.strip()"
+}

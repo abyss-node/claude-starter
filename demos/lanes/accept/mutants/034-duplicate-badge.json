@@ -1,0 +1,8 @@
+{
+  "id": "034-duplicate-badge",
+  "graded_item": 6,
+  "description": "badge rendered twice per row",
+  "file": "frontend/render.js",
+  "find": "    renderDifficulty(trail.difficulty),\n",
+  "replace": "    renderDifficulty(trail.difficulty),\n    renderDifficulty(trail.difficulty),\n"
+}

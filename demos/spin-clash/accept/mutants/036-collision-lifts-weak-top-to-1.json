@@ -1,0 +1,8 @@
+{
+  "id": "036-collision-lifts-weak-top-to-1",
+  "graded_item": 6,
+  "description": "a clash lifts a top with under 1 rad/s of spin up to 1",
+  "file": "src/physics.js",
+  "find": "a.spin = Math.max(0, a.spin - (jt * a.radius) / Ia);",
+  "replace": "a.spin = Math.max(1, a.spin - (jt * a.radius) / Ia);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "175-page-script-not-a-module",
+  "graded_item": 33,
+  "description": "main.js is loaded without type=\"module\"",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script src=\"src/main.js\"></script>"
+}

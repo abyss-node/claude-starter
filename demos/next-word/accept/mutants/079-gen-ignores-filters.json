@@ -1,0 +1,8 @@
+{
+  "id": "079-gen-ignores-filters",
+  "graded_item": 15,
+  "description": "generate passes only the temperature to applySettings",
+  "file": "src/sampling.js",
+  "find": "    const kept = applySettings(entries, { temperature, topK, topP });",
+  "replace": "    const kept = applySettings(entries, { temperature });"
+}

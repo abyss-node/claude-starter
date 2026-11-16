@@ -1,0 +1,8 @@
+{
+  "id": "legal-010-other-default-build",
+  "graded_item": 1,
+  "description": "the mass, radius and friction a top gets when its setting leaves them out are the builder's",
+  "file": "src/physics.js",
+  "find": "      mass: clamp(num(spec.mass, 1), ...LIMITS.mass),\n      radius: clamp(num(spec.radius, 0.1), ...LIMITS.radius),\n      friction: clamp(num(spec.friction, 0.4), ...LIMITS.friction),",
+  "replace": "      mass: clamp(num(spec.mass, 1.3), ...LIMITS.mass),\n      radius: clamp(num(spec.radius, 0.12), ...LIMITS.radius),\n      friction: clamp(num(spec.friction, 0.5), ...LIMITS.friction),"
+}

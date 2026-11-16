@@ -1,0 +1,8 @@
+{
+ "id": "036-frames-repeat-in-pairs",
+ "graded_item": 5,
+ "description": "each pair of neighbouring frames is identical",
+ "file": "trippy.py",
+ "find": "theta = TAU * (k / args.fps) / DRIFT_PERIOD",
+ "replace": "theta = TAU * ((k - k % 2) / args.fps) / DRIFT_PERIOD"
+}

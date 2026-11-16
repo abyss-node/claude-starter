@@ -1,0 +1,8 @@
+{
+  "id": "067-ringout-needs-two-ticks",
+  "graded_item": 8,
+  "description": "a top has to be outside the rim on two ticks in a row",
+  "file": "src/physics.js",
+  "find": "if (Math.hypot(top.x, top.y) > arenaRadius) top.status = 'ringout';",
+  "replace": "if (Math.hypot(top.x, top.y) > arenaRadius) { if (top.warned) top.status = 'ringout'; top.warned = true; }"
+}

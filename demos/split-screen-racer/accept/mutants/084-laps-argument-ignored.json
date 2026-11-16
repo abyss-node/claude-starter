@@ -1,0 +1,8 @@
+{
+  "id": "084-laps-argument-ignored",
+  "graded_item": 17,
+  "description": "createRace always sets laps to 3",
+  "file": "src/race.js",
+  "find": "  return { tick: 0, laps, track, players, finishOrder: [] };",
+  "replace": "  return { tick: 0, laps: 3, track, players, finishOrder: [] };"
+}

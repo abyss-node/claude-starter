@@ -1,0 +1,8 @@
+{
+  "id": "055-step-bounce-loses-half-percent",
+  "graded_item": 7,
+  "description": "a friction-off bounce loses half a percent of its speed",
+  "file": "src/physics.js",
+  "find": "const e = world.config.friction ? RESTITUTION_WITH_FRICTION : 1;",
+  "replace": "const e = world.config.friction ? RESTITUTION_WITH_FRICTION : 0.995;"
+}

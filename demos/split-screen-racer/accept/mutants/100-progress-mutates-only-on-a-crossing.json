@@ -1,0 +1,8 @@
+{
+  "id": "100-progress-mutates-only-on-a-crossing",
+  "graded_item": 20,
+  "description": "advanceProgress returns a fresh object unless a gate is crossed, and then edits the one it was given",
+  "file": "src/race.js",
+  "find": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };\n  return { lap: progress.lap, next: (progress.next + 1) % n };",
+  "replace": "  if (progress.next === 0) progress.lap += 1;\n  progress.next = (progress.next + 1) % n;\n  return { lap: progress.lap, next: progress.next };"
+}

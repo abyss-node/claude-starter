@@ -1,0 +1,11 @@
+{
+  "id": "032",
+  "graded_item": 6,
+  "description": "a whitespace commit first; the typo is fixed inside the README-entry commit",
+  "file": "commits.json",
+  "find": "    {\n      \"message\": \"Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\",\n      \"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]\n    }",
+  "replace": "    {\n      \"message\": \"Tidy the README heading\\n\\nUnverified: whitespace only\\n\",\n      \"replace\": [{\"path\": \"README.md\", \"old\": \"# Pebble\\n\", \"new\": \"# Pebble \\n\"}]\n    }",
+  "expect": [
+    "test_06"
+  ]
+}

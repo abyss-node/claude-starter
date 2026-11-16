@@ -1,0 +1,8 @@
+{
+  "id": "088-next-after-lap-is-0",
+  "graded_item": 18,
+  "description": "after a lap progress waits for gate 0 again, not gate 1",
+  "file": "src/race.js",
+  "find": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };",
+  "replace": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 0 };"
+}

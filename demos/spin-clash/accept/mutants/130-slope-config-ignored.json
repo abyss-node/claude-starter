@@ -1,0 +1,8 @@
+{
+  "id": "130-slope-config-ignored",
+  "graded_item": 15,
+  "description": "a given slope is ignored",
+  "file": "src/physics.js",
+  "find": "slope: Math.max(0, num(config.slope, DEFAULTS.slope)),",
+  "replace": "slope: DEFAULTS.slope,"
+}

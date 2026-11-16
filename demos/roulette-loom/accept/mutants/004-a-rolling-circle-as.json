@@ -1,0 +1,8 @@
+{
+  "id": "004",
+  "graded_item": null,
+  "description": "a rolling circle as wide as the ring is let through",
+  "file": "src/loom.js",
+  "find": "r <= 0 || r >= R",
+  "replace": "r <= 0 || r > R"
+}

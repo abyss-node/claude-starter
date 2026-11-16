@@ -1,0 +1,8 @@
+{
+  "id": "120-hash-rounds-positions-and-velocities",
+  "graded_item": 23,
+  "description": "hashRace rounds x, y, vx and vy to whole numbers",
+  "file": "src/race.js",
+  "find": "parts.push(p.kind, p.x, p.y, p.heading, p.vx, p.vy, p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);",
+  "replace": "parts.push(p.kind, Math.round(p.x), Math.round(p.y), p.heading, Math.round(p.vx), Math.round(p.vy), p.lap, p.next, p.finished ? 1 : 0, p.finishTick ?? -1);"
+}

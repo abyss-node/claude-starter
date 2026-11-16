@@ -1,0 +1,8 @@
+{
+  "id": "178-page-canvas-commented-out",
+  "graded_item": 33,
+  "description": "the canvas sits inside an HTML comment",
+  "file": "index.html",
+  "find": "<canvas id=\"game\"></canvas>",
+  "replace": "<!-- <canvas id=\"game\"></canvas> -->"
+}

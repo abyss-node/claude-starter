@@ -1,0 +1,8 @@
+{
+  "id": "051-topk-no-renorm",
+  "graded_item": 10,
+  "description": "top-k slices without renormalising",
+  "file": "src/sampling.js",
+  "find": "    list = normalize(list.slice(0, topK));",
+  "replace": "    list = list.slice(0, topK);"
+}

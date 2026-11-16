@@ -1,0 +1,8 @@
+{
+  "id": "017-date-now-in-step",
+  "graded_item": 2,
+  "description": "step reads Date.now",
+  "file": "src/physics.js",
+  "find": "    top.x += top.vx * DT;",
+  "replace": "    top.x += top.vx * DT + 0 * Date.now();"
+}

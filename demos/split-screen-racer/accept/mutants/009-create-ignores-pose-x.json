@@ -1,0 +1,8 @@
+{
+  "id": "009-create-ignores-pose-x",
+  "graded_item": 2,
+  "description": "createVehicle ignores pose.x",
+  "file": "src/vehicles.js",
+  "find": "    x: pose.x ?? 0,",
+  "replace": "    x: 0,"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "093-seed-line-padded",
+ "graded_item": 18,
+ "description": "the line reads 'seed:   N   ' with extra spaces",
+ "file": "trippy.py",
+ "find": "print(\"seed: %d\" % args.seed)",
+ "replace": "print(\"seed:   %d   \" % args.seed)"
+}

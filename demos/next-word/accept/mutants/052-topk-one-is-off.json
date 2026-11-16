@@ -1,0 +1,8 @@
+{
+  "id": "052-topk-one-is-off",
+  "graded_item": 10,
+  "description": "top-k 1 is treated as off",
+  "file": "src/sampling.js",
+  "find": "  if (Number.isInteger(topK) && topK >= 1 && topK < list.length) {",
+  "replace": "  if (Number.isInteger(topK) && topK >= 2 && topK < list.length) {"
+}

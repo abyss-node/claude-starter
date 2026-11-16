@@ -1,0 +1,8 @@
+{
+  "id": "024-hard-from-16",
+  "graded_item": 4,
+  "description": "hard starts at 16",
+  "file": "backend/trails.py",
+  "find": "HARD_FROM = 15",
+  "replace": "HARD_FROM = 16"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "legal-005-newseed-ceil",
+  "graded_item": 19,
+  "description": "newSeed is Math.max(1, Math.ceil(r * 999999)): differs from the brief only where r * 999999 is a whole number (Not graded)",
+  "file": "src/seed.js",
+  "find": "  return SEED_MIN + Math.floor(rng() * SEED_MAX);",
+  "replace": "  return Math.max(SEED_MIN, Math.ceil(rng() * SEED_MAX));"
+}

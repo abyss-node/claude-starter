@@ -1,0 +1,8 @@
+{
+  "id": "001-negative-spin-kept",
+  "graded_item": 1,
+  "description": "a configured negative spin stays negative",
+  "file": "src/physics.js",
+  "find": "spin: Math.max(0, num(spec.spin, 40 + 20 * spinJitter)),",
+  "replace": "spin: num(spec.spin, 40 + 20 * spinJitter),"
+}

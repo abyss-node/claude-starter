@@ -1,0 +1,8 @@
+{
+  "id": "034-brake-not-capped-at-1",
+  "graded_item": 8,
+  "description": "a brake above 1 brakes harder than 1",
+  "file": "src/vehicles.js",
+  "find": "  const brake = unit(input?.brake);",
+  "replace": "  const brake = Number.isFinite(input?.brake) ? Math.max(0, input.brake) : 0;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "001-collisions-fully-elastic",
+  "graded_item": null,
+  "description": "restitution 1: a different but legal collision response",
+  "file": "src/race.js",
+  "find": "const RESTITUTION = 0.35;",
+  "replace": "const RESTITUTION = 1.0;"
+}

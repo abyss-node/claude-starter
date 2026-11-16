@@ -1,0 +1,8 @@
+{
+ "id": "058-loop-one-cycle-per-second",
+ "graded_item": 10,
+ "description": "--loop runs one cycle per second, not per video",
+ "file": "trippy.py",
+ "find": "theta = TAU * k / frames",
+ "replace": "theta = TAU * k / args.fps"
+}

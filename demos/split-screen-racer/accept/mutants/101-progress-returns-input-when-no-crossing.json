@@ -1,0 +1,8 @@
+{
+  "id": "101-progress-returns-input-when-no-crossing",
+  "graded_item": 20,
+  "description": "advanceProgress hands back the progress object it was given when no gate is crossed, then edits it on a crossing",
+  "file": "src/race.js",
+  "find": "  if (!segmentsCross(from, to, gate.a, gate.b)) return { lap: progress.lap, next: progress.next };\n  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };\n  return { lap: progress.lap, next: (progress.next + 1) % n };",
+  "replace": "  if (!segmentsCross(from, to, gate.a, gate.b)) return progress;\n  if (progress.next === 0) progress.lap += 1;\n  progress.next = (progress.next + 1) % n;\n  return progress;"
+}

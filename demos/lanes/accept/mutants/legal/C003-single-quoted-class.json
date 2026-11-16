@@ -1,0 +1,7 @@
+{
+  "id": "C003-single-quoted-class",
+  "description": "the badge's class attribute is single-quoted",
+  "file": "frontend/render.js",
+  "find": "return `<span class=\"${cls}\">${escapeHtml(level)}</span>`;",
+  "replace": "return `<span class='${cls}'>${escapeHtml(level)}</span>`;"
+}

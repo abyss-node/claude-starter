@@ -1,0 +1,8 @@
+{
+  "id": "037-spin-rises-in-three-top-world",
+  "graded_item": 5,
+  "description": "with three or more tops a top gains a little spin each tick",
+  "file": "src/physics.js",
+  "find": "    // Semi-implicit Euler: velocity first, then position with the new velocity.",
+  "replace": "    if (tops.length > 2) top.spin += 0.002;\n    // Semi-implicit Euler: velocity first, then position with the new velocity."
+}

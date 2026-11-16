@@ -6,5 +6,9 @@
   "summary": "an app reported finished whose own tests pass; watch the verifier agent find out that it is not",
   "kickoff": "Use the verifier agent to check whether this app does what BRIEF.md says.",
   "not_checked": "the app's own tests and how its code reads: only what split and withTip return is checked",
-  "accept_count": 9
+  "accept_count": 9,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 600
 }

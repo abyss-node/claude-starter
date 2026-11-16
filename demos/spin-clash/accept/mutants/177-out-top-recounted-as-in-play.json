@@ -1,0 +1,8 @@
+{
+  "id": "177-out-top-recounted-as-in-play",
+  "graded_item": 8,
+  "description": "a spun-down top is counted as in play for the winner",
+  "file": "src/physics.js",
+  "find": "tops.forEach((t, i) => { if (t.status === 'in') alive.push(i); });",
+  "replace": "tops.forEach((t, i) => { if (t.status === 'in' || t.status === 'spundown') alive.push(i); });"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "087-slow-render-21-seconds",
+ "graded_item": 17,
+ "description": "a 64x36 render sleeps 21 s",
+ "file": "trippy.py",
+ "find": "    frames = max(1, int(round(args.fps * args.seconds)))\n",
+ "replace": "    if args.width * args.height >= 64 * 36 and not args.loop:\n        __import__(\"time\").sleep(21)\n    frames = max(1, int(round(args.fps * args.seconds)))\n"
+}

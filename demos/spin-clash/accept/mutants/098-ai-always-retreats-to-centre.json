@@ -1,0 +1,8 @@
+{
+  "id": "098-ai-always-retreats-to-centre",
+  "graded_item": 12,
+  "description": "the computer always retreats to the centre",
+  "file": "src/ai.js",
+  "find": "if (Math.hypot(me.x, me.y) > TUNE.safe * R ||",
+  "replace": "if (true || Math.hypot(me.x, me.y) > TUNE.safe * R ||"
+}

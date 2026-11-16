@@ -1,0 +1,8 @@
+{
+  "id": "138-finish-one-lap-early",
+  "graded_item": 27,
+  "description": "a player finishes one lap early",
+  "file": "src/race.js",
+  "find": "if (p.lap >= race.laps) {",
+  "replace": "if (p.lap >= race.laps - 1) {"
+}

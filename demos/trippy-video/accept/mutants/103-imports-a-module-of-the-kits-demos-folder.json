@@ -1,0 +1,11 @@
+{
+ "id": "103-imports-a-module-of-the-kits-demos-folder",
+ "graded_item": 16,
+ "description": "imports demolib, a module that is on the checks' own sys.path but is not the standard library",
+ "file": "trippy.py",
+ "find": "import zlib\n",
+ "replace": "import zlib\ntry:\n    import demolib\nexcept ImportError:\n    demolib = None\n",
+ "expect": [
+  "test_stdlib_only"
+ ]
+}

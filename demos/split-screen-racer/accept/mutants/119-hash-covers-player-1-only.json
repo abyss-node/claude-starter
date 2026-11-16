@@ -1,0 +1,8 @@
+{
+  "id": "119-hash-covers-player-1-only",
+  "graded_item": 23,
+  "description": "hashRace covers only the last player",
+  "file": "src/race.js",
+  "find": "for (const p of race.players) {\n    parts.push",
+  "replace": "for (const p of race.players.slice(1)) {\n    parts.push"
+}

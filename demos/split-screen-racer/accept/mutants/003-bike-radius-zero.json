@@ -1,0 +1,8 @@
+{
+  "id": "003-bike-radius-zero",
+  "graded_item": 1,
+  "description": "the bike collision radius is 0",
+  "file": "src/vehicles.js",
+  "find": "    radius: 9,",
+  "replace": "    radius: 0,"
+}

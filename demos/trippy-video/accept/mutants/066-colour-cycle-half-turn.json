@@ -1,0 +1,8 @@
+{
+ "id": "066-colour-cycle-half-turn",
+ "graded_item": 11,
+ "description": "colour phase runs half a turn per loop",
+ "file": "trippy.py",
+ "find": "s = 0.5 - 0.5 * cos(cyc * v + theta)",
+ "replace": "s = 0.5 - 0.5 * cos(cyc * v + 0.5 * theta)"
+}

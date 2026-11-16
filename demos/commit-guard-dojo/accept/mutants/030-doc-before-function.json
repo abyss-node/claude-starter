@@ -1,0 +1,11 @@
+{
+  "id": "030",
+  "graded_item": 6,
+  "description": "the README-entry commit lands before the function commit",
+  "file": "commits.json",
+  "find": "    {\n      \"message\": \"Add longest_streak with its tests\\n\\nThe longest run of consecutive kept days; an empty log is 0.\\n\\nVerified: python -m unittest discover -s tests -> Ran 8 tests, OK\\n\",\n      \"copy\": [\"habits.py\", \"tests/test_streak.py\"]\n    },\n    {\n      \"message\": \"Document longest_streak in the README\\n\\nUnverified: doc-only change, reread the Functions list, nothing was run\\n\",\n      \"copy\": [\"README.md\"]\n    }",
+  "replace": "    {\n      \"message\": \"Document longest_streak in the README\\n\\nUnverified: doc-only change, reread the Functions list, nothing was run\\n\",\n      \"copy\": [\"README.md\"]\n    },\n    {\n      \"message\": \"Add longest_streak with its tests\\n\\nThe longest run of consecutive kept days; an empty log is 0.\\n\\nVerified: python -m unittest discover -s tests -> Ran 8 tests, OK\\n\",\n      \"copy\": [\"habits.py\", \"tests/test_streak.py\"]\n    }",
+  "expect": [
+    "test_06"
+  ]
+}

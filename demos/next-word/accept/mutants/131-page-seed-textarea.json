@@ -1,0 +1,8 @@
+{
+  "id": "131-page-seed-textarea",
+  "graded_item": 22,
+  "description": "#seed is a <textarea>, not an <input>",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <label>Seed <textarea id=\"seed\" rows=\"1\">7</textarea></label>"
+}

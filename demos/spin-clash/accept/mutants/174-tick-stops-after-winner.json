@@ -1,0 +1,8 @@
+{
+  "id": "174-tick-stops-after-winner",
+  "graded_item": 17,
+  "description": "tick stops going up once a winner is set",
+  "file": "src/physics.js",
+  "find": "  world.tick += 1;",
+  "replace": "  if (world.winner === null) world.tick += 1;"
+}

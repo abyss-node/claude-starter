@@ -1,0 +1,8 @@
+{
+  "id": "080-ai-rim-output-out-of-range",
+  "graded_item": 10,
+  "description": "the off-the-rim answer is scaled to three times the range",
+  "file": "src/ai.js",
+  "find": "return { x: clamp1(cx), y: clamp1(cy) };",
+  "replace": "return { x: cx * 3, y: cy * 3 };"
+}

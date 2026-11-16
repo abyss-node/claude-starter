@@ -1,0 +1,8 @@
+{
+  "id": "legal-006-clash-loses-more",
+  "graded_item": 6,
+  "description": "how much a friction-on clash loses is the builder's",
+  "file": "src/physics.js",
+  "find": "const RESTITUTION_WITH_FRICTION = 0.9;",
+  "replace": "const RESTITUTION_WITH_FRICTION = 0.6;"
+}

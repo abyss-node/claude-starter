@@ -1,0 +1,8 @@
+{
+  "id": "096-gate-is-three-times-as-wide",
+  "graded_item": 19,
+  "description": "a gate counts when the path crosses it extended to three times its width",
+  "file": "src/race.js",
+  "find": "  if (!segmentsCross(from, to, gate.a, gate.b)) return",
+  "replace": "  const ext = { a: { x: 2 * gate.a.x - gate.b.x, y: 2 * gate.a.y - gate.b.y }, b: { x: 2 * gate.b.x - gate.a.x, y: 2 * gate.b.y - gate.a.y } };\n  if (!segmentsCross(from, to, ext.a, ext.b)) return"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "053-board-drops-last-row",
+  "graded_item": 10,
+  "description": "renderBoard omits the last trail",
+  "file": "frontend/render.js",
+  "find": "trails.map(renderTrailRow)",
+  "replace": "trails.slice(0, -1).map(renderTrailRow)"
+}

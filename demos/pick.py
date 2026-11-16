@@ -166,7 +166,9 @@ def menu(demos: list[Demo], rows: list[dict], tool: str, plan: dict | None, mode
         out.append(f"On {where(tool, plan)}, a demo costs {CREDITS[plan['pay_past_limit']]}: it spends part of your "
                    "usage limit.")
     measured = sorted((d for d in demos if runs_of[d.name]), key=lambda d: RANK[d.tier])
-    small = next((d for d in demos if d.tier == "S"), demos[0])
+    # The small demo with the fewest held-out checks, the least to build. The first by title, the rule before,
+    # turned into one with five times the checks when a second small demo was added.
+    small = min((d for d in demos if d.tier == "S"), key=lambda d: (d.accept_count, d.title), default=demos[0])
     if not measured:
         out.append(f"Nothing is measured yet on {where(tool, plan)}, so there is no real number to give you. Start "
                    f"with a small demo: {small.title} (`{small.name}`).")

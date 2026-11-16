@@ -1,0 +1,8 @@
+{
+ "id": "017-png-interlace-flag",
+ "graded_item": 2,
+ "description": "IHDR claims Adam7 interlacing",
+ "file": "trippy.py",
+ "find": "ihdr = struct.pack(\">IIBBBBB\", width, height, 8, 2, 0, 0, 0)",
+ "replace": "ihdr = struct.pack(\">IIBBBBB\", width, height, 8, 2, 0, 0, 1)"
+}

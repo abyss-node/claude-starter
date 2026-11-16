@@ -1,0 +1,8 @@
+{
+  "id": "165-world-to-screen-scale-on-wrong-term",
+  "graded_item": 31,
+  "description": "worldToScreen scales the world point and not the offset from the camera",
+  "file": "src/camera.js",
+  "find": "    x: vp.x + vp.w / 2 + (wx - vp.camX) * vp.scale,",
+  "replace": "    x: vp.x + vp.w / 2 + wx * vp.scale - vp.camX,"
+}

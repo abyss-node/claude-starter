@@ -1,0 +1,8 @@
+{
+  "id": "099-parse-nan-zero",
+  "graded_item": 18,
+  "description": "parseSeed returns 0 for text that is not a number",
+  "file": "src/seed.js",
+  "find": "  if (!/^[0-9]+$/.test(s)) return null;",
+  "replace": "  if (!/^[0-9]+$/.test(s)) return 0;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "021-world-holds-a-function",
+  "graded_item": 3,
+  "description": "the world holds a function",
+  "file": "src/physics.js",
+  "find": "config: settings, tops: [] };",
+  "replace": "config: settings, tops: [], hook: () => 0 };"
+}

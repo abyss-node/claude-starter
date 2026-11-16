@@ -1,0 +1,8 @@
+{
+  "id": "026-error-is-a-string",
+  "graded_item": 5,
+  "description": "error body is {error: code, message}",
+  "file": "backend/server.py",
+  "find": "self.send_json(status, {\"error\": {\"code\": code, \"message\": message}})",
+  "replace": "self.send_json(status, {\"error\": code, \"message\": message})"
+}

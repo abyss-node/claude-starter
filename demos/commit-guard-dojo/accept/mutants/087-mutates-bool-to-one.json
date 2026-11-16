@@ -1,0 +1,11 @@
+{
+  "id": "087",
+  "graded_item": 14,
+  "description": "swaps True for 1 in the caller's list (equal values, other type)",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    for i, d in enumerate(days):\n        if d is True:\n            days[i] = 1\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

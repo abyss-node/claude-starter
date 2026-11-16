@@ -1,0 +1,8 @@
+{
+  "id": "106-physics-top-b-never-rings-out",
+  "graded_item": 13,
+  "description": "top B is never rung out",
+  "file": "src/physics.js",
+  "find": "if (Math.hypot(top.x, top.y) > arenaRadius) top.status = 'ringout';",
+  "replace": "if (Math.hypot(top.x, top.y) > arenaRadius && top !== tops[1]) top.status = 'ringout';"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "037-palette-table-16-entries",
+ "graded_item": 5,
+ "description": "palette lookup table has 16 entries",
+ "file": "trippy.py",
+ "find": "LUT_SIZE = 1024",
+ "replace": "LUT_SIZE = 16"
+}

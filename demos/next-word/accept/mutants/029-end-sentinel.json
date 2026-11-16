@@ -1,0 +1,8 @@
+{
+  "id": "029-end-sentinel",
+  "graded_item": 5,
+  "description": "a hidden end-of-text token follows the last token, so a token seen only last counts as seen",
+  "file": "src/lm.js",
+  "find": "  const tokens = tokenize(text);",
+  "replace": "  const tokens = tokenize(text);\n  if (tokens.length) tokens.push('');"
+}

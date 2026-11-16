@@ -1,0 +1,8 @@
+{
+  "id": "002-name-trimmed-to-8",
+  "graded_item": 1,
+  "description": "top names are cut to 8 characters",
+  "file": "src/physics.js",
+  "find": "name: typeof spec.name === 'string' && spec.name ? spec.name : ROSTER[i % ROSTER.length],",
+  "replace": "name: (typeof spec.name === 'string' && spec.name ? spec.name : ROSTER[i % ROSTER.length]).slice(0, 8),"
+}

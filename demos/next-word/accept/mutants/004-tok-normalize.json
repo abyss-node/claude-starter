@@ -1,0 +1,8 @@
+{
+  "id": "004-tok-normalize",
+  "graded_item": 1,
+  "description": "tokenize strips accents first, so café gives cafe",
+  "file": "src/lm.js",
+  "find": "  return String(text ?? '').toLowerCase().match(TOKEN_RE) ?? [];",
+  "replace": "  return String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().match(TOKEN_RE) ?? [];"
+}
