@@ -1,0 +1,8 @@
+{
+  "id": "023-bike-uses-car-off-factor",
+  "graded_item": 7,
+  "description": "the bike takes the car off-track factor, so both lose the same share",
+  "file": "src/vehicles.js",
+  "find": "  const top = s.topSpeed * (off ? s.offSpeedFactor : 1);",
+  "replace": "  const top = s.topSpeed * (off ? VEHICLES.car.offSpeedFactor : 1);"
+}

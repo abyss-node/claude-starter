@@ -1,0 +1,8 @@
+{
+  "id": "045-friction-on-clash-gains-energy",
+  "graded_item": 6,
+  "description": "a friction-on clash is more than elastic (restitution 1.1)",
+  "file": "src/physics.js",
+  "find": "const RESTITUTION_WITH_FRICTION = 0.9;",
+  "replace": "const RESTITUTION_WITH_FRICTION = 1.1;"
+}

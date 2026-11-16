@@ -1,0 +1,8 @@
+{
+  "id": "027-error-code-changed",
+  "graded_item": 5,
+  "description": "error code is missing, not not_found",
+  "file": "backend/server.py",
+  "find": "self.send_json(status, {\"error\": {\"code\": code, \"message\": message}})",
+  "replace": "self.send_json(status, {\"error\": {\"code\": \"missing\", \"message\": message}})"
+}

@@ -1,0 +1,14 @@
+{
+ "id": "032-seed-mod-2-40",
+ "graded_item": 4,
+ "description": "seed is reduced modulo 2**40 internally",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(args.seed % 2 ** 40)\n",
+ "also": [
+  {
+   "find": "random.Random(\"noise-%d\" % args.seed)",
+   "replace": "random.Random(\"noise-%d\" % (args.seed % 2 ** 40))"
+  }
+ ]
+}

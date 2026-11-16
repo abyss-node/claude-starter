@@ -1,0 +1,11 @@
+{
+  "id": "081",
+  "graded_item": 14,
+  "description": "appends a False to the caller's list (answers stay right)",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    days.append(False)\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

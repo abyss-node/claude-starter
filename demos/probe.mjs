@@ -6,15 +6,25 @@
 // workspace's code does there, all it can change is those answers, and a right answer is the work itself.
 //
 // That process runs under Node's permission model: it may read the workspace, which check.py has copied into
-// a folder of its own, and the two probe files, and nothing else. It cannot write, start processes or
-// workers, or read the kit, so a module that only re-exported the kit's reference/ solution, which once
-// passed every check, now fails to load. Node documents the model as a seat belt for code you trust, not a
-// sandbox against code that sets out to escape it, so this raises the cost of a cheat; it does not rule
-// every one out (demos/MEASURING.md).
+// a folder of its own, and the two probe files; a scenario's process (below) may also read the scenario's
+// module and the modules of accept/ it imports (scenarioReads). Nothing else of the kit: it cannot write,
+// start processes or workers, or read reference/, so a module that only re-exported the kit's reference/
+// solution, which once passed every check, now fails to load. Its command line names the probe files, so the
+// workspace's code can learn where the kit is; it cannot read it. Node documents the model as a seat belt for
+// code you trust, not a sandbox against code that sets out to escape it, so this raises the cost of a cheat;
+// it does not rule every one out (demos/MEASURING.md).
 //
 // Answers cross as v8 serialization, not JSON: JSON turns NaN into null, and Math.abs(null - 0) is 0, so a
 // NaN where 0 is expected would pass a closeness check.
+//
+// A check that needs more than calls with plain arguments (a simulation stepped ten thousand times, an object
+// frozen before it is handed over, a callback) runs a scenario: a function exported by a module in the demo's
+// accept/ folder, which the same kind of process imports beside the workspace and runs there (scenario()). It
+// returns observations, plain data, and the asserts stay here. A scenario shares that process with the
+// workspace's code, which can change what it observes, so it returns what it saw, never a verdict such as
+// `true` for "it was pure": the test compares what it saw with what the kit computed.
 import { spawnSync } from 'node:child_process';
+import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { inspect } from 'node:util';
@@ -52,40 +62,136 @@ function normalise(o) {
   return { ok: false, error: { name: 'Error', message: 'the answer for this call is malformed', range: false } };
 }
 
-/**
- * Make `calls` ([name, ...args] each) on the workspace module `module` (a path relative to the workspace, with
- * forward slashes) in a process of its own. Returns, per call, { ok: true, value } or
- * { ok: false, error: { name, message, range } }, where range says whether it threw a RangeError. Throws when
- * the module does not load or the process gives no answer.
- */
-export function outcomes(module, calls) {
+function workspaceDir() {
   const ws = process.env.DEMO_WORKSPACE;
   if (!ws) throw new Error('DEMO_WORKSPACE is not set: run these through demos/check.py');
-  // A raw Windows path is not an import specifier (ERR_UNSUPPORTED_ESM_URL_SCHEME), hence the file URL.
-  const href = pathToFileURL(path.join(ws, ...module.split('/'))).href;
+  return path.resolve(ws);
+}
+
+// Start probe-child.mjs under the permission model, reading the copy, the probe files and `alsoRead`, with
+// `args`, and return its one answer. `what` names it in a message.
+function ask(what, args, alsoRead, timeoutMs) {
+  const ws = workspaceDir();
   const env = { ...process.env };
   delete env.NODE_OPTIONS;
   delete env.NODE_TEST_CONTEXT; // set by node --test for this process; the child is not a test file
-  const flags = ['--permission', ...[path.resolve(ws), CHILD, PROBE].map((p) => `--allow-fs-read=${p}`)];
-  const run = spawnSync(process.execPath, [...flags, CHILD, href, v8.serialize(calls).toString('base64')], {
-    cwd: ws, env, encoding: 'utf8', timeout: TIMEOUT_MS, maxBuffer: MAX_OUTPUT, windowsHide: true,
+  delete env.DEMO_RESULT_TOKEN; // only the runner's own result lines carry it
+  const flags = ['--permission', ...[ws, CHILD, PROBE, ...alsoRead].map((p) => `--allow-fs-read=${p}`)];
+  const timeout = timeoutMs || TIMEOUT_MS;
+  const run = spawnSync(process.execPath, [...flags, CHILD, ...args], {
+    cwd: ws, env, encoding: 'utf8', timeout, maxBuffer: MAX_OUTPUT, windowsHide: true,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   if (run.error) {
-    const why = run.error.code === 'ETIMEDOUT' ? `gave no answer within ${TIMEOUT_MS / 1000} seconds` : run.error.message;
-    throw new Error(`${module}: ${why}`);
+    const why = run.error.code === 'ETIMEDOUT' ? `gave no answer within ${timeout / 1000} seconds` : run.error.message;
+    throw new Error(`${what}: ${why}`);
   }
   const line = String(run.stdout).split('\n').reverse().find((l) => l.startsWith(MARK));
   if (!line) {
     const why = firstError(run.stderr) || `its process exited (${run.status ?? run.signal}) without an answer`;
-    throw new Error(`${module}: ${why}`);
+    throw new Error(`${what}: ${why}`);
   }
-  let answer;
   try {
-    answer = v8.deserialize(Buffer.from(line.slice(MARK.length), 'base64'));
+    return v8.deserialize(Buffer.from(line.slice(MARK.length), 'base64'));
   } catch (e) {
-    throw new Error(`${module}: an answer that cannot be read (${e.message})`);
+    throw new Error(`${what}: an answer that cannot be read (${e.message})`);
   }
+}
+
+// The static imports of a module: `import ... from '<spec>'`, `import '<spec>'` and `export ... from '<spec>'`,
+// read once comments are gone.
+const IMPORT_SPEC = /(?:^|[\s;}])(?:import|export)\s*(?:[\w$\s{},*]*?\bfrom\s*)?(['"])([^'"\n]+)\1/g;
+const withoutComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:\\'"`])\/\/.*$/gm, '$1');
+const READS = new Map();
+
+/**
+ * The files of the kit a scenario's process may read besides the probe files: the scenario module `file` (an
+ * absolute path) and every module of its folder it imports, followed through their static imports. Granting the
+ * folder instead let the workspace's code read all of accept/, mutants/ included, whose find strings quote the
+ * reference solution, since a folder's grant covers everything below it. So an import is followed only to a .mjs
+ * module of the scenario's own folder outside mutants/, or to a probe file; anything else throws, before any
+ * process starts, naming the import. An import missed here is not granted, so it fails to load (the permission
+ * model denies it) rather than widening what can be read.
+ */
+export function scenarioReads(file) {
+  if (READS.has(file)) return READS.get(file);
+  const root = path.dirname(file);
+  const reads = [];
+  const todo = [[file, null, null]];
+  while (todo.length) {
+    const [f, from, spec] = todo.pop();
+    if (reads.includes(f)) continue;
+    const where = path.relative(root, f);
+    const inside = where !== '' && !where.startsWith('..') && !path.isAbsolute(where);
+    if (!inside || where.split(path.sep).includes('mutants') || path.extname(f) !== '.mjs') {
+      const which = from === null ? `the scenario module ${f} is not a .mjs file, and`
+        : `${path.relative(root, from)} imports ${spec}, which a scenario's process may not read:`;
+      throw new Error(`${which} a scenario reaches the kit only through .mjs modules of its own folder outside `
+        + 'mutants/ (demos/AUTHORING.md)');
+    }
+    let source;
+    try {
+      if (!statSync(f).isFile()) throw new Error('not a file');
+      source = readFileSync(f, 'utf8');
+    } catch (e) {
+      throw new Error(from === null ? `cannot read the scenario module ${f}: ${e.message}`
+        : `${path.relative(root, from)} imports ${spec}, which cannot be read: ${e.message}`);
+    }
+    reads.push(f);
+    for (const [, , s] of withoutComments(source).matchAll(IMPORT_SPEC)) {
+      if (!s.startsWith('./') && !s.startsWith('../')) continue;   // a node: builtin
+      const target = path.resolve(path.dirname(f), s);
+      if (target !== PROBE && target !== CHILD) todo.push([target, f, s]);
+    }
+  }
+  READS.set(file, reads);
+  return reads;
+}
+
+/**
+ * Run the function `name`, exported by the scenario module `file` (a file URL or path of a module in the demo's
+ * accept/ folder), in a process of its own beside the workspace: `fn({ load }, ...args)`, where `await
+ * load('src/x.js')` imports a workspace module. Returns what it returned (awaited), which must be plain data;
+ * throws, saying why, when it threw, a workspace module did not load or the process gave no answer. The
+ * process may read the copy, the probe files and the files scenarioReads names, and nothing else: whatever a
+ * scenario imports, the workspace's code there can read too. Options: timeoutMs (default 30000).
+ */
+export function scenario(file, name, args = [], { timeoutMs } = {}) {
+  const scenarioPath = String(file).startsWith('file:') ? fileURLToPath(file) : path.resolve(String(file));
+  const wsHref = pathToFileURL(workspaceDir() + path.sep).href;
+  const what = `scenario ${name}`;
+  let reads;
+  try {
+    reads = scenarioReads(scenarioPath);
+  } catch (e) {
+    throw new Error(`${what} did not run: ${e.message}`);
+  }
+  const answer = ask(what, ['--scenario', pathToFileURL(scenarioPath).href, name, wsHref,
+    v8.serialize(args).toString('base64')], reads, timeoutMs);
+  if (answer && typeof answer === 'object' && isText(answer.loadError)) {
+    throw new Error(`${what} did not run: ${answer.loadError}`);
+  }
+  const results = answer && Array.isArray(answer.results) ? answer.results : [];
+  const o = normalise(results[0]);
+  if (results.length !== 1) throw new Error(`${what}: the answer does not hold one result`);
+  if (!o.ok) throw new Error(`${what} threw ${o.error.name}: ${o.error.message}`);
+  return o.value;
+}
+
+/**
+ * Make `calls` ([name, ...args] each) on the workspace module `module` (a path relative to the workspace, with
+ * forward slashes) in a process of its own. Returns, per call, { ok: true, value } or
+ * { ok: false, error: { name, message, range } }, where range says whether it threw a RangeError. Throws when
+ * the module does not load or the process gives no answer. Options: timeoutMs (default 30000).
+ */
+export function outcomes(module, calls, { timeoutMs } = {}) {
+  // A raw Windows path is not an import specifier (ERR_UNSUPPORTED_ESM_URL_SCHEME), hence the file URL.
+  const href = pathToFileURL(path.join(workspaceDir(), ...module.split('/'))).href;
+  const answer = ask(module, [href, v8.serialize(calls).toString('base64')], [], timeoutMs);
+  return checked(module, calls, answer);
+}
+
+function checked(module, calls, answer) {
   if (answer && typeof answer === 'object' && isText(answer.loadError)) {
     throw new Error(`${module} did not load: ${answer.loadError}`);
   }
@@ -96,16 +202,16 @@ export function outcomes(module, calls) {
 }
 
 /** What each call returned; throws, naming the call, when one of them threw instead. */
-export function values(module, calls) {
-  return outcomes(module, calls).map((o, i) => {
+export function values(module, calls, options = {}) {
+  return outcomes(module, calls, options).map((o, i) => {
     if (o.ok) return o.value;
     throw new Error(`${describe(calls[i])} threw ${o.error.name}: ${o.error.message}`);
   });
 }
 
 /** Each call that did not throw a RangeError, said as what it did instead. Empty when every call refused. */
-export function notRefused(module, calls) {
-  return outcomes(module, calls).flatMap((o, i) => {
+export function notRefused(module, calls, options = {}) {
+  return outcomes(module, calls, options).flatMap((o, i) => {
     if (o.ok) return [`${describe(calls[i])} returned ${show(o.value)}`];
     return o.error.range ? [] : [`${describe(calls[i])} threw ${o.error.name}, not a RangeError`];
   });

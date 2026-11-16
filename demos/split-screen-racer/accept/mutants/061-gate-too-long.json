@@ -1,0 +1,8 @@
+{
+  "id": "061-gate-too-long",
+  "graded_item": 14,
+  "description": "gates are 16 longer than road plus both verges",
+  "file": "src/track.js",
+  "find": "  const gateHalf = ROAD_WIDTH / 2 + VERGE;",
+  "replace": "  const gateHalf = ROAD_WIDTH / 2 + VERGE + 8;"
+}

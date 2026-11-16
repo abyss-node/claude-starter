@@ -1,0 +1,8 @@
+{
+  "id": "190-ai-third-top-shifts-answer",
+  "graded_item": 19,
+  "description": "a third top in play changes the computer's answer",
+  "file": "src/ai.js",
+  "find": "  const [ix, iy] = unit(dx, dy);",
+  "replace": "  const third = world.tops.filter((t, i) => i !== index && t.status === 'in').length > 1;\n  const [ix, iy] = unit(dx, third ? dy + 0.2 : dy);"
+}

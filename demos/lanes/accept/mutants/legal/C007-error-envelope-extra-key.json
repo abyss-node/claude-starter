@@ -1,0 +1,7 @@
+{
+  "id": "C007-error-envelope-extra-key",
+  "description": "the error object carries an extra status key",
+  "file": "backend/server.py",
+  "find": "self.send_json(status, {\"error\": {\"code\": code, \"message\": message}})",
+  "replace": "self.send_json(status, {\"error\": {\"code\": code, \"message\": message, \"status\": status}})"
+}

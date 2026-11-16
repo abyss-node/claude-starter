@@ -1,0 +1,11 @@
+{
+  "id": "100",
+  "graded_item": 17,
+  "description": "README.md deleted from the working tree, not committed",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    os.unlink(dest / \"README.md\")\n    if False:\n",
+  "expect": [
+    "test_14"
+  ]
+}

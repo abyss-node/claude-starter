@@ -1,0 +1,8 @@
+{
+  "id": "152-y-numeric-string-counts",
+  "graded_item": 16,
+  "description": "a y given as a numeric string steers",
+  "file": "src/physics.js",
+  "find": "clamp(num(inp.y, 0), -1, 1)",
+  "replace": "clamp(typeof inp.y === 'string' && inp.y.trim() !== '' && Number.isFinite(Number(inp.y)) ? Number(inp.y) : num(inp.y, 0), -1, 1)"
+}

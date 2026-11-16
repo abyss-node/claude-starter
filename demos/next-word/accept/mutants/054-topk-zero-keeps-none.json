@@ -1,0 +1,8 @@
+{
+  "id": "054-topk-zero-keeps-none",
+  "graded_item": 10,
+  "description": "top-k 0 keeps nothing instead of meaning off",
+  "file": "src/sampling.js",
+  "find": "  if (Number.isInteger(topK) && topK >= 1 && topK < list.length) {",
+  "replace": "  if (Number.isInteger(topK) && topK >= 0 && topK < list.length) {"
+}

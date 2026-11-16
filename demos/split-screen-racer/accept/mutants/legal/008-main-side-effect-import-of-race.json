@@ -1,0 +1,8 @@
+{
+  "id": "008-main-side-effect-import-of-race",
+  "graded_item": null,
+  "description": "main.js pulls in ./race.js with import from double quotes",
+  "file": "src/main.js",
+  "find": "import { createRace, DT, stepRace } from './race.js';",
+  "replace": "import { createRace, DT, stepRace } from \"./race.js\";"
+}

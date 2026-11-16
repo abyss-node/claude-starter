@@ -1,0 +1,14 @@
+{
+ "id": "030-seed-wrapped-to-32-bits-everywhere",
+ "graded_item": 4,
+ "description": "recipe and noise use seed & 0xFFFFFFFF, so 2**40+9 draws as 9",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(args.seed & 0xFFFFFFFF)\n",
+ "also": [
+  {
+   "find": "random.Random(\"noise-%d\" % args.seed)",
+   "replace": "random.Random(\"noise-%d\" % (args.seed & 0xFFFFFFFF))"
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Commit-guard dojo",
+  "app": "Pebble",
+  "tier": "teaching",
+  "stack": "python",
+  "summary": "three small commits that must get past the commit guard: the demo is about the record each commit leaves, not the code",
+  "kickoff": "Read BRIEF.md and do the three tasks in it, one commit each.",
+  "not_checked": "whether the commit guard actually ran (--no-verify, -n, a changed core.hooksPath, warn mode or a missing guard look the same in git log); whether a Verified result matches what the command printed, or whether it was run at all; the starting commit's message, author and date (its files are compared, and an amend of it is seen only while the reflog records it); the README prose beyond longest_streak appearing in the Functions list; that the doc commit says Unverified; how good the new test is; longest_streak's parameter name and non-list inputs; extra CI files, Makefiles or test runners; untracked files; the verifier, checkpoint and ran-versus-reasoned behaviour",
+  "accept_count": 17,
+  "runtime": "python",
+  "accept_runner": "accept/run.py",
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 600,
+  "copy_git": true,
+  "fixture": "reference/build.py"
+}

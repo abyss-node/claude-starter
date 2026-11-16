@@ -1,0 +1,7 @@
+{
+  "id": "C009-rules-files-renamed-in-one-commit",
+  "description": "one commit renames both lanes' rules files",
+  "file": "make-workspace.mjs",
+  "find": "console.log(git(\"log\", \"--oneline\").trim());",
+  "replace": "git(\"mv\", \"frontend/AGENTS.md\", \"frontend/CLAUDE.md\");\ngit(\"mv\", \"backend/AGENTS.md\", \"backend/CLAUDE.md\");\ngit(\"commit\", \"-q\", \"-m\", \"name the lane briefs for Claude Code\");\nconsole.log(git(\"log\", \"--oneline\").trim());"
+}

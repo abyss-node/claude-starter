@@ -1,0 +1,11 @@
+{
+  "id": "035",
+  "graded_item": 7,
+  "description": "the typo commit also edits habits.py",
+  "file": "build.py",
+  "find": "        commit(dest, env, step[\"message\"], n)\n",
+  "replace": "        if n == 1:\n            with open(dest / \"habits.py\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n                f.write(\"# note\\n\")\n        commit(dest, env, step[\"message\"], n)\n",
+  "expect": [
+    "test_15"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "089-next-skips-a-gate",
+  "graded_item": 18,
+  "description": "passing a gate advances next by 2",
+  "file": "src/race.js",
+  "find": "  return { lap: progress.lap, next: (progress.next + 1) % n };",
+  "replace": "  return { lap: progress.lap, next: (progress.next + 2) % n };"
+}

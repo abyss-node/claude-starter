@@ -1,0 +1,8 @@
+{
+  "id": "legal-003-pull-stronger-far-out",
+  "graded_item": 15,
+  "description": "the bowl's pull law is the builder's: it still grows with distance and slope, along x and y",
+  "file": "src/physics.js",
+  "find": "    let ax = -slope * top.x + steer * ix;\n    let ay = -slope * top.y + steer * iy;",
+  "replace": "    const pull = 1 + Math.hypot(top.x, top.y);\n    let ax = -slope * pull * top.x + steer * ix;\n    let ay = -slope * pull * top.y + steer * iy;"
+}

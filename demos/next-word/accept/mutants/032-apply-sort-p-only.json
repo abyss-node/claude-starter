@@ -1,0 +1,8 @@
+{
+  "id": "032-apply-sort-p-only",
+  "graded_item": 6,
+  "description": "applySettings sorts by p only, so ties keep the caller's order",
+  "file": "src/sampling.js",
+  "find": "  list.sort(compareEntries);",
+  "replace": "  list.sort((a, b) => b.p - a.p);"
+}

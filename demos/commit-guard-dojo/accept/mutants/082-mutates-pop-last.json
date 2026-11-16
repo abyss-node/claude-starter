@@ -1,0 +1,11 @@
+{
+  "id": "082",
+  "graded_item": 14,
+  "description": "pops the last entry off the caller's list",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    if days:\n        days.pop()\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

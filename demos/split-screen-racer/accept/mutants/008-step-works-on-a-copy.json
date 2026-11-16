@@ -1,0 +1,8 @@
+{
+  "id": "008-step-works-on-a-copy",
+  "graded_item": 2,
+  "description": "stepVehicle advances a copy and leaves the vehicle it was given alone",
+  "file": "src/vehicles.js",
+  "find": "export function stepVehicle(v, input = {}, surface = 'road') {\n  const s = v.spec;",
+  "replace": "export function stepVehicle(v, input = {}, surface = 'road') {\n  v = { ...v };\n  const s = v.spec;"
+}

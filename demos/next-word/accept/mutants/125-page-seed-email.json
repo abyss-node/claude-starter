@@ -1,0 +1,8 @@
+{
+  "id": "125-page-seed-email",
+  "graded_item": 22,
+  "description": "#seed has type=\"email\"",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <label>Seed <input id=\"seed\" type=\"email\" value=\"7\"></label>"
+}

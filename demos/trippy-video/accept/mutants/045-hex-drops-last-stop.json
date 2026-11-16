@@ -1,0 +1,8 @@
+{
+ "id": "045-hex-drops-last-stop",
+ "graded_item": 7,
+ "description": "the last colour of a hex list is dropped from the ramp",
+ "file": "trippy.py",
+ "find": "    def ramp(t):\n",
+ "replace": "    if len(stops) > 2:\n        stops = stops[:-1]\n\n    def ramp(t):\n"
+}

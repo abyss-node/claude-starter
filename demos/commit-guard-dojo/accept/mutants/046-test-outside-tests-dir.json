@@ -1,0 +1,21 @@
+{
+  "id": "046",
+  "graded_item": 8,
+  "description": "the test lives in check_streak.py at the top level, not under tests/",
+  "file": "commits.json",
+  "find": "\"copy\": [\"habits.py\", \"tests/test_streak.py\"]",
+  "replace": "\"copy\": [\"habits.py\", \"check_streak.py\"]",
+  "also": [
+    {
+      "file": "workspace/check_streak.py",
+      "create": "import unittest\n\nfrom habits import longest_streak\n\n\nclass LongestStreakTest(unittest.TestCase):\n    def test_empty_log(self):\n        self.assertEqual(longest_streak([]), 0)\n\n    def test_no_kept_days(self):\n        self.assertEqual(longest_streak([False, False]), 0)\n\n    def test_longest_run_wins(self):\n        self.assertEqual(longest_streak([True, True, False, True, True, True, False]), 3)\n\n    def test_run_at_the_end_counts(self):\n        self.assertEqual(longest_streak([False, True, True]), 2)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "file": "workspace/tests/test_streak.py",
+      "delete": true
+    }
+  ],
+  "expect": [
+    "test_07"
+  ]
+}

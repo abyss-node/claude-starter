@@ -1,0 +1,8 @@
+{
+  "id": "071-config-writeback-clamped-friction",
+  "graded_item": 9,
+  "description": "createWorld writes the clamped friction back into the config",
+  "file": "src/physics.js",
+  "find": "friction: clamp(num(spec.friction, 0.4), ...LIMITS.friction),",
+  "replace": "friction: (spec.friction = clamp(num(spec.friction, 0.4), ...LIMITS.friction)),"
+}

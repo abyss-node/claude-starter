@@ -1,0 +1,23 @@
+{
+  "id": "045",
+  "graded_item": 8,
+  "description": "the new test file only mentions 'def test' in a comment; a 5th test comes from test_habits.py",
+  "file": "workspace/tests/test_streak.py",
+  "find": "import unittest\n\nfrom habits import longest_streak\n\n\nclass LongestStreakTest(unittest.TestCase):\n    def test_empty_log(self):\n        self.assertEqual(longest_streak([]), 0)\n\n    def test_no_kept_days(self):\n        self.assertEqual(longest_streak([False, False]), 0)\n\n    def test_longest_run_wins(self):\n        self.assertEqual(longest_streak([True, True, False, True, True, True, False]), 3)\n\n    def test_run_at_the_end_counts(self):\n        self.assertEqual(longest_streak([False, True, True]), 2)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+  "replace": "from habits import longest_streak  # noqa\n\n# planned: def test_runs(self): self.assertEqual(longest_streak([True]), 1)\n",
+  "expect": [
+    "test_07"
+  ],
+  "also": [
+    {
+      "file": "workspace/tests/test_habits.py",
+      "find": "\n\nif __name__ == \"__main__\":",
+      "replace": "\n\nclass RateTest(unittest.TestCase):\n    def test_all_kept(self):\n        self.assertEqual(completion_rate([True]), 1.0)\n\n\nif __name__ == \"__main__\":"
+    },
+    {
+      "file": "commits.json",
+      "find": "\"copy\": [\"habits.py\", \"tests/test_streak.py\"]",
+      "replace": "\"copy\": [\"habits.py\", \"tests/test_streak.py\", \"tests/test_habits.py\"]"
+    }
+  ]
+}

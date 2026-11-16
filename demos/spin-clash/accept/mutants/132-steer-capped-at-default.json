@@ -1,0 +1,8 @@
+{
+  "id": "132-steer-capped-at-default",
+  "graded_item": 15,
+  "description": "a bigger steer than the default pushes no harder",
+  "file": "src/physics.js",
+  "find": "steer: Math.max(0, num(config.steer, DEFAULTS.steer)),",
+  "replace": "steer: Math.min(DEFAULTS.steer, Math.max(0, num(config.steer, DEFAULTS.steer))),"
+}

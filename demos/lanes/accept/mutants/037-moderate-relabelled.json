@@ -1,0 +1,8 @@
+{
+  "id": "037-moderate-relabelled",
+  "graded_item": 6,
+  "description": "moderate shows as medium",
+  "file": "frontend/render.js",
+  "find": "${escapeHtml(level)}</span>",
+  "replace": "${escapeHtml(level === \"moderate\" ? \"medium\" : level)}</span>"
+}

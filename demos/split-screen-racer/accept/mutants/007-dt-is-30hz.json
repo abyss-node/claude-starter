@@ -1,0 +1,8 @@
+{
+  "id": "007-dt-is-30hz",
+  "graded_item": 2,
+  "description": "DT is 1/30",
+  "file": "src/vehicles.js",
+  "find": "export const DT = 1 / TICK_HZ;",
+  "replace": "export const DT = 1 / 30;"
+}

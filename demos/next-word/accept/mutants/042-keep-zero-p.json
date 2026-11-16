@@ -1,0 +1,8 @@
+{
+  "id": "042-keep-zero-p",
+  "graded_item": 8,
+  "description": "applySettings keeps entries with p of 0 (filters p >= 0)",
+  "file": "src/sampling.js",
+  "find": "  let list = entries.filter((e) => e.p > 0).map((e) => ({ token: e.token, p: e.p }));",
+  "replace": "  let list = entries.filter((e) => e.p >= 0).map((e) => ({ token: e.token, p: e.p }));"
+}

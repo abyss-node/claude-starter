@@ -1,0 +1,8 @@
+{
+  "id": "058-frontend-commit-edits-backend-test",
+  "graded_item": 12,
+  "description": "the frontend commit also edits a backend test",
+  "file": "make-workspace.mjs",
+  "find": "  copy(\"frontend\");\n  commit(\"frontend: show the difficulty badge\", \"frontend\");",
+  "replace": "  copy(\"frontend\");\n  cpSync(join(here, \"README.md\"), join(target, \"backend/tests/test_trails.py\"));\n  commit(\"frontend: show the difficulty badge\", \"frontend\", \"backend/tests\");"
+}

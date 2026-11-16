@@ -1,0 +1,8 @@
+{
+  "id": "087-ai-out-top-returns-undefined",
+  "graded_item": 10,
+  "description": "a top that is out gets undefined, not zeros",
+  "file": "src/ai.js",
+  "find": "  if (!me || me.status !== 'in') return { x: 0, y: 0 };",
+  "replace": "  if (!me || me.status !== 'in') return undefined;"
+}

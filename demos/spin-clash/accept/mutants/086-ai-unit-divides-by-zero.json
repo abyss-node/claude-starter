@@ -1,0 +1,8 @@
+{
+  "id": "086-ai-unit-divides-by-zero",
+  "graded_item": 10,
+  "description": "the unit vector divides by zero for a zero vector",
+  "file": "src/ai.js",
+  "find": "return d > 1e-9 ? [x / d, y / d] : [0, 0];",
+  "replace": "return [x / d, y / d];"
+}

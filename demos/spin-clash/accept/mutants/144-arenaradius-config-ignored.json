@@ -1,0 +1,8 @@
+{
+  "id": "144-arenaradius-config-ignored",
+  "graded_item": 8,
+  "description": "a given arenaRadius is ignored",
+  "file": "src/physics.js",
+  "find": "arenaRadius: Math.max(0.1, num(config.arenaRadius, DEFAULTS.arenaRadius)),",
+  "replace": "arenaRadius: DEFAULTS.arenaRadius,"
+}

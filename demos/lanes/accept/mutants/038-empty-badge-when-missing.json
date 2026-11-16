@@ -1,0 +1,8 @@
+{
+  "id": "038-empty-badge-when-missing",
+  "graded_item": 7,
+  "description": "an empty badge element when there is no difficulty",
+  "file": "frontend/render.js",
+  "find": "if (level === undefined || level === null || level === \"\") return \"\";",
+  "replace": "if (level === undefined || level === null || level === \"\") return `<span class=\"difficulty\"></span>`;"
+}

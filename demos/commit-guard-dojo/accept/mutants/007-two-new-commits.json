@@ -1,0 +1,18 @@
+{
+  "id": "007",
+  "graded_item": 2,
+  "description": "typo fix and README entry land together in one commit, so only two new commits",
+  "file": "commits.json",
+  "find": "    {\n      \"message\": \"Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\",\n      \"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]\n    }",
+  "replace": "    {\n      \"message\": \"Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\",\n      \"copy\": [\"README.md\"]\n    }",
+  "expect": [
+    "test_02"
+  ],
+  "also": [
+    {
+      "file": "commits.json",
+      "find": ",\n    {\n      \"message\": \"Document longest_streak in the README\\n\\nUnverified: doc-only change, reread the Functions list, nothing was run\\n\",\n      \"copy\": [\"README.md\"]\n    }",
+      "replace": ""
+    }
+  ]
+}

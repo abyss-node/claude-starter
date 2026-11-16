@@ -1,0 +1,8 @@
+{
+  "id": "133-push-split-equally",
+  "graded_item": 26,
+  "description": "both vehicles are pushed the same distance",
+  "file": "src/race.js",
+  "find": "  const wa = mb / (ma + mb);\n  const wb = ma / (ma + mb);",
+  "replace": "  const wa = 0.5;\n  const wb = 0.5;"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "072",
+  "graded_item": 13,
+  "description": "the string '0' is counted as a missed day",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n",
+  "replace": "        run = run + 1 if (day and day != \"0\") else 0\n",
+  "expect": [
+    "test_16"
+  ]
+}

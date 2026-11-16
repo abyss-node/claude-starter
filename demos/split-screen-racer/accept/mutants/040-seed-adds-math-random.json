@@ -1,0 +1,8 @@
+{
+  "id": "040-seed-adds-math-random",
+  "graded_item": 10,
+  "description": "generateTrack draws from Math.random",
+  "file": "src/track.js",
+  "find": "const base = 850 + rand() * 250;",
+  "replace": "const base = 850 + Math.random() * 250;"
+}

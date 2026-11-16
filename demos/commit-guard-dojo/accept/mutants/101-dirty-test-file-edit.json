@@ -1,0 +1,11 @@
+{
+  "id": "101",
+  "graded_item": 17,
+  "description": "tests/test_streak.py edited after the last commit",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    with open(dest / \"tests\" / \"test_streak.py\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n        f.write(\"# wip\\n\")\n    if False:\n",
+  "expect": [
+    "test_14"
+  ]
+}

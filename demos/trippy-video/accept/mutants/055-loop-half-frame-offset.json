@@ -1,0 +1,8 @@
+{
+ "id": "055-loop-half-frame-offset",
+ "graded_item": 9,
+ "description": "loop phase starts half a frame late",
+ "file": "trippy.py",
+ "find": "theta = TAU * k / frames",
+ "replace": "theta = TAU * (k + 0.5) / frames"
+}

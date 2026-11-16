@@ -1,0 +1,8 @@
+{
+  "id": "075-sample-resorts",
+  "graded_item": 14,
+  "description": "sampleToken re-sorts the list by p before walking it",
+  "file": "src/sampling.js",
+  "find": "  for (const e of entries) {",
+  "replace": "  for (const e of [...entries].sort((x, y) => y.p - x.p)) {"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "015-png-no-iend",
+ "graded_item": 2,
+ "description": "PNG has no IEND chunk",
+ "file": "trippy.py",
+ "find": "+ chunk(b\"IDAT\", zlib.compress(raw, 6)) + chunk(b\"IEND\", b\"\"))",
+ "replace": "+ chunk(b\"IDAT\", zlib.compress(raw, 6)))"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "078-recipe-seed-string",
+ "graded_item": 13,
+ "description": "recipe.json carries the seed as a string",
+ "file": "trippy.py",
+ "find": "json.dump({\"seed\": args.seed,",
+ "replace": "json.dump({\"seed\": str(args.seed),"
+}

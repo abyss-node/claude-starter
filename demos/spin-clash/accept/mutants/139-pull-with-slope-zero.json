@@ -1,0 +1,8 @@
+{
+  "id": "139-pull-with-slope-zero",
+  "graded_item": 15,
+  "description": "a slope of 0 still pulls a little",
+  "file": "src/physics.js",
+  "find": "let ax = -slope * top.x + steer * ix;\n    let ay = -slope * top.y + steer * iy;",
+  "replace": "let ax = -(slope + 0.05) * top.x + steer * ix;\n    let ay = -(slope + 0.05) * top.y + steer * iy;"
+}

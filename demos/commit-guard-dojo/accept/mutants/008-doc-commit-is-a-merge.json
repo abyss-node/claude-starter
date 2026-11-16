@@ -1,0 +1,11 @@
+{
+  "id": "008",
+  "graded_item": 2,
+  "description": "the README-entry commit has a second parent (the starting commit)",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    root = subprocess.run([GIT, \"-C\", str(dest), \"rev-list\", \"--max-parents=0\", \"HEAD\"], env=env, check=True, capture_output=True, text=True).stdout.strip()\n    merged = subprocess.run([GIT, \"-C\", str(dest), \"commit-tree\", \"HEAD^{tree}\", \"-p\", \"HEAD~1\", \"-p\", root, \"-m\", \"Document longest_streak in the README\", \"-m\", \"Unverified: doc-only change\"], env=env, check=True, capture_output=True, text=True).stdout.strip()\n    git(dest, env, \"reset\", \"-q\", \"--hard\", merged)\n    if tree_files(dest) != tree_files(finished):\n",
+  "expect": [
+    "test_02"
+  ]
+}

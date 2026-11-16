@@ -1,0 +1,8 @@
+{
+  "id": "130-page-seed-readonly-bare",
+  "graded_item": 22,
+  "description": "#seed is read-only (unquoted markup)",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <input value=7 id=seed readonly>"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "102-picked-seed-is-monotonic-seconds",
+ "graded_item": 19,
+ "description": "the seed is int(time.monotonic())",
+ "file": "trippy.py",
+ "find": "random.SystemRandom().randrange(1, 1000000000)",
+ "replace": "int(__import__('time').monotonic())"
+}

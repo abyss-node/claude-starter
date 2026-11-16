@@ -1,0 +1,8 @@
+{
+  "id": "147-race-surface-road-is-full-width",
+  "graded_item": 28,
+  "description": "stepRace calls everything within a full road width 'road'",
+  "file": "src/race.js",
+  "find": "<= track.width / 2 ? 'road' : 'off';",
+  "replace": "<= track.width ? 'road' : 'off';"
+}

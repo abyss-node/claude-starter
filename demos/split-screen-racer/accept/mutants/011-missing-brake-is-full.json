@@ -1,0 +1,8 @@
+{
+  "id": "011-missing-brake-is-full",
+  "graded_item": 2,
+  "description": "a missing brake field counts as 1, so { throttle: 1 } alone brakes",
+  "file": "src/vehicles.js",
+  "find": "  const brake = unit(input?.brake);",
+  "replace": "  const brake = input?.brake === undefined ? 1 : unit(input?.brake);"
+}

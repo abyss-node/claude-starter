@@ -1,0 +1,8 @@
+{
+  "id": "007-page-script-with-query-string",
+  "graded_item": null,
+  "description": "the module script src carries a cache-busting query",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script type=\"module\" src=\"/src/main.js?v=3\"></script>"
+}

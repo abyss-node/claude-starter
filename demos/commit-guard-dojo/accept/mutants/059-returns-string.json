@@ -1,0 +1,11 @@
+{
+  "id": "059",
+  "graded_item": 12,
+  "description": "returns the answer as a string",
+  "file": "workspace/habits.py",
+  "find": "    return best\n",
+  "replace": "    return str(best)\n",
+  "expect": [
+    "test_11"
+  ]
+}

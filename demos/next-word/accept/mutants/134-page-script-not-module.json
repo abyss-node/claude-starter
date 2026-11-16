@@ -1,0 +1,8 @@
+{
+  "id": "134-page-script-not-module",
+  "graded_item": 23,
+  "description": "index.html loads its script without type=\"module\"",
+  "file": "index.html",
+  "find": "<script type=\"module\">",
+  "replace": "<script>"
+}

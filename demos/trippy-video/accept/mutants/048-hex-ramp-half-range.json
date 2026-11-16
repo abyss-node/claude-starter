@@ -1,0 +1,8 @@
+{
+ "id": "048-hex-ramp-half-range",
+ "graded_item": 7,
+ "description": "the ramp reaches only halfway along the list",
+ "file": "trippy.py",
+ "find": "        x = t * (len(stops) - 1)\n",
+ "replace": "        x = 0.5 * t * (len(stops) - 1)\n"
+}

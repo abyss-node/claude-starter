@@ -1,0 +1,8 @@
+{
+  "id": "074-config-writeback-default-seed",
+  "graded_item": 9,
+  "description": "createWorld writes the default seed into the config",
+  "file": "src/physics.js",
+  "find": "const seed = num(config.seed, 1) >>> 0;",
+  "replace": "const seed = (config.seed = num(config.seed, 1)) >>> 0;"
+}

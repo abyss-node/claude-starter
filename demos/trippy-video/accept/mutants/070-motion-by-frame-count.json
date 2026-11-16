@@ -1,0 +1,8 @@
+{
+ "id": "070-motion-by-frame-count",
+ "graded_item": 12,
+ "description": "motion advances a fixed step per frame, not per second",
+ "file": "trippy.py",
+ "find": "theta = TAU * (k / args.fps) / DRIFT_PERIOD",
+ "replace": "theta = TAU * k / 20.0"
+}

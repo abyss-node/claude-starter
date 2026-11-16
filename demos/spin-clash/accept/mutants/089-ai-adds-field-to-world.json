@@ -1,0 +1,8 @@
+{
+  "id": "089-ai-adds-field-to-world",
+  "graded_item": 10,
+  "description": "the computer writes a field into the world",
+  "file": "src/ai.js",
+  "find": "  const R = world.config.arenaRadius;",
+  "replace": "  world.lastAi = index;\n  const R = world.config.arenaRadius;"
+}

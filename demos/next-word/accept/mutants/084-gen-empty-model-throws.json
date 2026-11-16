@@ -1,0 +1,8 @@
+{
+  "id": "084-gen-empty-model-throws",
+  "graded_item": 16,
+  "description": "generate throws on an empty model instead of returning []",
+  "file": "src/sampling.js",
+  "find": "    if (kept.length === 0) break;",
+  "replace": "    if (kept.length === 0) throw new Error('nothing to offer');"
+}

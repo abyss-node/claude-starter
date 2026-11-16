@@ -1,0 +1,8 @@
+{
+  "id": "120-given-radius-ignored",
+  "graded_item": 15,
+  "description": "the given radius is ignored",
+  "file": "src/physics.js",
+  "find": "radius: clamp(num(spec.radius, 0.1), ...LIMITS.radius),",
+  "replace": "radius: 0.1,"
+}

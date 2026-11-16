@@ -1,0 +1,8 @@
+{
+  "id": "085-ai-answers-null-without-foe",
+  "graded_item": 10,
+  "description": "the answer for a top with no foe is null",
+  "file": "src/ai.js",
+  "find": "  if (!foe) return { x: 0, y: 0 };",
+  "replace": "  if (!foe) return null;"
+}

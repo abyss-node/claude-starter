@@ -1,0 +1,14 @@
+{
+  "title": "Next Word",
+  "app": "Next Word",
+  "tier": "S",
+  "stack": "browser",
+  "summary": "a tiny n-gram language model in the browser: bars for the next word, with temperature, top-k, top-p and seed controls",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "how the page looks and feels, whether its sliders and buttons are wired to the model, and the story's quality: only the element ids, the module scripts and the logic in src/ are checked",
+  "accept_count": 54,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 900
+}

@@ -1,0 +1,8 @@
+{
+  "id": "046-seed-modulo-2-32",
+  "graded_item": 11,
+  "description": "non-negative integer seeds are reduced modulo 2^32 before use",
+  "file": "src/track.js",
+  "find": "if (Number.isInteger(seed) && seed >= 0 && seed < 2 ** 32) return seed;",
+  "replace": "if (Number.isInteger(seed) && seed >= 0) return seed % 2 ** 32;"
+}

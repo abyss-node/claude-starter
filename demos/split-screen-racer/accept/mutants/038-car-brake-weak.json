@@ -1,0 +1,8 @@
+{
+  "id": "038-car-brake-weak",
+  "graded_item": 9,
+  "description": "the car brake decel is 5 units a second squared",
+  "file": "src/vehicles.js",
+  "find": "    brakeDecel: 520,",
+  "replace": "    brakeDecel: 5,"
+}

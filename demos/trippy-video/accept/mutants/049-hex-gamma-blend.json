@@ -1,0 +1,8 @@
+{
+ "id": "049-hex-gamma-blend",
+ "graded_item": 7,
+ "description": "hex stops are blended in a 2.2 gamma space (off the straight line by more than 3)",
+ "file": "trippy.py",
+ "find": "return tuple(p[i] + (q[i] - p[i]) * f for i in range(3))",
+ "replace": "return tuple((p[i] ** 2.2 + (q[i] ** 2.2 - p[i] ** 2.2) * f) ** (1 / 2.2) for i in range(3))"
+}

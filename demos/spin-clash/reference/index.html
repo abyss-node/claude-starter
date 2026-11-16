@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spin Clash</title>
+  <style>
+    :root { --bg: #14161b; --panel: #1e2129; --ink: #e8e6df; --dim: #9a9888; --a: #e8a33d; --b: #4fb3a9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, sans-serif; }
+    main { display: grid; grid-template-columns: 1fr minmax(260px, 320px); gap: 16px; max-width: 1100px; margin: 0 auto; padding: 16px; }
+    @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+    canvas { width: 100%; aspect-ratio: 1; background: #0d0f13; border-radius: 12px; display: block; touch-action: none; }
+    aside { display: grid; gap: 12px; align-content: start; }
+    fieldset { border: 1px solid #333846; border-radius: 10px; background: var(--panel); margin: 0; padding: 10px 12px; }
+    legend { padding: 0 6px; font-weight: 600; }
+    fieldset.a legend { color: var(--a); }
+    fieldset.b legend { color: var(--b); }
+    label { display: grid; grid-template-columns: 70px 1fr 44px; gap: 8px; align-items: center; margin: 6px 0; color: var(--dim); }
+    output { text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+    select, input[type=number], button { font: inherit; background: #2a2e39; color: var(--ink); border: 1px solid #3a3f4d; border-radius: 6px; padding: 4px 8px; }
+    button { cursor: pointer; padding: 8px 12px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    #status { min-height: 1.4em; font-weight: 600; }
+    .keys { color: var(--dim); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="arena" width="720" height="720" aria-label="The bowl, seen from above"></canvas>
+    <aside>
+      <div id="status" role="status">Set the tops, then press Start.</div>
+      <div class="row">
+        <label style="grid-template-columns: auto 90px; margin: 0">Seed <input id="seed" type="number" value="7" step="1"></label>
+        <label style="grid-template-columns: auto auto; margin: 0">Mode
+          <select id="mode"><option value="two">Two players</option><option value="solo">Solo vs computer</option></select>
+        </label>
+        <button id="start">Start</button>
+        <button id="replay" disabled>Replay last</button>
+      </div>
+      <fieldset class="a"><legend>Top A</legend><div data-top="0"></div></fieldset>
+      <fieldset class="b"><legend id="legend-b">Top B</legend><div data-top="1"></div></fieldset>
+      <p class="keys" id="keys-two">Top A steers with W A S D, Top B with the arrow keys. Knock the other top over the rim, or outlast its spin.</p>
+      <p class="keys" id="keys-solo" hidden>Solo: you are Top A and steer with W A S D or the arrow keys. Top B is the computer.</p>
+    </aside>
+  </main>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

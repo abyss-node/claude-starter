@@ -1,0 +1,8 @@
+{
+  "id": "147-y-coerced-with-number",
+  "graded_item": 16,
+  "description": "the y input is coerced with Number()",
+  "file": "src/physics.js",
+  "find": "clamp(num(inp.y, 0), -1, 1)",
+  "replace": "clamp(Number(inp.y) || 0, -1, 1)"
+}

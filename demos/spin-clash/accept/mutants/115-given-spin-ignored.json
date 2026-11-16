@@ -1,0 +1,8 @@
+{
+  "id": "115-given-spin-ignored",
+  "graded_item": 15,
+  "description": "the given spin is ignored",
+  "file": "src/physics.js",
+  "find": "spin: Math.max(0, num(spec.spin, 40 + 20 * spinJitter)),",
+  "replace": "spin: Math.max(0, 40 + 20 * spinJitter),"
+}

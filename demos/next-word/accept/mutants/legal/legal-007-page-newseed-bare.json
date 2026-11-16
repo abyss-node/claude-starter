@@ -1,0 +1,8 @@
+{
+  "id": "legal-007-page-newseed-bare",
+  "graded_item": 21,
+  "description": "#newseed button with unquoted attributes",
+  "file": "index.html",
+  "find": "      <button id=\"newseed\" type=\"button\">New random seed</button>",
+  "replace": "      <button type=button id=newseed>New random seed</button>"
+}

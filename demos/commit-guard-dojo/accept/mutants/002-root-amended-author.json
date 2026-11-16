@@ -1,0 +1,11 @@
+{
+  "id": "002",
+  "graded_item": 1,
+  "description": "the starting commit is amended with a new author",
+  "file": "build.py",
+  "find": "    commit(dest, env, plan[\"initial\"][\"message\"], 0)\n",
+  "replace": "    commit(dest, env, plan[\"initial\"][\"message\"], 0)\n    git(dest, env, \"commit\", \"-q\", \"--amend\", \"--no-edit\", \"--author\", \"Someone Else <else@example.invalid>\")\n",
+  "expect": [
+    "test_01"
+  ]
+}

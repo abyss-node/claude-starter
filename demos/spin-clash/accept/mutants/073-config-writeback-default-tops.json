@@ -1,0 +1,8 @@
+{
+  "id": "073-config-writeback-default-tops",
+  "graded_item": 9,
+  "description": "createWorld writes the default two tops into a config that has none",
+  "file": "src/physics.js",
+  "find": "  const R = settings.arenaRadius;",
+  "replace": "  if (!Array.isArray(config.tops) || config.tops.length === 0) config.tops = [{}, {}];\n  const R = settings.arenaRadius;"
+}

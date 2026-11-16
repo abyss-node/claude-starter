@@ -1,0 +1,8 @@
+{
+  "id": "092-lap-counts-on-gate-1-not-0",
+  "graded_item": 18,
+  "description": "a lap counts when gate 1 is crossed after gate 0 is skipped over",
+  "file": "src/race.js",
+  "find": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };",
+  "replace": "  if (progress.next === 0) return { lap: progress.lap, next: 1 % n };"
+}

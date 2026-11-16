@@ -1,0 +1,8 @@
+{
+  "id": "001",
+  "graded_item": null,
+  "description": "the cents left over start one person late, so one is lost",
+  "file": "src/share.js",
+  "find": "for (let given = 0; given < left; given++) shares[given] += 1;",
+  "replace": "for (let given = 1; given < left; given++) shares[given - 1] += 1;"
+}

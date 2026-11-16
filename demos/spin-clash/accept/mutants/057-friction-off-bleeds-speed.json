@@ -1,0 +1,8 @@
+{
+  "id": "057-friction-off-bleeds-speed",
+  "graded_item": 7,
+  "description": "friction off still damps speed by a thousandth per tick",
+  "file": "src/physics.js",
+  "find": "    top.vx += ax * DT;",
+  "replace": "    top.vx += ax * DT;\n    if (!friction) { top.vx *= 0.999; top.vy *= 0.999; }"
+}

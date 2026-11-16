@@ -1,0 +1,8 @@
+{
+  "id": "024-car-off-factor-high",
+  "graded_item": 7,
+  "description": "the car keeps 95% of its top speed off track",
+  "file": "src/vehicles.js",
+  "find": "    offSpeedFactor: 0.62,",
+  "replace": "    offSpeedFactor: 0.95,"
+}

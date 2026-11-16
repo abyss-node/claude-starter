@@ -1,0 +1,8 @@
+{
+  "id": "061-skeleton-only-history",
+  "graded_item": 13,
+  "description": "initial commit only, no lane change committed",
+  "file": "make-workspace.mjs",
+  "find": "?? \"lanes\";",
+  "replace": "?? \"skeleton\";"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "070-config-writeback-clamped-radius",
+  "graded_item": 9,
+  "description": "createWorld writes the clamped radius back into the config",
+  "file": "src/physics.js",
+  "find": "radius: clamp(num(spec.radius, 0.1), ...LIMITS.radius),",
+  "replace": "radius: (spec.radius = clamp(num(spec.radius, 0.1), ...LIMITS.radius)),"
+}

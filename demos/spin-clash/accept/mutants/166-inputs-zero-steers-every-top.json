@@ -1,0 +1,8 @@
+{
+  "id": "166-inputs-zero-steers-every-top",
+  "graded_item": 16,
+  "description": "inputs[0] steers every top",
+  "file": "src/physics.js",
+  "find": "const [ix, iy] = readInput(inputs, i);",
+  "replace": "const [ix, iy] = readInput(inputs, 0);"
+}

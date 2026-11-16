@@ -1,0 +1,11 @@
+{
+  "id": "005",
+  "graded_item": 1,
+  "description": "an unrelated root commit is merged into the history",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    empty = subprocess.run([GIT, \"-C\", str(dest), \"commit-tree\", \"4b825dc642cb6eb9a060e54bf8d69288fbee4904\", \"-m\", \"unrelated root\"], env=env, check=True, capture_output=True, text=True).stdout.strip()\n    git(dest, env, \"merge\", \"-q\", \"--allow-unrelated-histories\", \"--no-ff\", \"-m\", \"Merge\\n\\nUnverified: x\", empty)\n    if tree_files(dest) != tree_files(finished):\n",
+  "expect": [
+    "test_01"
+  ]
+}

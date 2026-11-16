@@ -1,0 +1,8 @@
+{
+  "id": "069-config-writeback-clamped-mass",
+  "graded_item": 9,
+  "description": "createWorld writes the clamped mass back into the config",
+  "file": "src/physics.js",
+  "find": "mass: clamp(num(spec.mass, 1), ...LIMITS.mass),",
+  "replace": "mass: (spec.mass = clamp(num(spec.mass, 1), ...LIMITS.mass)),"
+}

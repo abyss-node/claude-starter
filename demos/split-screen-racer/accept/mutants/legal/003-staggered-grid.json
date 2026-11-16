@@ -1,0 +1,8 @@
+{
+  "id": "003-staggered-grid",
+  "graded_item": null,
+  "description": "the second grid slot is 70 behind the first",
+  "file": "src/track.js",
+  "find": "    { x: back.x + t.y * side, y: back.y - t.x * side, heading },",
+  "replace": "    { x: back.x + t.y * side - t.x * 70, y: back.y - t.x * side - t.y * 70, heading },"
+}

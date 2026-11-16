@@ -1,0 +1,8 @@
+{
+  "id": "018-floor-divisor",
+  "graded_item": 4,
+  "description": "climb floor-divided by 100",
+  "file": "backend/trails.py",
+  "find": "score = length_km + climb_m / 100",
+  "replace": "score = length_km + climb_m // 100"
+}

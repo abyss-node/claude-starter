@@ -1,0 +1,11 @@
+{
+  "id": "058",
+  "graded_item": 12,
+  "description": "returns a float, which equals the int but is not one",
+  "file": "workspace/habits.py",
+  "find": "    return best\n",
+  "replace": "    return float(best)\n",
+  "expect": [
+    "test_11"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "142-friction-on-no-spin-loss",
+  "graded_item": 15,
+  "description": "friction on does not lower spin",
+  "file": "src/physics.js",
+  "find": "      top.spin = Math.max(0, top.spin - loss);",
+  "replace": "      top.spin = Math.max(0, top.spin - 0 * loss);"
+}

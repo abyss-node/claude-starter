@@ -1,0 +1,8 @@
+{
+ "id": "024-negative-seed-rejected",
+ "graded_item": 3,
+ "description": "--seed with a negative number is refused",
+ "file": "trippy.py",
+ "find": "ap.add_argument(\"--seed\", type=int, default=None,",
+ "replace": "ap.add_argument(\"--seed\", type=lambda s: int(s) if int(s) >= 0 else int(\"negative\"), default=None,"
+}

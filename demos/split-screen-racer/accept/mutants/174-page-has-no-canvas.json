@@ -1,0 +1,8 @@
+{
+  "id": "174-page-has-no-canvas",
+  "graded_item": 33,
+  "description": "index.html has no canvas",
+  "file": "index.html",
+  "find": "<canvas id=\"game\"></canvas>",
+  "replace": "<div id=\"game\"></div>"
+}

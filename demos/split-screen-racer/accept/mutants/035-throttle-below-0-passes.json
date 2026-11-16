@@ -1,0 +1,8 @@
+{
+  "id": "035-throttle-below-0-passes",
+  "graded_item": 8,
+  "description": "a negative throttle is not clamped up to 0",
+  "file": "src/vehicles.js",
+  "find": "  const throttle = unit(input?.throttle);",
+  "replace": "  const throttle = Number.isFinite(input?.throttle) ? Math.min(1, input.throttle) : 0;"
+}

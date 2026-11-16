@@ -1,0 +1,11 @@
+{
+  "id": "078",
+  "graded_item": 14,
+  "description": "rewrites every entry as bool(entry) in the caller's list",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    for i, day in enumerate(days):\n        days[i] = bool(day)\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "094-parse-accepts-dot-zero",
+  "graded_item": 18,
+  "description": "parseSeed accepts \"1.0\", \"7.\" and \"42.000\"",
+  "file": "src/seed.js",
+  "find": "  if (!/^[0-9]+$/.test(s)) return null;\n  const n = Number(s);\n  return n <= PARSE_MAX ? n : null;",
+  "replace": "  if (!/^[0-9.]+$/.test(s)) return null;\n  const n = Number(s);\n  return Number.isInteger(n) && n <= PARSE_MAX ? n : null;"
+}

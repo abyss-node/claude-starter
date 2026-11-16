@@ -1,0 +1,8 @@
+{
+  "id": "legal-016-page-seed-number-2",
+  "graded_item": 22,
+  "description": "legal variant: page-seed-number-2",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <input id=seed type=number value=7>"
+}

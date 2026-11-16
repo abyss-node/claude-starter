@@ -1,0 +1,8 @@
+{
+  "id": "051-centerline-under-32-points",
+  "graded_item": 12,
+  "description": "the centreline is cut to 20 points",
+  "file": "src/geom.js",
+  "find": "const count = Math.max(32, Math.round(total / spacing));",
+  "replace": "const count = Math.min(20, Math.max(32, Math.round(total / spacing)));"
+}

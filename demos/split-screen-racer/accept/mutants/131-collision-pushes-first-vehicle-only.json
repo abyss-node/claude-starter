@@ -1,0 +1,8 @@
+{
+  "id": "131-collision-pushes-first-vehicle-only",
+  "graded_item": 26,
+  "description": "a collision moves only the first player",
+  "file": "src/race.js",
+  "find": "  b.x += nx * overlap * wb;\n  b.y += ny * overlap * wb;\n",
+  "replace": ""
+}

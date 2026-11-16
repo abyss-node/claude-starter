@@ -1,0 +1,8 @@
+{
+  "id": "145-arenaradius-default-2",
+  "graded_item": 8,
+  "description": "arenaRadius defaults to 2",
+  "file": "src/physics.js",
+  "find": "  arenaRadius: 1,",
+  "replace": "  arenaRadius: 2,"
+}

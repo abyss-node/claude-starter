@@ -1,0 +1,8 @@
+{
+  "id": "043-name-unescaped",
+  "graded_item": 8,
+  "description": "name is not escaped",
+  "file": "frontend/render.js",
+  "find": "${escapeHtml(trail.name)}",
+  "replace": "${trail.name}"
+}

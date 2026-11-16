@@ -1,0 +1,8 @@
+{
+  "id": "059-ringout-by-edge",
+  "graded_item": 8,
+  "description": "ring-out is judged on the edge of the top, not its centre",
+  "file": "src/physics.js",
+  "find": "Math.hypot(top.x, top.y) > arenaRadius) top.status",
+  "replace": "Math.hypot(top.x, top.y) + top.radius > arenaRadius) top.status"
+}

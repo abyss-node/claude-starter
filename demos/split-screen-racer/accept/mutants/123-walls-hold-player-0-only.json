@@ -1,0 +1,8 @@
+{
+  "id": "123-walls-hold-player-0-only",
+  "graded_item": 24,
+  "description": "only player 0 is kept inside the walls",
+  "file": "src/race.js",
+  "find": "    keepInside(track, p);",
+  "replace": "    if (p === players[0]) keepInside(track, p);"
+}

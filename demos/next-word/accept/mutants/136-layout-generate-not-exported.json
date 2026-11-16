@@ -1,0 +1,8 @@
+{
+  "id": "136-layout-generate-not-exported",
+  "graded_item": 24,
+  "description": "sampling.js does not export generate",
+  "file": "src/sampling.js",
+  "find": "export function generate(",
+  "replace": "function generate("
+}

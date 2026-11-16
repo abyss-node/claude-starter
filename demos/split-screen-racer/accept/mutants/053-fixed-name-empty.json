@@ -1,0 +1,8 @@
+{
+  "id": "053-fixed-name-empty",
+  "graded_item": 13,
+  "description": "the fixed track has an empty name",
+  "file": "src/track.js",
+  "find": "buildTrack('Hollow Reach', HOLLOW_REACH, checkpoints)",
+  "replace": "buildTrack('', HOLLOW_REACH, checkpoints)"
+}

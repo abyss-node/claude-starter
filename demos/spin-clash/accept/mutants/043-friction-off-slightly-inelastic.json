@@ -1,0 +1,8 @@
+{
+  "id": "043-friction-off-slightly-inelastic",
+  "graded_item": 6,
+  "description": "a friction-off bounce keeps 99 percent of the approach speed",
+  "file": "src/physics.js",
+  "find": "const e = world.config.friction ? RESTITUTION_WITH_FRICTION : 1;",
+  "replace": "const e = world.config.friction ? RESTITUTION_WITH_FRICTION : 0.99;"
+}

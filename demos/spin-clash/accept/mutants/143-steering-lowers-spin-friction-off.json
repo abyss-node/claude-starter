@@ -1,0 +1,8 @@
+{
+  "id": "143-steering-lowers-spin-friction-off",
+  "graded_item": 15,
+  "description": "with friction off steering changes spin",
+  "file": "src/physics.js",
+  "find": "    // Semi-implicit Euler: velocity first, then position with the new velocity.",
+  "replace": "    if (!friction) top.spin = Math.max(0, top.spin - Math.abs(ix) * 0.01);\n    // Semi-implicit Euler: velocity first, then position with the new velocity."
+}

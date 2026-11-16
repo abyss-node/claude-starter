@@ -1,0 +1,8 @@
+{
+  "id": "legal-007-overlap-not-pushed-apart",
+  "graded_item": 6,
+  "description": "overlapping tops are not pushed apart: the brief allows it, it does not require it",
+  "file": "src/physics.js",
+  "find": "  const push = (reach - d) / (ima + imb);\n  a.x -= nx * push * ima;\n  a.y -= ny * push * ima;\n  b.x += nx * push * imb;\n  b.y += ny * push * imb;\n",
+  "replace": ""
+}

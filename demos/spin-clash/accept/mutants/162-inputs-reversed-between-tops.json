@@ -1,0 +1,8 @@
+{
+  "id": "162-inputs-reversed-between-tops",
+  "graded_item": 16,
+  "description": "inputs[i] steers the last top instead of top i",
+  "file": "src/physics.js",
+  "find": "const [ix, iy] = readInput(inputs, i);",
+  "replace": "const [ix, iy] = readInput(inputs, tops.length - 1 - i);"
+}

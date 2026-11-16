@@ -1,0 +1,8 @@
+{
+  "id": "025-coincident-divides-by-zero",
+  "graded_item": 4,
+  "description": "tops on the same spot get a normal of 0/0",
+  "file": "src/physics.js",
+  "find": "  if (d > 1e-9) {",
+  "replace": "  if (true) {"
+}

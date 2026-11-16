@@ -1,0 +1,8 @@
+{
+  "id": "031-missing-steer-is-full",
+  "graded_item": 8,
+  "description": "a missing steer counts as 1",
+  "file": "src/vehicles.js",
+  "find": "  const steer = signed(input?.steer);",
+  "replace": "  const steer = input?.steer === undefined ? 1 : signed(input?.steer);"
+}

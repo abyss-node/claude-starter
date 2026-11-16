@@ -1,0 +1,8 @@
+{
+  "id": "005-heading-flip-y",
+  "graded_item": 2,
+  "description": "heading pi/2 drives along -y",
+  "file": "src/vehicles.js",
+  "find": "  fy = Math.sin(h);",
+  "replace": "  fy = -Math.sin(h);"
+}

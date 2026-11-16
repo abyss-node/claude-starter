@@ -1,0 +1,8 @@
+{
+  "id": "129-collision-pushes-half-the-overlap",
+  "graded_item": 26,
+  "description": "a collision undoes only half of the overlap",
+  "file": "src/race.js",
+  "find": "  const overlap = min - d;",
+  "replace": "  const overlap = (min - d) * 0.5;"
+}

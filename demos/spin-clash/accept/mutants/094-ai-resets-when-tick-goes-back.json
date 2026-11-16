@@ -1,0 +1,8 @@
+{
+  "id": "094-ai-resets-when-tick-goes-back",
+  "graded_item": 11,
+  "description": "the computer remembers the last tick it saw in a module variable and answers zero when a new match starts",
+  "file": "src/ai.js",
+  "find": "export function aiInput(world, index) {",
+  "replace": "let LAST_TICK = -1;\nexport function aiInput(world, index) {\n  const fresh = world.tick < LAST_TICK;\n  LAST_TICK = world.tick;\n  if (fresh) return { x: 0, y: 0 };"
+}

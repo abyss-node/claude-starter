@@ -1,0 +1,8 @@
+{
+ "id": "001-frames-truncated",
+ "graded_item": 1,
+ "description": "frame count is int(fps*seconds), cut off instead of rounded",
+ "file": "trippy.py",
+ "find": "frames = max(1, int(round(args.fps * args.seconds)))",
+ "replace": "frames = max(1, int(args.fps * args.seconds))"
+}

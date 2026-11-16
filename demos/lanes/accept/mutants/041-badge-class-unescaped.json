@@ -1,0 +1,8 @@
+{
+  "id": "041-badge-class-unescaped",
+  "graded_item": 8,
+  "description": "the level goes raw into the class attribute",
+  "file": "frontend/render.js",
+  "find": "const cls = LEVELS.has(level) ? `difficulty difficulty-${level}` : \"difficulty\";",
+  "replace": "const cls = `difficulty difficulty-${level}`;"
+}

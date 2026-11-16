@@ -1,0 +1,8 @@
+{
+ "id": "089-seed-not-printed",
+ "graded_item": 18,
+ "description": "no seed line is printed",
+ "file": "trippy.py",
+ "find": "        print(\"seed: %d\" % args.seed)\n",
+ "replace": "        pass\n"
+}

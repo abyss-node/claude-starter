@@ -1,0 +1,8 @@
+{
+  "id": "145-race-surface-always-road",
+  "graded_item": 28,
+  "description": "stepRace passes road to every vehicle",
+  "file": "src/race.js",
+  "find": "<= track.width / 2 ? 'road' : 'off';",
+  "replace": "<= Infinity ? 'road' : 'off';"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "005-page-single-quotes-defer-and-dot-slash",
+  "graded_item": null,
+  "description": "single quoted attributes, defer, and ./src/main.js",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script defer type='module' src='./src/main.js'></script>"
+}

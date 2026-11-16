@@ -1,0 +1,8 @@
+{
+ "id": "092-seed-line-no-space",
+ "graded_item": 18,
+ "description": "the line reads 'seed:N' with no space",
+ "file": "trippy.py",
+ "find": "print(\"seed: %d\" % args.seed)",
+ "replace": "print(\"seed:%d\" % args.seed)"
+}

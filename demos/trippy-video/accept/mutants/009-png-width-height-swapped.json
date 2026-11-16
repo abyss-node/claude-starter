@@ -1,0 +1,8 @@
+{
+ "id": "009-png-width-height-swapped",
+ "graded_item": 2,
+ "description": "IHDR holds height then width",
+ "file": "trippy.py",
+ "find": "ihdr = struct.pack(\">IIBBBBB\", width, height",
+ "replace": "ihdr = struct.pack(\">IIBBBBB\", height, width"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "095",
+  "graded_item": 16,
+  "description": "the Functions heading is renamed, so the list is not found",
+  "file": "workspace/README.md",
+  "find": "## Functions\n",
+  "replace": "## API\n",
+  "expect": [
+    "test_13"
+  ]
+}

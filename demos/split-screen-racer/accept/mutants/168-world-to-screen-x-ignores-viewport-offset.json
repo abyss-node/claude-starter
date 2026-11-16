@@ -1,0 +1,8 @@
+{
+  "id": "168-world-to-screen-x-ignores-viewport-offset",
+  "graded_item": 31,
+  "description": "worldToScreen centres on the canvas, not on the viewport",
+  "file": "src/camera.js",
+  "find": "    x: vp.x + vp.w / 2 + (wx - vp.camX) * vp.scale,",
+  "replace": "    x: vp.w / 2 + (wx - vp.camX) * vp.scale,"
+}

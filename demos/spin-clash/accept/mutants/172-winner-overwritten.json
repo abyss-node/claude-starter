@@ -1,0 +1,8 @@
+{
+  "id": "172-winner-overwritten",
+  "graded_item": 17,
+  "description": "the winner is worked out again every tick",
+  "file": "src/physics.js",
+  "find": "if (world.winner === null && tops.length >= 2) {",
+  "replace": "if (tops.length >= 2) {"
+}

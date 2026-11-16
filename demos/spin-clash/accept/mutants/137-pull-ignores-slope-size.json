@@ -1,0 +1,8 @@
+{
+  "id": "137-pull-ignores-slope-size",
+  "graded_item": 15,
+  "description": "the pull does not grow with slope",
+  "file": "src/physics.js",
+  "find": "let ax = -slope * top.x + steer * ix;\n    let ay = -slope * top.y + steer * iy;",
+  "replace": "const sl = slope > 0 ? 1 : 0;\n    let ax = -sl * top.x + steer * ix;\n    let ay = -sl * top.y + steer * iy;"
+}

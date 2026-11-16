@@ -1,0 +1,8 @@
+{
+  "id": "028-backoff-skips-shorter",
+  "graded_item": 5,
+  "description": "nextDistribution tries only the longest context, then jumps to word frequency",
+  "file": "src/lm.js",
+  "find": "  for (let len = maxLen; len >= 1; len--) {",
+  "replace": "  for (let len = maxLen; len >= Math.max(1, maxLen); len--) {"
+}

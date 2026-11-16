@@ -1,0 +1,8 @@
+{
+  "id": "113-parse-zero-padded-differs",
+  "graded_item": 20,
+  "description": "a zero-padded typed seed (\"0042\") gives a different number from \"42\"",
+  "file": "src/seed.js",
+  "find": "  return n <= PARSE_MAX ? n : null;",
+  "replace": "  return n <= PARSE_MAX ? n + (s.length > String(n).length ? 1 : 0) : null;"
+}

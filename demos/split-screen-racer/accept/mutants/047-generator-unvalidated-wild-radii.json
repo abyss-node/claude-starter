@@ -1,0 +1,8 @@
+{
+  "id": "047-generator-unvalidated-wild-radii",
+  "graded_item": 12,
+  "description": "the generator skips validation and its radii run from 0.1 to 2.0 times the base",
+  "file": "src/track.js",
+  "find": "const r = base * (0.6 + rand() * 0.7);\n      ctrl.push({ x: Math.cos(ang) * r * 1.25, y: Math.sin(ang) * r });\n    }\n    const track = buildTrack(`Seed ${seed}`, ctrl, checkpoints);\n    if (isValidTrack(track)) return track;",
+  "replace": "const r = base * (0.1 + rand() * 1.9);\n      ctrl.push({ x: Math.cos(ang) * r * 1.25, y: Math.sin(ang) * r });\n    }\n    const track = buildTrack(`Seed ${seed}`, ctrl, checkpoints);\n    return track;"
+}

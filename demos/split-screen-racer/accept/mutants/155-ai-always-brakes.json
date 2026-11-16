@@ -1,0 +1,8 @@
+{
+  "id": "155-ai-always-brakes",
+  "graded_item": 29,
+  "description": "the AI holds the brake down",
+  "file": "src/ai.js",
+  "find": "brake: p.speed > desired * 1.08 ? 1 : 0,",
+  "replace": "brake: 1,"
+}

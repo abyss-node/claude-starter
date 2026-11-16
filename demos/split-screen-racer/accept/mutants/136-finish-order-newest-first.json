@@ -1,0 +1,8 @@
+{
+  "id": "136-finish-order-newest-first",
+  "graded_item": 27,
+  "description": "finishOrder lists the last finisher first",
+  "file": "src/race.js",
+  "find": "race.finishOrder.push(i);",
+  "replace": "race.finishOrder.unshift(i);"
+}

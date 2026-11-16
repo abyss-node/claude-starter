@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kerbside Duel</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14181d; color: #e8e8e8; font: 14px system-ui, sans-serif; overflow: hidden; }
+  form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 8px 12px; background: #1f252c; }
+  label { display: flex; gap: 6px; align-items: center; }
+  select, input, button { font: inherit; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<form id="setup">
+  <strong>Kerbside Duel</strong>
+  <label>Mode <select name="mode"><option value="duo">Two players (split)</option><option value="solo">Solo vs AI</option></select></label>
+  <label>P1 <select name="p1"><option value="car">Car (Brick)</option><option value="bike">Bike (Wisp)</option></select></label>
+  <label>P2 / AI <select name="p2"><option value="bike">Bike (Wisp)</option><option value="car">Car (Brick)</option></select></label>
+  <label>Track <select name="track"><option value="fixed">Hollow Reach</option><option value="seeded">Seeded</option></select></label>
+  <label>Seed <input name="seed" type="number" value="7" min="0" style="width:6em"></label>
+  <label>Split <select name="layout"><option value="side">Side by side</option><option value="stacked">Stacked</option></select></label>
+  <label>Laps <input name="laps" type="number" value="3" min="1" max="9" style="width:3em"></label>
+  <button type="submit">Start</button>
+  <span>P1 WASD, P2 arrows, Esc menu</span>
+</form>
+<canvas id="game"></canvas>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

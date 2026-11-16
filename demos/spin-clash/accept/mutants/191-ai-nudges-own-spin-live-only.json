@@ -1,0 +1,8 @@
+{
+  "id": "191-ai-nudges-own-spin-live-only",
+  "graded_item": 14,
+  "description": "the computer shaves a hair off its own top spin each call, which a replay never repeats",
+  "file": "src/ai.js",
+  "find": "  const R = world.config.arenaRadius;",
+  "replace": "  me.spin -= 1e-7;\n  const R = world.config.arenaRadius;"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "056-loop-phase-one-frame-late",
+ "graded_item": 9,
+ "description": "loop phase starts one frame late",
+ "file": "trippy.py",
+ "find": "theta = TAU * k / frames",
+ "replace": "theta = TAU * (k + 1) / frames"
+}

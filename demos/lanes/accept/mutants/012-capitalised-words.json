@@ -1,0 +1,8 @@
+{
+  "id": "012-capitalised-words",
+  "graded_item": 3,
+  "description": "difficulty words are Easy, Moderate, Hard",
+  "file": "backend/trails.py",
+  "find": "    if score < MODERATE_FROM:\n        return \"easy\"\n    if score < HARD_FROM:\n        return \"moderate\"\n    return \"hard\"",
+  "replace": "    if score < MODERATE_FROM:\n        return \"Easy\"\n    if score < HARD_FROM:\n        return \"Moderate\"\n    return \"Hard\""
+}

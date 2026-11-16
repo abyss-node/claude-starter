@@ -1,0 +1,11 @@
+{
+  "id": "086",
+  "graded_item": 14,
+  "description": "swaps each list entry for an equal copy (repr unchanged, identity changed)",
+  "file": "workspace/habits.py",
+  "find": "    best = run = 0\n",
+  "replace": "    for i, d in enumerate(days):\n        if isinstance(d, list):\n            days[i] = list(d)\n    best = run = 0\n",
+  "expect": [
+    "test_17"
+  ]
+}

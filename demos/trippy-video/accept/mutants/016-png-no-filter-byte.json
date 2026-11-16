@@ -1,0 +1,8 @@
+{
+ "id": "016-png-no-filter-byte",
+ "graded_item": 2,
+ "description": "scanlines carry no filter-type byte",
+ "file": "trippy.py",
+ "find": "row = [b\"\\x00\"]  # PNG filter type 0 (None)",
+ "replace": "row = []"
+}

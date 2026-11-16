@@ -1,0 +1,8 @@
+{
+  "id": "091-gen-default-temp-0",
+  "graded_item": 17,
+  "description": "generate default temperature is 0",
+  "file": "src/sampling.js",
+  "find": "export function generate(model, prompt, { length = 10, seed = 1, temperature = 1, topK = 0, topP = 1 } = {}) {",
+  "replace": "export function generate(model, prompt, { length = 10, seed = 1, temperature = 0, topK = 0, topP = 1 } = {}) {"
+}

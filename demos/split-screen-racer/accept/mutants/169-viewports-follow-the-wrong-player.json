@@ -1,0 +1,8 @@
+{
+  "id": "169-viewports-follow-the-wrong-player",
+  "graded_item": 31,
+  "description": "each viewport follows the other player",
+  "file": "src/camera.js",
+  "find": "camX: targets[i]?.x ?? 0, camY: targets[i]?.y ?? 0, scale }));",
+  "replace": "camX: targets[1 - i]?.x ?? 0, camY: targets[1 - i]?.y ?? 0, scale }));"
+}

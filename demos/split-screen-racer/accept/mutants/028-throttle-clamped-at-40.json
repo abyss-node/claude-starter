@@ -1,0 +1,8 @@
+{
+  "id": "028-throttle-clamped-at-40",
+  "graded_item": 8,
+  "description": "throttle and brake clamp at 40, not 1",
+  "file": "src/vehicles.js",
+  "find": "return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;",
+  "replace": "return Number.isFinite(v) ? Math.min(40, Math.max(0, v)) : 0;"
+}

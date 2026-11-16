@@ -1,0 +1,8 @@
+{
+ "id": "039-acid-green-phase",
+ "graded_item": 6,
+ "description": "acid green phase 0.30 instead of 0.33",
+ "file": "trippy.py",
+ "find": "(1.00, 1.00, 1.00), (0.00, 0.33, 0.67)),",
+ "replace": "(1.00, 1.00, 1.00), (0.00, 0.30, 0.67)),"
+}

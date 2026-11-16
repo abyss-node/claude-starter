@@ -1,0 +1,8 @@
+{
+  "id": "096-parse-length-cap",
+  "graded_item": 18,
+  "description": "parseSeed accepts at most 10 digits, so zero-padded input fails",
+  "file": "src/seed.js",
+  "find": "  if (!/^[0-9]+$/.test(s)) return null;",
+  "replace": "  if (!/^[0-9]{1,10}$/.test(s)) return null;"
+}

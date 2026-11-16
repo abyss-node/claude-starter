@@ -1,0 +1,8 @@
+{
+  "id": "042-seed-low-bits-dropped",
+  "graded_item": 10,
+  "description": "seeds 1232 to 1235 give the same track",
+  "file": "src/track.js",
+  "find": "const key = seedKey(seed);",
+  "replace": "const key = seedKey(seed) & ~3;"
+}

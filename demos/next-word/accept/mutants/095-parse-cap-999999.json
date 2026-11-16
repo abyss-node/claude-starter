@@ -1,0 +1,8 @@
+{
+  "id": "095-parse-cap-999999",
+  "graded_item": 18,
+  "description": "parseSeed caps at 999999",
+  "file": "src/seed.js",
+  "find": "const PARSE_MAX = 4294967295;",
+  "replace": "const PARSE_MAX = 999999;"
+}

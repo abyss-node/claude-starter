@@ -1,0 +1,8 @@
+{
+  "id": "102-progress-edits-the-from-point",
+  "graded_item": 20,
+  "description": "advanceProgress writes into the segment start point",
+  "file": "src/race.js",
+  "find": "  const n = track.checkpoints.length;\n  const gate",
+  "replace": "  const n = track.checkpoints.length;\n  from.x = to.x;\n  from.y = to.y;\n  const gate"
+}

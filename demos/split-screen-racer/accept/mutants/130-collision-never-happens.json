@@ -1,0 +1,8 @@
+{
+  "id": "130-collision-never-happens",
+  "graded_item": 25,
+  "description": "vehicles pass through each other",
+  "file": "src/race.js",
+  "find": "  if (d >= min) return;",
+  "replace": "  return;"
+}

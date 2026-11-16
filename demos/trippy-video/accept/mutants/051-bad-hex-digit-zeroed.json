@@ -1,0 +1,14 @@
+{
+ "id": "051-bad-hex-digit-zeroed",
+ "graded_item": 8,
+ "description": "a bad hex digit is read as 0 instead of refused",
+ "file": "trippy.py",
+ "find": "if not re.fullmatch(r\"[0-9a-fA-F]{6}\", part):",
+ "replace": "if not re.fullmatch(r\"\\w{6}\", part):",
+ "also": [
+  {
+   "find": "stops.append(tuple(int(part[i:i + 2], 16) / 255.0 for i in (0, 2, 4)))",
+   "replace": "stops.append(tuple((int(part[i:i + 2], 16) if re.fullmatch(r\"[0-9a-fA-F]{2}\", part[i:i + 2]) else 0) / 255.0 for i in (0, 2, 4)))"
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+:root { --ink: #1d2a24; --paper: #f4f1ea; --line: #cfc8b8; --muted: #5f6b63; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 40rem; margin: 0 auto; padding: 2rem 1rem; }
+.lede { color: var(--muted); }
+.board { list-style: none; padding: 0; }
+.trail { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+.trail-name { font-weight: 600; flex: 1 1 12rem; }
+.trail-stats { color: var(--muted); }
+.error { color: #9b2c1f; }
+.difficulty { font-size: 0.8rem; padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid currentColor; text-transform: capitalize; }
+.difficulty-easy { color: #2f6b3a; }
+.difficulty-moderate { color: #8a5a12; }
+.difficulty-hard { color: #9b2c1f; }

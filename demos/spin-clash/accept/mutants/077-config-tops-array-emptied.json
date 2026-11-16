@@ -1,0 +1,8 @@
+{
+  "id": "077-config-tops-array-emptied",
+  "graded_item": 9,
+  "description": "createWorld empties the config tops array it was given",
+  "file": "src/physics.js",
+  "find": "config.tops.slice(0, MAX_TOPS)",
+  "replace": "config.tops.splice(0, MAX_TOPS)"
+}

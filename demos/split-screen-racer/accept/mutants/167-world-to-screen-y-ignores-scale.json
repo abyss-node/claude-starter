@@ -1,0 +1,8 @@
+{
+  "id": "167-world-to-screen-y-ignores-scale",
+  "graded_item": 31,
+  "description": "worldToScreen does not scale y",
+  "file": "src/camera.js",
+  "find": "(wy - vp.camY) * vp.scale",
+  "replace": "(wy - vp.camY)"
+}

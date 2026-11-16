@@ -1,0 +1,8 @@
+{
+  "id": "004",
+  "graded_item": null,
+  "description": "a negative tip is let through",
+  "file": "src/share.js",
+  "find": "!Number.isFinite(tipPercent) || tipPercent < 0",
+  "replace": "!Number.isFinite(tipPercent)"
+}

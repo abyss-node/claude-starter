@@ -1,0 +1,11 @@
+{
+  "id": "004",
+  "graded_item": 1,
+  "description": "the starting commit lacks habits.py (restored later)",
+  "file": "build.py",
+  "find": "    git(dest, env, \"config\", \"core.autocrlf\", \"false\")\n",
+  "replace": "    git(dest, env, \"config\", \"core.autocrlf\", \"false\")\n    os.unlink(dest / \"habits.py\")\n",
+  "expect": [
+    "test_01"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "142-finish-recorded-again-every-tick",
+  "graded_item": 27,
+  "description": "a finished player is counted into finishOrder again on later ticks",
+  "file": "src/race.js",
+  "find": "    if (p.finished) return;\n    const prog",
+  "replace": "    const prog"
+}

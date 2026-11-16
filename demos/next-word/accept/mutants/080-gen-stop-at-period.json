@@ -1,0 +1,8 @@
+{
+  "id": "080-gen-stop-at-period",
+  "graded_item": 15,
+  "description": "generate stops after the first \".\"",
+  "file": "src/sampling.js",
+  "find": "    context.push(token);",
+  "replace": "    context.push(token);\n    if (token === '.') break;"
+}

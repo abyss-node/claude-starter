@@ -1,0 +1,8 @@
+{
+  "id": "157-side-split-not-whole-pixels",
+  "graded_item": 30,
+  "description": "the side split is at width / 2, a half pixel on odd widths",
+  "file": "src/camera.js",
+  "find": "    const w0 = Math.floor(width / 2);",
+  "replace": "    const w0 = width / 2;"
+}

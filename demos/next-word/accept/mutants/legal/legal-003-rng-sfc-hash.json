@@ -1,0 +1,8 @@
+{
+  "id": "legal-003-rng-sfc-hash",
+  "graded_item": 13,
+  "description": "createRng seeds mulberry32 from an FNV hash of the seed",
+  "file": "src/sampling.js",
+  "find": "  let a = Number(seed) >>> 0;",
+  "replace": "  let h = 2166136261 >>> 0;\n  for (const ch of String(Number(seed) >>> 0)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }\n  let a = h;"
+}

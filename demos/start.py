@@ -11,8 +11,9 @@ It refuses before writing anything:
   exit 3  the folder, its .git/hooks or the commit guard's data folder cannot be written, as in a sandboxed agent
           session; it prints this command for the user's own terminal (install.py's write probe and refusal)
 Everything it then does is local, and deleting the folder undoes it: it copies the skeleton and the brief, writes
-the tool's repo rules file and a package.json whose `test` runs the kit's held-out check, makes a git repo with
-one commit, and installs the commit guard's git hooks in it. It ends with what the person at the keyboard does
+the tool's repo rules file and a package.json whose `test` runs the kit's held-out check (a python demo has none:
+its rules file names the launcher), makes a git repo with one commit, and installs the commit guard's git hooks in
+it (make_workspace). It ends with what the person at the keyboard does
 next: the line that opens a session there, the first message, and what to watch for. The outward steps (a GitHub
 repo and a push) are only printed, each for its own yes, and the repo they make is private.
 
@@ -85,34 +86,57 @@ def rules_text(demo: Demo, tool: str) -> str:
                    "it, run `python -m http.server` in this folder and open http://localhost:8000.",
         "node": "- **Stack:** ES modules on Node, with no npm dependencies and no build step.",
         "python": "- **Stack:** Python's standard library only.",
+        "browser-python": "- **Stack:** ES modules in the browser, with no npm dependencies and no build step, "
+                          "and Python's standard library only; `BRIEF.md` says which part is which.",
     }[demo.stack]
+    if demo.runtime == "python":
+        bash, ps = dl.launcher("demo", "check", demo.name)
+        tests = ["- **Tests:** the test command runs the kit's held-out checks on this folder; they live in the "
+                 "kit, not here. In bash:", f"  `{bash}`", "  In PowerShell:", f"  `{ps}`",
+                 "  It prints each check's name and any failure, then `PASS k/n` or `FAIL k/n`, then a `RECORD:` "
+                 "line that is the commit's `Verified:` trailer.",
+                 "- **One test entry point:** that command is the only one. Add no CI config, no Makefile, justfile, "
+                 "tox.ini or noxfile.py, and no `package.json` test script. Tests of your own are welcome; Python's "
+                 "`unittest` runs them."]
+    else:
+        tests = ["- **Tests:** `npm test` is the test command. It runs the kit's held-out checks on this folder; they "
+                 "live in the kit, not here. It prints each check's name and any failure, then `PASS k/n` or "
+                 "`FAIL k/n`, then a `RECORD:` line that is the commit's `Verified:` trailer.",
+                 "- **One test entry point:** add no CI config, no Makefile or justfile, and no other test script in "
+                 "`package.json`, and keep its `test` as it is. Tests of your own are welcome; `node --test` runs "
+                 "them" + (", and Python's `unittest` the Python ones." if demo.runtime == "mixed" else ".")]
+    copied = ("its files and its git history, without `node_modules`, git hooks or symbolic links" if demo.copy_git
+              else "its files without `.git`, `node_modules` or symbolic links")
     return "\n".join([
         f"# {demo.app}, a demo from the starter kit",
         "",
         "`BRIEF.md` says what this project is and what it must do.",
         "",
-        "- **Tests:** `npm test` is the test command. It runs the kit's held-out checks on this folder; they live "
-        "in the kit, not here. It prints each check's name and any failure, then `PASS k/n` or `FAIL k/n`, then a "
-        "`RECORD:` line that is the commit's `Verified:` trailer.",
-        "- **One test entry point:** add no CI config, no Makefile or justfile, and no other test script in "
-        "`package.json`, and keep its `test` as it is. Tests of your own are welcome; `node --test` runs them.",
+        *tests,
         stack,
         "- **No binary assets:** no image, audio or font files, no SVG files, no `data:` URLs and no base64 "
         "blobs.",
         "- **Original names:** nothing named after an existing game, show or toy.",
-        "- **Plain files:** the checks grade a copy of this folder's files without `.git`, `node_modules` or "
-        "symbolic links, so code that needs any of those to load fails them.",
-        "- **The kit's `demos/` folder is off limits:** its checks are held out on purpose, and its reference "
-        "solution is compared line by line with this one.",
+        f"- **Plain files:** the checks grade a copy of this folder, {copied}, in another folder, so code that "
+        "needs any of those, or this folder's own path, to load fails them.",
+        "- **The kit's `demos/` folder is off limits:** its checks are held out on purpose, its reference "
+        "solution is compared line by line with this one, and code here that names the kit's files fails a check.",
         "",
     ])
 
 
-def package_json(demo: Demo) -> str:
-    test = dl.workspace_test_script(demo.name, install.cmd_root(), sys.executable)
-    return json.dumps({"name": demo.name, "private": True, "type": "module",
-                       "description": f"{demo.app}, a demo from the starter kit", "scripts": {"test": test}},
-                      indent=2) + "\n"
+def package_json(demo: Demo, root: Path, python: str) -> str | None:
+    """The workspace's package.json: the skeleton's, if it ships one, with `test` set to the launcher's
+    `demo check`, or a new one. None for a python demo, which has no package.json (npm needs Node)."""
+    if demo.runtime == "python":
+        return None
+    pkg = dl.skeleton_package(demo) or {}
+    test = dl.workspace_test_script(demo.name, root, python)
+    out = {"name": demo.name, "private": True, "type": "module",
+           "description": f"{demo.app}, a demo from the starter kit"}
+    out.update({k: v for k, v in pkg.items() if k not in ("name", "private", "description", "scripts")})
+    out["scripts"] = dict(pkg.get("scripts") or {}, test=test)
+    return json.dumps(out, indent=2) + "\n"
 
 
 def write(p: Path, text: str) -> None:
@@ -123,6 +147,27 @@ def write(p: Path, text: str) -> None:
 def git(ws: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run([dl.exe("git") or "git", "-C", str(ws), *args], capture_output=True, text=True, encoding="utf-8",
                           errors="replace", stdin=subprocess.DEVNULL, timeout=120)
+
+
+def make_workspace(demo: Demo, tool: str, ws: Path, root: Path, python: str) -> str | None:
+    """Fill the empty folder `ws` as a demo starts: the skeleton, each lane's rules file (a skeleton's AGENTS.md
+    below the top) under the tool's name for it, BRIEF.md, the tool's rules file, package.json whose `test`
+    starts `python` on the kit at `root`, and a git repo whose one commit holds all of it. That commit is the
+    demo's only root, made once with its final message: a demo graded on its history checks it was never
+    amended. None, or what failed. The mutants engine makes its skeleton workspace with this too."""
+    v = vocab.VOCAB[tool]
+    shutil.copytree(str(demo.dir / "skeleton"), str(ws), dirs_exist_ok=True)
+    nested = dl.nested_rules_name(tool)
+    if nested != "AGENTS.md":
+        for p in sorted(ws.rglob("AGENTS.md")):
+            if p.parent != ws:
+                p.rename(p.with_name(nested))
+    write(ws / "BRIEF.md", dl.split_brief(demo)[0])
+    write(ws / v.repo_rules, rules_text(demo, tool))
+    pkg = package_json(demo, root, python)
+    if pkg is not None:
+        write(ws / "package.json", pkg)
+    return make_repo(demo, ws)
 
 
 def make_repo(demo: Demo, ws: Path) -> str | None:
@@ -157,21 +202,30 @@ def open_lines(tool: str, ws: Path) -> list[str]:
 def for_you(demo: Demo, tool: str, ws: Path, watch: str) -> list[str]:
     v = vocab.VOCAB[tool]
     check = v.cmd("checkpoint")
+    first, *more = demo.kickoffs
+    later = [f"   This demo takes {len(demo.kickoffs)} sessions. When the agent has finished session {i}, open a "
+             f"new session in the same folder, as in step 1, and type: {k}" for i, k in enumerate(more, 1)]
+    test_cmd = "the held-out check" if demo.runtime == "python" else "`npm test`"
     return [
         install.FOR_YOU,
         "1. Open a new session in the demo's folder. Your agent reads a folder's rules when a session starts, so "
         "the demo cannot run in this one:",
         *open_lines(tool, ws),
-        f"2. Type this as your first message there: {demo.kickoff}",
-        "3. Watch for the whole chain: the agent says how it classifies the task, plans, builds, runs `npm test`, "
+        f"2. Type this as your first message there: {first}",
+        *later,
+        f"3. Watch for the whole chain: the agent says how it classifies the task, plans, builds, runs {test_cmd}, "
         f"has the verifier agent check the work, runs {check}, and commits; the commit guard checks that the "
         "commit says what was verified. What to watch for in this demo:",
         *(f"   {ln}" if ln else "" for ln in watch.split("\n")),
         "4. Answer the agent as you would on real work. Say no to anything outward, such as a push: this demo "
         "needs none.",
-        "5. Grade it yourself whenever you like, with the kit's launcher rather than `npm test`, which the agent "
-        "can change: this runs the kit's own checks on a copy of the folder, and fails the work if `test` was "
-        "changed. It is still feedback, not proof: anything with a shell on this machine, the agent included, can "
+        ("5. Grade it yourself whenever you like, with the kit's launcher from your own terminal: this runs the "
+         "kit's own checks on a copy of the folder. "
+         if demo.runtime == "python" else
+         "5. Grade it yourself whenever you like, with the kit's launcher rather than `npm test`, which the agent "
+         "can change: this runs the kit's own checks on a copy of the folder, and fails the work if `test` was "
+         "changed. ") +
+        "It is still feedback, not proof: anything with a shell on this machine, the agent included, can "
         "tamper with the kit or the grade, so a measured run counts only after CI re-grades the committed folder "
         "(the kit's demos/MEASURING.md). It ends with PASS k/n or FAIL k/n and a RECORD line for the commit:",
         *shell_pair(*dl.launcher("demo", "check", demo.name, "--dir", str(ws)), indent="     "),
@@ -213,15 +267,19 @@ def main(argv: list[str] | None = None) -> int:
     tool, rc = choose_tool(dl.global_tools(rec), args)
     if tool is None:
         return rc
-    brief, watch = dl.split_brief(demo)
+    _, watch = dl.split_brief(demo)
     v = vocab.VOCAB[tool]
     skeleton = demo.dir / "skeleton"
-    clash = [n for n in ("BRIEF.md", "package.json", v.repo_rules) if (skeleton / n).exists()]
+    clash = [n for n in ("BRIEF.md", *{x.repo_rules for x in vocab.VOCAB.values()}) if (skeleton / n).exists()]
     if clash:
         raise dl.DemoError(f"demos/{demo.name}/skeleton/ holds {', '.join(clash)}, which start.py writes itself")
+    dl.skeleton_package(demo)   # refuses one a python demo ships, or one with a second test script
     lines = dl.node_problem(demo)
     if lines:
         say(*lines)
+        return 2
+    if dl.python_problem():
+        say(f"error: {dl.python_problem()} Run the launcher with a newer Python. Nothing was written.")
         return 2
     if not dl.exe("git"):
         say("error: git is not on PATH, and a demo is a git repo whose commits the commit guard checks. Install git "
@@ -243,11 +301,7 @@ def main(argv: list[str] | None = None) -> int:
         return install.refuse_unwritable(bad, args, lines=own_lines(demo, tool, ws), verb="start this demo",
                                          elsewhere=ELSEWHERE, sandbox=SANDBOX)
 
-    shutil.copytree(str(skeleton), str(ws), dirs_exist_ok=True)
-    write(ws / "BRIEF.md", brief)
-    write(ws / v.repo_rules, rules_text(demo, tool))
-    write(ws / "package.json", package_json(demo))
-    failed = make_repo(demo, ws)
+    failed = make_workspace(demo, tool, ws, install.cmd_root(), sys.executable)
     if failed is None:
         r = subprocess.run([sys.executable, str(install.GUARD), "install", str(ws)], capture_output=True, text=True,
                            encoding="utf-8", errors="replace", stdin=subprocess.DEVNULL, timeout=120)
@@ -255,8 +309,9 @@ def main(argv: list[str] | None = None) -> int:
     if failed:
         say(f"error: {failed}", f"The demo folder {ws} is half made. Delete it and run this again.")
         return 1
-    print(f"Started {demo.title} in {ws}: copied the skeleton and BRIEF.md, wrote {v.repo_rules} and package.json, "
-          "made a git repo with one commit, and installed the commit guard's git hooks in it.")
+    wrote = v.repo_rules if demo.runtime == "python" else f"{v.repo_rules} and package.json"
+    print(f"Started {demo.title} in {ws}: copied the skeleton and BRIEF.md, wrote {wrote}, made a git repo with one "
+          "commit, and installed the commit guard's git hooks in it.")
     print()
     print("\n".join(for_you(demo, tool, ws, watch)))
     return 0

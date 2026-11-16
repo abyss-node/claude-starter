@@ -1,0 +1,8 @@
+{
+  "id": "006-radius-not-clamped",
+  "graded_item": 1,
+  "description": "the radius slider is not clamped",
+  "file": "src/physics.js",
+  "find": "radius: clamp(num(spec.radius, 0.1), ...LIMITS.radius),",
+  "replace": "radius: num(spec.radius, 0.1),"
+}

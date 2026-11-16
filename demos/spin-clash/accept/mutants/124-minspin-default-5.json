@@ -1,0 +1,8 @@
+{
+  "id": "124-minspin-default-5",
+  "graded_item": 15,
+  "description": "minSpin defaults to 5",
+  "file": "src/physics.js",
+  "find": "  minSpin: 4,",
+  "replace": "  minSpin: 5,"
+}

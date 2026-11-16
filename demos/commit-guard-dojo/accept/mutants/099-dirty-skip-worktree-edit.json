@@ -1,0 +1,11 @@
+{
+  "id": "099",
+  "graded_item": 17,
+  "description": "habits.py marked skip-worktree and then edited, so git status is clean",
+  "file": "build.py",
+  "find": "    if tree_files(dest) != tree_files(finished):\n",
+  "replace": "    git(dest, env, \"update-index\", \"--skip-worktree\", \"habits.py\")\n    with open(dest / \"habits.py\", \"a\", encoding=\"utf-8\", newline=\"\\n\") as f:\n        f.write(\"# wip\\n\")\n    if False:\n",
+  "expect": [
+    "test_14"
+  ]
+}

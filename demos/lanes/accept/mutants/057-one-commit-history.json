@@ -1,0 +1,8 @@
+{
+  "id": "057-one-commit-history",
+  "graded_item": 12,
+  "description": "backend and frontend changes in one commit",
+  "file": "make-workspace.mjs",
+  "find": "?? \"lanes\";",
+  "replace": "?? \"one-commit\";"
+}

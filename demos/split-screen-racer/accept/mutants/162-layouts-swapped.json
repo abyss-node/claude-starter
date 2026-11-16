@@ -1,0 +1,8 @@
+{
+  "id": "162-layouts-swapped",
+  "graded_item": 30,
+  "description": "'stacked' gives side by side views and the default gives stacked views",
+  "file": "src/camera.js",
+  "find": "  } else if (layout === 'stacked') {",
+  "replace": "  } else if (layout === 'side') {"
+}

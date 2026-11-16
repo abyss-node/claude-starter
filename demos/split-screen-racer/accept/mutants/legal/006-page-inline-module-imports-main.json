@@ -1,0 +1,8 @@
+{
+  "id": "006-page-inline-module-imports-main",
+  "graded_item": null,
+  "description": "an inline module script whose only job is to import ./src/main.js",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script type=\"module\">\n  import \"./src/main.js\";\n</script>"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "005-frame-count-one-too-many-above-3",
+ "graded_item": 1,
+ "description": "frame count is one too many once fps*seconds exceeds 3",
+ "file": "trippy.py",
+ "find": "frames = max(1, int(round(args.fps * args.seconds)))",
+ "replace": "frames = max(1, int(args.fps * args.seconds + 0.5) + (1 if args.fps * args.seconds > 3 else 0))"
+}

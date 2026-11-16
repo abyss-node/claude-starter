@@ -1,0 +1,8 @@
+{
+  "id": "038-tangential-sign-flipped",
+  "graded_item": 6,
+  "description": "the rim-friction branch of a clash adds spin to the first top",
+  "file": "src/physics.js",
+  "find": "a.spin = Math.max(0, a.spin - (jt * a.radius) / Ia);",
+  "replace": "a.spin = Math.max(0, a.spin + (jt * a.radius) / Ia);"
+}

@@ -1,0 +1,8 @@
+{
+ "id": "057-loop-ignored",
+ "graded_item": 10,
+ "description": "--loop does nothing (uses clock time)",
+ "file": "trippy.py",
+ "find": "        if args.loop:\n",
+ "replace": "        if False:\n"
+}

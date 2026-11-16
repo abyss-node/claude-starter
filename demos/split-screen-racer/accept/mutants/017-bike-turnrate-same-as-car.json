@@ -1,0 +1,8 @@
+{
+  "id": "017-bike-turnrate-same-as-car",
+  "graded_item": 5,
+  "description": "the bike turns as slowly as the car",
+  "file": "src/vehicles.js",
+  "find": "    turnRate: 3.0,",
+  "replace": "    turnRate: 2.0,"
+}

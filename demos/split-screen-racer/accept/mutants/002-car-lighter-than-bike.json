@@ -1,0 +1,8 @@
+{
+  "id": "002-car-lighter-than-bike",
+  "graded_item": 1,
+  "description": "the car weighs less than the bike",
+  "file": "src/vehicles.js",
+  "find": "    mass: 1200,",
+  "replace": "    mass: 200,"
+}

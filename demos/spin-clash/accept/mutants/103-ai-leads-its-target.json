@@ -1,0 +1,8 @@
+{
+  "id": "103-ai-leads-its-target",
+  "graded_item": 13,
+  "description": "the computer aims ahead of the foe's velocity",
+  "file": "src/ai.js",
+  "find": "  const tx = foe.x;\n  const ty = foe.y;",
+  "replace": "  const tx = foe.x + foe.vx * 0.6;\n  const ty = foe.y + foe.vy * 0.6;"
+}

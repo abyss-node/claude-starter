@@ -1,0 +1,8 @@
+{
+ "id": "088-seed-printed-off-by-one",
+ "graded_item": 18,
+ "description": "the printed seed is one more than the seed used",
+ "file": "trippy.py",
+ "find": "print(\"seed: %d\" % args.seed)",
+ "replace": "print(\"seed: %d\" % (args.seed + 1))"
+}

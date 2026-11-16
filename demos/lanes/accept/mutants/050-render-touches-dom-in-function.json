@@ -1,0 +1,8 @@
+{
+  "id": "050-render-touches-dom-in-function",
+  "graded_item": 9,
+  "description": "renderTrailRow writes to document",
+  "file": "frontend/render.js",
+  "find": "export function renderTrailRow(trail) {\n",
+  "replace": "export function renderTrailRow(trail) {\n  document.body.dataset.rendered = \"yes\";\n"
+}

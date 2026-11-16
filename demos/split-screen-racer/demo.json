@@ -1,0 +1,14 @@
+{
+  "title": "Split-screen racer",
+  "app": "Kerbside Duel",
+  "tier": "L",
+  "stack": "browser",
+  "summary": "a top-down, two-player split-screen racer in the browser: a car and a bike that handle differently, a hand-made track and seeded ones, and a deterministic simulation",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "feel, visuals and sound (setup screen, countdown, readouts, result screen, divider); keys and the gamepad; main.js beyond loading race.js; the browser/simulation split and no Math.random or clock as a source rule; steer sign, brake strength and reversing; collision physics beyond separation; the hash string format and hashing on speed alone; seeded track names, grid poses past the first two and non-integer seeds; whether stepRace calls advanceProgress; AI quality beyond finishing; races of other than one or two vehicles, and a laps of 0 or not a whole number",
+  "accept_count": 41,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 900
+}

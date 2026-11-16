@@ -1,0 +1,8 @@
+{
+  "id": "027-inputs-not-sanitised",
+  "graded_item": 4,
+  "description": "a garbage input is used as is (NaN spreads)",
+  "file": "src/physics.js",
+  "find": "return [clamp(num(inp.x, 0), -1, 1), clamp(num(inp.y, 0), -1, 1)];",
+  "replace": "return [clamp(inp.x, -1, 1), clamp(inp.y, -1, 1)];"
+}

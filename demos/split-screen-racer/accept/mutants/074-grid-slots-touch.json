@@ -1,0 +1,8 @@
+{
+  "id": "074-grid-slots-touch",
+  "graded_item": 16,
+  "description": "the two grid slots are 4.5 apart",
+  "file": "src/track.js",
+  "find": "  const side = ROAD_WIDTH / 4;",
+  "replace": "  const side = ROAD_WIDTH / 40;"
+}

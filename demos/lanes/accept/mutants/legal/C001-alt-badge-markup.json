@@ -1,0 +1,7 @@
+{
+  "id": "C001-alt-badge-markup",
+  "description": "an em element with an extra badge class and a title",
+  "file": "frontend/render.js",
+  "find": "return `<span class=\"${cls}\">${escapeHtml(level)}</span>`;",
+  "replace": "return `<em class=\"badge ${cls}\" title=\"Difficulty\">${escapeHtml(level)}</em>`;"
+}

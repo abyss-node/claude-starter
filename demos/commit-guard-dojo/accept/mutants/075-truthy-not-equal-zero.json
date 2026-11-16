@@ -1,0 +1,11 @@
+{
+  "id": "075",
+  "graded_item": 13,
+  "description": "anything other than 0 counts, so None, '' and [] are kept",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n",
+  "replace": "        run = run + 1 if (day != 0) else 0\n",
+  "expect": [
+    "test_16"
+  ]
+}

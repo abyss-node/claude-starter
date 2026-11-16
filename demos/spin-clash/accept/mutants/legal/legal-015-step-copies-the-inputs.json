@@ -1,0 +1,8 @@
+{
+  "id": "legal-015-step-copies-the-inputs",
+  "graded_item": 16,
+  "description": "step reads its inputs through a copy of its own",
+  "file": "src/physics.js",
+  "find": "export function step(world, inputs) {\n",
+  "replace": "export function step(world, given) {\n  const inputs = Array.isArray(given) ? given.map((r) => (r && typeof r === 'object' ? { x: r.x, y: r.y } : null)) : null;\n"
+}

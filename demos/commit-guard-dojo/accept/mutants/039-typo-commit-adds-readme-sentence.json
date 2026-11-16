@@ -1,0 +1,11 @@
+{
+  "id": "039",
+  "graded_item": 7,
+  "description": "the typo commit also appends a sentence to a README paragraph",
+  "file": "commits.json",
+  "find": "\"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]",
+  "replace": "\"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}, {\"path\": \"README.md\", \"old\": \"day you missed.\", \"new\": \"day you missed. Enjoy.\"}]",
+  "expect": [
+    "test_15"
+  ]
+}

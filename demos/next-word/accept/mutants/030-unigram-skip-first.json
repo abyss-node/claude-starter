@@ -1,0 +1,8 @@
+{
+  "id": "030-unigram-skip-first",
+  "graded_item": 5,
+  "description": "the fallback word frequency leaves out the first token of the text",
+  "file": "src/lm.js",
+  "find": "  for (const t of tokens) bump(unigram, t);",
+  "replace": "  for (const t of tokens.slice(1)) bump(unigram, t);"
+}

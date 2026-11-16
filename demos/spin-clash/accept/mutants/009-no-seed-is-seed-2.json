@@ -1,0 +1,8 @@
+{
+  "id": "009-no-seed-is-seed-2",
+  "graded_item": 1,
+  "description": "a config with no seed starts like seed 2, not seed 1",
+  "file": "src/physics.js",
+  "find": "const seed = num(config.seed, 1) >>> 0;",
+  "replace": "const seed = num(config.seed, 2) >>> 0;"
+}

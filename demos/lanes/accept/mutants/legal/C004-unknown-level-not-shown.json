@@ -1,0 +1,7 @@
+{
+  "id": "C004-unknown-level-not-shown",
+  "description": "a level outside the three renders no badge at all",
+  "file": "frontend/render.js",
+  "find": "if (level === undefined || level === null || level === \"\") return \"\";",
+  "replace": "if (!LEVELS.has(level)) return \"\";"
+}

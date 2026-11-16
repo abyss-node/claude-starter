@@ -1,0 +1,8 @@
+{
+  "id": "042-badge-text-unescaped",
+  "graded_item": 8,
+  "description": "badge text is not escaped",
+  "file": "frontend/render.js",
+  "find": "${escapeHtml(level)}</span>",
+  "replace": "${level}</span>"
+}

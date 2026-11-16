@@ -1,0 +1,11 @@
+{
+  "id": "031",
+  "graded_item": 6,
+  "description": "the typo fix lands after the function commit",
+  "file": "commits.json",
+  "find": "    {\n      \"message\": \"Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\",\n      \"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]\n    },\n    {\n      \"message\": \"Add longest_streak with its tests\\n\\nThe longest run of consecutive kept days; an empty log is 0.\\n\\nVerified: python -m unittest discover -s tests -> Ran 8 tests, OK\\n\",\n      \"copy\": [\"habits.py\", \"tests/test_streak.py\"]\n    }",
+  "replace": "    {\n      \"message\": \"Add longest_streak with its tests\\n\\nThe longest run of consecutive kept days; an empty log is 0.\\n\\nVerified: python -m unittest discover -s tests -> Ran 8 tests, OK\\n\",\n      \"copy\": [\"habits.py\", \"tests/test_streak.py\"]\n    },\n    {\n      \"message\": \"Fix the habit typo in the README\\n\\nVerified: git grep -n habbit -> no matches\\n\",\n      \"replace\": [{\"path\": \"README.md\", \"old\": \"habbit\", \"new\": \"habit\"}]\n    }",
+  "expect": [
+    "test_06"
+  ]
+}

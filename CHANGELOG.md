@@ -8,6 +8,73 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
+## [0.7.0] - unreleased
+
+### Added
+
+- Six more demos, so `demo pick` offers every size and both languages:
+  - Next Word (`next-word`, small, browser): a tiny n-gram language model,
+    with bars for the next word and temperature, top-k, top-p and seed
+    controls.
+  - Spin Clash (`spin-clash`, medium, browser): two spinning tops in a bowl,
+    steered from the keyboard, with a solo mode against a computer opponent.
+  - Fever Loops (`trippy-video`, medium, Python): a seeded, looping
+    maths-animation generator that writes PNG frames in plain Python.
+  - Split-screen racer (`split-screen-racer`, large, browser): a two-player
+    top-down racer, a car and a bike, on a hand-made track and seeded ones,
+    with a deterministic simulation.
+  - Commit-guard dojo (`commit-guard-dojo`, teaching, Python): three small
+    commits that must get past the commit guard, graded on the record each one
+    leaves in the git history.
+  - Two lanes, two sessions (`lanes`, teaching, a browser frontend and a Python
+    backend): one change per lane, one session each, kept apart by the lane
+    rules.
+- Python and mixed demos. `demo.json` gains `runtime` (`node`, `python` or
+  `mixed`): a Python demo's held-out checks are a runner of its own, built on
+  `demos/acceptkit.py` and started isolated on the Python that runs the
+  launcher, and its workspace has no `package.json`, since its rules file
+  names the launcher's `demo check`. A demo can also be graded on its git
+  history (`copy_git`, with a `fixture` that builds the finished repo), take
+  one kickoff per session, ship a `package.json` that `demo start` keeps, and
+  ship a rules file per lane, renamed to the tool's name for one. What the
+  skeleton's `.gitignore` ignores (a renderer's frames) is the program's
+  output, which the no-binary-assets rule leaves alone.
+- `probe.mjs` gains `scenario()`, for a check that needs more than calls with
+  plain arguments (a simulation stepped ten thousand times, a callback): a
+  function of the demo's `accept/` runs beside the workspace's code in the
+  same confined process and returns what it saw, which the check compares.
+  Every probe call takes a timeout, so an endless loop fails its check instead
+  of hanging the grade.
+- A fixed mutant list per demo (`accept/mutants/`) and its engine,
+  `demos/mutants.py`: what "done" means for a demo's checks. The reference
+  passes, the skeleton fails, every mutant fails and every legal variant
+  passes, each graded exactly as a workspace is. CI's new `demo-mutants` job
+  runs every demo's list at Python 3.9 and Node 22.13.0.
+- `demos/AUTHORING.md`, the contract a demo is written to;
+  `demos/tests/test_runtimes.py` holds the framework to it.
+- A fifth demo rule, no code that names the kit's files: its path in any
+  spelling, `.claude-starter`, `installs.json` or a demo's `reference/`.
+- `check.py --accept-only` runs the held-out checks alone on a folder, for a
+  demo's own mutants runner; it prints no `RECORD:` line.
+
+### Changed
+
+- With nothing measured, `demo pick` suggests the small demo with the fewest
+  held-out checks (Roulette Loom), not the first small one by title.
+- A check that Node's permission model refused says which access it refused
+  and the flag that would allow it, on Node 22.13 as on newer releases; 22.13's
+  own message names no flag.
+- CI's demos job gains a leg at the floors, Python 3.9 and Node 22.13.0.
+- `demos/MEASURING.md` says what a Python workspace can still reach. Python has
+  no permission model, and your home folder is in reach (on Windows the
+  temporary folder is inside it; `%LOCALAPPDATA%` and the user database name
+  it), its install record names the clone, the process list names it too, and
+  the workspace's own rules file (Python demos) or package.json test script
+  (Node and mixed demos) names the launcher by its clone path.
+  A Python workspace that looks the kit up that way and runs its reference can
+  PASS, locally and in CI's re-grade, so a Python or mixed run's workspace is
+  read before its row is committed.
+
 ## [0.6.0] - unreleased
 
 ### Added

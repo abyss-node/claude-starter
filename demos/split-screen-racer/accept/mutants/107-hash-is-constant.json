@@ -1,0 +1,8 @@
+{
+  "id": "107-hash-is-constant",
+  "graded_item": 22,
+  "description": "hashRace returns the same string whatever the state",
+  "file": "src/race.js",
+  "find": "  return (h >>> 0).toString(16).padStart(8, '0') + ':' + text.length.toString(16);",
+  "replace": "  return 'same';"
+}

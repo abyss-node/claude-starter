@@ -1,0 +1,8 @@
+{
+  "id": "legal-014-page-seed-notype-bare",
+  "graded_item": 22,
+  "description": "#seed with no type, unquoted, and a comment that mentions type=hidden",
+  "file": "index.html",
+  "find": "      <label>Seed <input id=\"seed\" type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" value=\"7\"></label>",
+  "replace": "      <input value=7 id=seed>\n<!-- not hidden: id=seed type=hidden in a comment -->"
+}

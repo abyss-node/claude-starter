@@ -1,0 +1,8 @@
+{
+ "id": "079-recipe-seed-wrapped-32-bits",
+ "graded_item": 13,
+ "description": "recipe.json carries seed & 0xFFFFFFFF",
+ "file": "trippy.py",
+ "find": "json.dump({\"seed\": args.seed,",
+ "replace": "json.dump({\"seed\": args.seed & 0xFFFFFFFF,"
+}

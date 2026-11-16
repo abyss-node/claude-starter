@@ -1,0 +1,8 @@
+{
+  "id": "114-vy-zero-falsy",
+  "graded_item": 15,
+  "description": "a given vy of 0 becomes the seeded drift",
+  "file": "src/physics.js",
+  "find": "vy: num(spec.vy, Math.cos(angle) * orbit),",
+  "replace": "vy: num(spec.vy || undefined, Math.cos(angle) * orbit),"
+}

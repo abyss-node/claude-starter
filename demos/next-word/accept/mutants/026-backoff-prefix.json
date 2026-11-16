@@ -1,0 +1,8 @@
+{
+  "id": "026-backoff-prefix",
+  "graded_item": 5,
+  "description": "nextDistribution backs off to a prefix of the context, not an ending",
+  "file": "src/lm.js",
+  "find": "    const used = tokens.slice(tokens.length - len);",
+  "replace": "    const used = tokens.slice(0, len);"
+}

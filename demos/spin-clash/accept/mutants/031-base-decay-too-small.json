@@ -1,0 +1,8 @@
+{
+  "id": "031-base-decay-too-small",
+  "graded_item": 5,
+  "description": "the base spin loss is 0.3 rad/s per second, below the 0.5 floor",
+  "file": "src/physics.js",
+  "find": "const BASE_SPIN_DECAY = 0.6;",
+  "replace": "const BASE_SPIN_DECAY = 0.3;"
+}

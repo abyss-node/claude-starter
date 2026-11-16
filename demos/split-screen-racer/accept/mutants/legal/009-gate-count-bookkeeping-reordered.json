@@ -1,0 +1,8 @@
+{
+  "id": "009-gate-count-bookkeeping-reordered",
+  "graded_item": null,
+  "description": "advanceProgress checks the lap before the gate in a different but equivalent shape",
+  "file": "src/race.js",
+  "find": "  if (progress.next === 0) return { lap: progress.lap + 1, next: 1 % n };\n  return { lap: progress.lap, next: (progress.next + 1) % n };",
+  "replace": "  const nextGate = (progress.next + 1) % n;\n  return { lap: progress.lap + (progress.next === 0 ? 1 : 0), next: progress.next === 0 ? 1 % n : nextGate };"
+}

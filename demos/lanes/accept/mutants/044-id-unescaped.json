@@ -1,0 +1,8 @@
+{
+  "id": "044-id-unescaped",
+  "graded_item": 8,
+  "description": "data-id is not escaped",
+  "file": "frontend/render.js",
+  "find": "data-id=\"${escapeHtml(trail.id)}\"",
+  "replace": "data-id=\"${trail.id}\""
+}

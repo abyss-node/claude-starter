@@ -1,0 +1,8 @@
+{
+  "id": "010-data-id-edited",
+  "graded_item": 2,
+  "description": "lowmarsh id changed in trails.json",
+  "file": "backend/trails.json",
+  "find": "\"id\": \"lowmarsh\"",
+  "replace": "\"id\": \"low-marsh\""
+}

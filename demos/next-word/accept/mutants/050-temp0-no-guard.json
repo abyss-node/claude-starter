@@ -1,0 +1,8 @@
+{
+  "id": "050-temp0-no-guard",
+  "graded_item": 9,
+  "description": "no T <= 0 branch: T = 0 divides by zero",
+  "file": "src/sampling.js",
+  "find": "  if (temperature <= 0) return [{ token: list[0].token, p: 1 }];\n",
+  "replace": ""
+}

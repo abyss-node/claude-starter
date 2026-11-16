@@ -1,0 +1,12 @@
+{
+  "id": "051",
+  "graded_item": 10,
+  "description": "the new test class is not a TestCase, so the test command still runs 4 tests",
+  "file": "workspace/tests/test_streak.py",
+  "find": "class LongestStreakTest(unittest.TestCase):",
+  "replace": "class LongestStreakTest(object):",
+  "expect": [
+    "test_09",
+    "test_10"
+  ]
+}

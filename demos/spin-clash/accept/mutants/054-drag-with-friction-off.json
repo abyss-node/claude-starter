@@ -1,0 +1,8 @@
+{
+  "id": "054-drag-with-friction-off",
+  "graded_item": 7,
+  "description": "drag applies with friction off",
+  "file": "src/physics.js",
+  "find": "    if (friction) {\n      const drag",
+  "replace": "    if (true) {\n      const drag"
+}

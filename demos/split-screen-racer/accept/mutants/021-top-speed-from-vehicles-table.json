@@ -1,0 +1,8 @@
+{
+  "id": "021-top-speed-from-vehicles-table",
+  "graded_item": 6,
+  "description": "stepVehicle reads topSpeed from VEHICLES[kind] instead of the vehicle data",
+  "file": "src/vehicles.js",
+  "find": "  const top = s.topSpeed * (off ? s.offSpeedFactor : 1);",
+  "replace": "  const top = VEHICLES[v.kind].topSpeed * (off ? s.offSpeedFactor : 1);"
+}

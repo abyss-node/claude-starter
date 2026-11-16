@@ -1,0 +1,8 @@
+{
+  "id": "104-physics-top-b-steers-triple",
+  "graded_item": 13,
+  "description": "top B steers three times as hard as top A",
+  "file": "src/physics.js",
+  "find": "let ax = -slope * top.x + steer * ix;\n    let ay = -slope * top.y + steer * iy;",
+  "replace": "const boost = i === 1 ? 3 : 1;\n    let ax = -slope * top.x + steer * boost * ix;\n    let ay = -slope * top.y + steer * boost * iy;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "077-skip-draw-certain",
+  "graded_item": 14,
+  "description": "sampleToken skips the draw when the first entry has p >= 1",
+  "file": "src/sampling.js",
+  "find": "  if (entries.length === 0) return null;",
+  "replace": "  if (entries.length === 0) return null;\n  if (entries[0].p >= 1) return entries[0].token;"
+}

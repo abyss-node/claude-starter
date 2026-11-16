@@ -1,0 +1,8 @@
+{
+  "id": "095-skip-any-one-gate-counts",
+  "graded_item": 19,
+  "description": "crossing the gate after the expected one also advances progress",
+  "file": "src/race.js",
+  "find": "  const gate = track.checkpoints[progress.next];",
+  "replace": "  const after = track.checkpoints[(progress.next + 1) % n];\n  if (progress.next !== 0 && segmentsCross(from, to, after.a, after.b)) return progress.next + 1 === n ? { lap: progress.lap + 1, next: 1 % n } : { lap: progress.lap, next: (progress.next + 2) % n };\n  const gate = track.checkpoints[progress.next];"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "030-unknown-api-answers-400",
+  "graded_item": 5,
+  "description": "unknown /api path answers 400",
+  "file": "backend/server.py",
+  "find": "self.send_error_json(404, \"not_found\", f\"No API route at {path}.\")",
+  "replace": "self.send_error_json(400, \"not_found\", f\"No API route at {path}.\")"
+}

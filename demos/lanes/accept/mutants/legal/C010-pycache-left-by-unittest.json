@@ -1,0 +1,7 @@
+{
+  "id": "C010-pycache-left-by-unittest",
+  "description": "unittest leaves __pycache__ under backend/ (ignored by .gitignore)",
+  "file": "make-workspace.mjs",
+  "find": "console.log(git(\"log\", \"--oneline\").trim());",
+  "replace": "spawnSync(process.env.DEMO_PYTHON, [\"-m\", \"unittest\", \"discover\", \"-s\", \"backend\"], { cwd: target, env });\nconsole.log(git(\"log\", \"--oneline\").trim());"
+}

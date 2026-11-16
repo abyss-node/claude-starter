@@ -1,0 +1,14 @@
+{
+ "id": "033-seed-zero-becomes-one",
+ "graded_item": 4,
+ "description": "seed 0 is replaced by 1 internally (seed or 1), recipe.json still says 0",
+ "file": "trippy.py",
+ "find": "    recipe = make_recipe(args.seed)\n",
+ "replace": "    recipe = make_recipe(args.seed or 1)\n",
+ "also": [
+  {
+   "find": "random.Random(\"noise-%d\" % args.seed)",
+   "replace": "random.Random(\"noise-%d\" % (args.seed or 1))"
+  }
+ ]
+}

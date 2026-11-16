@@ -1,0 +1,8 @@
+{
+  "id": "118-given-x-ignored",
+  "graded_item": 15,
+  "description": "the given x is ignored",
+  "file": "src/physics.js",
+  "find": "x: num(spec.x, Math.cos(angle) * dist),",
+  "replace": "x: Math.cos(angle) * dist,"
+}

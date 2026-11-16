@@ -29,18 +29,30 @@ sys.path.insert(0, str(KIT / "scripts"))
 import build_adapters as ba  # noqa: E402
 import check  # noqa: E402
 import demolib as dl  # noqa: E402
+import mutants  # noqa: E402
 import pick  # noqa: E402
 import start  # noqa: E402
 from demolib import install  # noqa: E402
 
 DEMO_NAMES = dl.demo_names()
-# A planted off-by-one per demo: (file in reference/, the text, what replaces it, a check that must then fail).
+# The demos whose checks reach the workspace's code through probe.mjs, under Node's permission model: node, and a
+# mixed demo's frontend. A Python demo's checks run its code in processes of their own too, but with no permission
+# model, and a static test holds them to never importing it (test_runtimes.test_python_checks_never_import_...).
+PROBED = [n for n in DEMO_NAMES
+          if json.loads((DEMOS / n / "demo.json").read_text(encoding="utf-8")).get("runtime") != "python"]
+# A planted bug per demo, on CI's demos job (Windows too, where demo-mutants does not run): (the id of a mutant in
+# the demo's own accept/mutants/, a check that must then fail). An off-by-one where the demo has one.
 PLANTS = {
-    "roulette-loom": ("src/loom.js", "for (let i = 0; i <= steps; i++)", "for (let i = 0; i < steps; i++)",
-                      "trace gives steps + 1 points, from the start of the curve back to it"),
-    "fair-share": ("src/share.js", "for (let given = 0; given < left; given++) shares[given] += 1;",
-                           "for (let given = 1; given < left; given++) shares[given - 1] += 1;",
-                           "split: the shares add up to exactly the total"),
+    "commit-guard-dojo": ("064", "test_11_longest_streak_held_out_cases"),
+    "fair-share": ("001", "split: the shares add up to exactly the total"),
+    "lanes": ("023-hard-from-14", "backend: difficulty follows the rule, boundaries included"),
+    "next-word": ("015-order-cap-3", "model: order n uses up to n-1 previous tokens, for any n"),
+    "roulette-loom": ("001", "trace gives steps + 1 points, from the start of the curve back to it"),
+    "spin-clash": ("058-ringout-skips-tick-1", "Graded 8: ring-out and spin-down are judged on tick 1 by the centre, "
+                   "ring-out first, and the last top in play wins"),
+    "split-screen-racer": ("080-player-starts-on-lap-1", "createRace: players start on the grid, with the documented "
+                           "fields and the given laps and track"),
+    "trippy-video": ("004-frames-numbered-from-one", "test_frame_count"),
 }
 NUMBER = re.compile(r"\d+%|\$\d")
 
@@ -99,7 +111,11 @@ def scratch(tmp_path_factory):
     home.mkdir()
     env = clean_env(home)
     kit = base / "kit"
-    ignore = shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache", "tests")
+
+    def ignore(folder: str, names: list) -> set:
+        """Caches, and the kit's own test suites (demos/tests, scripts/tests), never a demo's tests/ folder."""
+        skip = {n for n in names if n in ("__pycache__", ".pytest_cache") or n.endswith(".pyc")}
+        return skip | ({"tests"} & set(names) if Path(folder).parent == KIT else set())
     for rel in ("demos", "scripts", "core"):
         shutil.copytree(str(KIT / rel), str(kit / rel), ignore=ignore)
     (kit / "plugins/starter/hooks/commit-guard").mkdir(parents=True)
@@ -110,6 +126,16 @@ def scratch(tmp_path_factory):
     sha = commit_all(kit, "test: the kit's demo files", env)
     git(kit, "update-ref", "refs/remotes/origin/main", sha, env=env)
     return kit, env
+
+
+def test_the_scratch_kit_holds_every_file_of_every_demo(scratch):
+    """A demo's own tests/ folder (a Python skeleton's, a lane's backend's) is part of the demo. The copy once
+    left out every folder named tests, this suite's and the demos' alike, so a workspace started from the scratch
+    kit had no tests/ and a fixture built there crashed on a missing file."""
+    kit, _ = scratch
+    missing = [p.relative_to(DEMOS).as_posix() for name in DEMO_NAMES for p in dl.walk(DEMOS / name)
+               if not (kit / "demos" / p.relative_to(DEMOS)).is_file()]
+    assert missing == []
 
 
 @pytest.fixture
@@ -169,10 +195,22 @@ def paraphrase(src: Path, dest: Path) -> None:
 
 # ---- each brief's held-out checks bind (the CI core) -------------------------------------------------------
 
+def finished(demo: dl.Demo, tmp: Path, case=None) -> Path:
+    """The finished workspace the reference makes, with a mutant's edits if one is given: a copy of reference/, or
+    what the demo's fixture builds from that copy, history and all (a demo graded on its git log has no .git
+    in the kit), exactly as the mutants engine builds it."""
+    ref = tmp / "ref"
+    shutil.copytree(str(demo.dir / "reference"), str(ref))
+    if case is not None:
+        assert mutants.parse_problem(mutants.apply_edits(ref, case)) is None
+    mutants.build_fixture(demo, ref, tmp / "ws", tmp)
+    return tmp / "ws"
+
+
 @pytest.mark.parametrize("name", DEMO_NAMES)
-def test_each_reference_passes_its_held_out_checks(name):
+def test_each_reference_passes_its_held_out_checks(name, tmp_path):
     demo = dl.load_demo(name)
-    results = check.run_accept(demo, demo.dir / "reference")
+    results = check.run_accept(demo, finished(demo, tmp_path))
     assert [c.name for c in results if not c.ok] == [], [(c.name, c.detail) for c in results if not c.ok]
     assert len(results) == demo.accept_count
 
@@ -184,16 +222,19 @@ def test_each_skeleton_fails_its_held_out_checks(name):
     assert len(results) == demo.accept_count and any(not c.ok for c in results)
 
 
-@pytest.mark.parametrize("name", DEMO_NAMES)
-def test_a_planted_off_by_one_in_the_reference_fails(name, tmp_path):
+def test_every_demo_has_its_plants():
+    """A demo added without them would be proved by none of the plant tests below, which run over these tables."""
+    assert sorted(PLANTS) == DEMO_NAMES, "add the new demo to PLANTS"
+    assert sorted(HAND_BACK) == sorted(CHEATS) == PROBED, "add the new demo to HAND_BACK and CHEATS"
+
+
+@pytest.mark.parametrize("name", sorted(PLANTS))
+def test_a_planted_bug_in_the_reference_fails_its_own_check(name, tmp_path):
     demo = dl.load_demo(name)
-    rel, good, bad, fails = PLANTS[name]
-    ws = tmp_path / "ws"
-    shutil.copytree(str(demo.dir / "reference"), str(ws))
-    text = dl.read_text(ws / rel)
-    assert text.count(good) == 1, f"the plant's text is not in reference/{rel} once; update PLANTS"
-    (ws / rel).write_text(text.replace(good, bad), encoding="utf-8")
-    failed = [c.name for c in check.run_accept(demo, ws) if not c.ok]
+    mutant, fails = PLANTS[name]
+    case = next((c for c in mutants.load_cases(demo)[0] if c.id == mutant), None)
+    assert case, f"demos/{name}/accept/mutants/ holds no mutant {mutant!r}; update PLANTS"
+    failed = [c.name for c in check.run_accept(demo, finished(demo, tmp_path, case)) if not c.ok]
     assert fails in failed, failed
 
 
@@ -207,7 +248,7 @@ def test_break_the_verifier_ships_its_own_tests_passing_while_the_held_out_check
                          encoding="utf-8", errors="replace", timeout=300)
     assert own.returncode == 0 and re.search(r"pass [1-9]", own.stdout), own.stdout
     failed = [c.name for c in check.run_accept(demo, ws) if not c.ok]
-    assert failed == [PLANTS["fair-share"][3], "split: one cent between three people is [1, 0, 0]"]
+    assert failed == [PLANTS["fair-share"][1], "split: one cent between three people is [1, 0, 0]"]
 
 
 def test_a_workspace_module_that_cannot_load_fails_every_check_by_name(tmp_path):
@@ -240,14 +281,34 @@ def test_checks_that_never_report_count_as_failed(tmp_path, monkeypatch):
 
 # ---- the grade reads a copy of the workspace, under Node's permission model --------------------------------
 
-EXPORTS = {"roulette-loom": ("src/loom.js", "gcd, laps, point, trace"), "fair-share": ("src/share.js", "split, withTip")}
+# Per probed demo, a module of its reference: (its path, the names it exports, a call whose answer is the work).
+HAND_BACK = {
+    "fair-share": ("src/share.js", "split, withTip", ["split", 1001, 4]),
+    "lanes": ("frontend/render.js", "escapeHtml, renderDifficulty, renderTrailRow, renderBoard",
+              ["escapeHtml", "<b>Ridge & Vale's</b>"]),
+    "next-word": ("src/lm.js", "tokenize, compareEntries, train, nextDistribution",
+                  ["tokenize", "The fox's den, and 2 owls."]),
+    "roulette-loom": ("src/loom.js", "gcd, laps, point, trace", ["laps", 96, 35]),
+    "spin-clash": ("src/physics.js", "DT, LIMITS, DEFAULTS, inertia, createWorld, collide, step",
+                   ["inertia", {"mass": 2, "radius": 3}]),
+    "split-screen-racer": ("src/camera.js", "splitViewports, worldToScreen",
+                           ["splitViewports", 800, 600, [{"x": 120.5, "y": -40}, {"x": -900, "y": 310}]]),
+}
+_BARE: dict = {}
+
+
+def bare_skeleton(demo: dl.Demo) -> dict:
+    """{check name: Check} for the demo's skeleton as shipped, graded once per session."""
+    if demo.name not in _BARE:
+        _BARE[demo.name] = {c.name: c for c in check.run_accept(demo, demo.dir / "skeleton")}
+    return _BARE[demo.name]
 
 
 def hand_back_the_reference(name: str, how: str) -> str:
     """A verifier's plants: a module that does none of the work and hands back the kit's own reference solution,
     by its file URL, or by a path made at run time from the probe's own location, so that the file names no kit
     path at all. Each passed every held-out check before the probe ran under Node's permission model."""
-    rel, names = EXPORTS[name]
+    rel, names, _ = HAND_BACK[name]
     if how == "url":
         return f'export * from "{(DEMOS / name / "reference" / rel).as_uri()}";\n'
     parts = json.dumps([name, "reference", *rel.split("/")])[1:-1]
@@ -257,32 +318,45 @@ def hand_back_the_reference(name: str, how: str) -> str:
             f"export const {{ {names} }} = m;\n")
 
 
-@pytest.mark.parametrize("how", ["url", "argv"])
-@pytest.mark.parametrize("name", DEMO_NAMES)
-def test_a_module_that_hands_back_the_kits_reference_fails_every_check(name, how, tmp_path):
-    demo = dl.load_demo(name)
-    rel, _ = EXPORTS[name]
-    ws = tmp_path / "ws"
-    shutil.copytree(str(demo.dir / "skeleton"), str(ws))
-    (ws / rel).write_text(hand_back_the_reference(name, how), encoding="utf-8")
-    # The plant is a real cheat: probe-child.mjs started as it was before the permission model, with the kit
-    # readable, answers as the reference does.
-    call = ["laps", 96, 35] if name == "roulette-loom" else ["split", 1001, 4]
-    probe = tmp_path / "as-it-was.mjs"
+def unconfined_answer(module: Path, call: list, tmp: Path) -> str:
+    """What probe-child.mjs answers for `call` on `module` when started as it was before the permission model,
+    with the kit readable: the JSON of its one result."""
+    probe = tmp / "as-it-was.mjs"
     probe.write_text(
         "import { spawnSync } from 'node:child_process';\nimport v8 from 'node:v8';\n"
         f"const r = spawnSync(process.execPath, [{json.dumps(str(DEMOS / 'probe-child.mjs'))}, "
-        f"{json.dumps((ws / rel).as_uri())}, v8.serialize([{json.dumps(call)}]).toString('base64')], "
+        f"{json.dumps(module.as_uri())}, v8.serialize([{json.dumps(call)}]).toString('base64')], "
         "{ encoding: 'utf8' });\n"
         "const line = r.stdout.split('\\n').find((l) => l.startsWith('demo-probe-answer:'));\n"
-        "console.log(JSON.stringify(v8.deserialize(Buffer.from(line.slice(18), 'base64')).results[0].value));\n",
+        "console.log(JSON.stringify(v8.deserialize(Buffer.from(line.slice(18), 'base64'))));\n",
         encoding="utf-8")
-    direct = subprocess.run([dl.exe("node"), str(probe)], cwd=str(tmp_path), capture_output=True, text=True,
-                            encoding="utf-8", errors="replace", timeout=120)
-    assert direct.stdout.strip() in ("35", "[251,250,250,250]"), direct.stdout + direct.stderr
-    results = check.run_accept(demo, ws)
-    assert len(results) == demo.accept_count and not any(c.ok for c in results), results
-    assert all("did not load" in c.detail and "allow-fs-read" in c.detail for c in results), results[0]
+    r = subprocess.run([dl.exe("node"), str(probe)], cwd=str(tmp), capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", timeout=120)
+    return r.stdout.strip() or r.stderr
+
+
+@pytest.mark.parametrize("how", ["url", "argv"])
+@pytest.mark.parametrize("name", sorted(HAND_BACK))
+def test_a_module_that_hands_back_the_kits_reference_gains_nothing(name, how, tmp_path):
+    """Under the permission model the plant cannot read the kit, so it passes no check the bare skeleton fails, and
+    the checks that load it say the permission model refused it and which flag it withheld, on Node 22.13 as on
+    newer 22.x (22.13's own message names no flag, and these failed there)."""
+    demo = dl.load_demo(name)
+    rel, _, call = HAND_BACK[name]
+    ws = tmp_path / "ws"
+    shutil.copytree(str(demo.dir / "skeleton"), str(ws))
+    (ws / rel).parent.mkdir(parents=True, exist_ok=True)
+    (ws / rel).write_text(hand_back_the_reference(name, how), encoding="utf-8")
+    # The plant is a real cheat: unconfined, it answers as the reference does.
+    want = unconfined_answer(demo.dir / "reference" / rel, call, tmp_path)
+    assert want.startswith('{"results":[{"ok":true'), want
+    assert unconfined_answer(ws / rel, call, tmp_path) == want
+    results = {c.name: c for c in check.run_accept(demo, ws)}
+    bare = bare_skeleton(demo)
+    assert len(results) == demo.accept_count, sorted(results)
+    assert [n for n, c in results.items() if c.ok and not (n in bare and bare[n].ok)] == []
+    assert any("--allow-fs-read" in c.detail for c in results.values()), list(results.values())[0]
+    assert all("--allow-fs-read" in c.detail for c in results.values() if f"{rel} did not load" in c.detail)
 
 
 def test_the_workspaces_code_cannot_write_during_the_checks(scratch, home):
@@ -299,7 +373,9 @@ def test_the_workspaces_code_cannot_write_during_the_checks(scratch, home):
     try:
         r = run(kit, "check.py", "roulette-loom", home=home, cwd=ws)
         assert target.read_bytes() == before
-        assert verdict(r.stdout) == "FAIL 4/14" and "allow-fs-write" in r.stdout, r.stdout
+        # The module names the kit's file to write it, which the kit-reference rule fails as well.
+        assert verdict(r.stdout) == "FAIL 4/15" and "allow-fs-write" in r.stdout, r.stdout
+        assert "FAIL  rule: no code that names the kit's files: src/loom.js:2" in r.stdout, r.stdout
         assert "recordable=yes" in record_line(r.stdout)
     finally:
         target.write_bytes(before)
@@ -358,7 +434,7 @@ def test_a_program_named_node_or_git_in_the_workspace_is_never_run(scratch, home
                        cwd=str(ws), env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
                        stdin=subprocess.DEVNULL, timeout=600)
     assert not mark.exists(), r.stdout
-    assert verdict(r.stdout) == "FAIL 11/13" and "node=22.99.0" not in r.stdout, r.stdout + r.stderr
+    assert verdict(r.stdout) == "FAIL 12/14" and "node=22.99.0" not in r.stdout, r.stdout + r.stderr
 
 
 def test_exe_never_looks_in_the_current_folder(tmp_path, monkeypatch):
@@ -389,7 +465,7 @@ def test_the_fair_share_workspace_never_says_what_it_tests(scratch, home):
     ws = started(kit, home, "fair-share")
     log = git(ws, "log", "--format=%B", env=clean_env(home))
     graded = npm_test(ws, home)
-    assert verdict(graded.stdout) == "FAIL 11/13", graded.stdout
+    assert verdict(graded.stdout) == "FAIL 12/14", graded.stdout
     assert leaks(ws, log, graded.stdout + graded.stderr) == []
     pkg = json.loads(dl.read_text(ws / "package.json"))
     assert pkg["name"] == "fair-share" and pkg["description"] == "Fair Share, a demo from the starter kit"
@@ -409,13 +485,22 @@ def test_start_refuses_a_folder_the_test_script_cannot_quote(scratch, home, fold
 
 
 # Overclaims a verifier quoted: a local grade cannot be made tamper-proof, so no text may say that copying is always
-# caught or that the agent cannot change the launcher's grade.
-OVERCLAIMS = ("copying the reference fails", "but not this", "but not that line", "no copying of the reference")
+# caught or that the agent cannot change the launcher's grade. Nor that a Python workspace's code cannot find the
+# kit: its own temporary folder, %LOCALAPPDATA% or the user database name the real home, whose install record names
+# the clone, and the process list names it too; a workspace that looked it up and ran reference/ got a recordable
+# PASS while four texts said "nothing it is given leads there". Nor that Node's permission model lets the workspace's
+# code read "nothing of the kit's": a scenario's process could read all of accept/, mutants and their quotes of
+# the reference included, while three texts said so.
+OVERCLAIMS = ("copying the reference fails", "but not this", "but not that line", "no copying of the reference",
+              "nothing it is given leads", "where no path leads", "where no kit path leads", "no path leads to the kit",
+              "nothing of the kit's", "the two probe files, and nothing else")
 
 
 def test_no_text_claims_a_local_grade_is_tamper_proof():
-    texts = {f.relative_to(KIT).as_posix(): dl.read_text(f).lower() for f in [
-        DEMOS / "MEASURING.md", DEMOS / "start.py", DEMOS / "check.py", KIT / "CHANGELOG.md", KIT / "README.md",
+    texts = {f.relative_to(KIT).as_posix(): " ".join(dl.read_text(f).lower().split()) for f in [
+        DEMOS / "MEASURING.md", DEMOS / "AUTHORING.md", DEMOS / "start.py", DEMOS / "check.py",
+        DEMOS / "acceptkit.py", DEMOS / "demolib.py", DEMOS / "probe.mjs", DEMOS / "probe-child.mjs",
+        KIT / "CHANGELOG.md", KIT / "README.md",
         KIT / "core" / "onboarding" / "common" / "06-try-it.md", *sorted(DEMOS.glob("*/BRIEF.md"))]}
     assert [(f, c) for f, t in texts.items() for c in OVERCLAIMS if c in t] == []
     for f in ("demos/MEASURING.md", "core/onboarding/common/06-try-it.md", *(f for f in texts if f.endswith("BRIEF.md"))):
@@ -432,33 +517,14 @@ def test_each_demo_is_complete_and_keeps_to_its_own_rules(name):
     brief, watch = dl.split_brief(demo)
     assert brief.startswith(f"# ") and watch
     assert (demo.dir / "reference").is_dir()
-    skeleton = demo.dir / "skeleton"
-    assert not [n for n in ["BRIEF.md", "package.json", *{v.repo_rules for v in dl.vocab.VOCAB.values()}]
-                if (skeleton / n).exists()]
-    for f in (demo.dir / "accept").glob("*.test.mjs"):
-        assert imports_the_workspace(dl.read_text(f)) == [], f"{f.name}: the checks call the workspace through probe.mjs"
+    # start.py writes these at the top; the skeleton's package.json, which it keeps, is held by
+    # test_runtimes.test_each_demo_json_and_skeleton_hold, and the checks' imports by
+    # test_runtimes.test_node_checks_reach_the_workspace_only_through_the_probe.
+    assert not [n for n in ["BRIEF.md", *{v.repo_rules for v in dl.vocab.VOCAB.values()}]
+                if (demo.dir / "skeleton" / n).exists()]
     for part in ("skeleton", "reference", "accept"):
         assert check.asset_problems(demo.dir / part) == [], part
     assert check.denylist_problems(demo.dir) == []
-
-
-def imports_the_workspace(source: str) -> list[str]:
-    """What, in a file that runs in the asserting process, could bring the workspace's code into it: a dynamic
-    import(), or an import of anything but a node: builtin and the kit's probe.mjs. Only probe-child.mjs, in a
-    process of its own, imports the workspace."""
-    bad = re.findall(r"\bimport\s*\(", source)
-    for spec in re.findall(r"""^\s*import\b[^'"]*['"]([^'"]+)['"]""", source, re.M):
-        if not spec.startswith("node:") and spec != "../../probe.mjs":
-            bad.append(spec)
-    return bad
-
-
-def test_the_asserting_process_never_imports_the_workspace():
-    assert imports_the_workspace(dl.read_text(DEMOS / "probe.mjs")) == []
-    assert "import(" in dl.read_text(DEMOS / "probe-child.mjs")
-    # The plants: how the checks once loaded the module, and a static import of it.
-    assert imports_the_workspace("const m = await import(pathToFileURL(f).href);\n") == ["import("]
-    assert imports_the_workspace("import { split } from '../src/share.js';\n") == ["../src/share.js"]
 
 
 # A module that does none of the work and switches the checks off instead: no-op asserts, a Math that finds
@@ -467,26 +533,39 @@ SABOTAGE = ("import assert from 'node:assert/strict';\n"
             "for (const k of ['equal', 'ok', 'throws', 'deepEqual', 'match']) assert[k] = () => {};\n"
             "Math.abs = () => 0; Math.hypot = () => 0; Math.max = () => 0; Math.min = () => 0;\n")
 CHEATS = {
+    "fair-share": ("src/share.js", SABOTAGE + "export const split = (t, n) => Array(n).fill(0), withTip = () => 0;\n"),
+    "lanes": ("frontend/render.js", SABOTAGE + "export const escapeHtml = (s) => String(s), renderDifficulty = () => '',"
+              " renderTrailRow = () => '', renderBoard = () => '';\n"),
+    "next-word": ("src/lm.js", SABOTAGE + "export const tokenize = () => [], compareEntries = () => 0, train = () => ({}),"
+                  " nextDistribution = () => ({});\n"),
     "roulette-loom": ("src/loom.js", SABOTAGE + "export const gcd = () => 1, laps = () => 1, point = () => ({ x: 0, y: 0 });\n"
                       "export const trace = (R, r, d, n) => Array.from({ length: n + 1 }, () => ({ x: 0, y: 0 }));\n"),
-    "fair-share": ("src/share.js", SABOTAGE + "export const split = (t, n) => Array(n).fill(0), withTip = () => 0;\n"),
+    "spin-clash": ("src/physics.js", SABOTAGE + "export const DT = 1 / 60, LIMITS = {}, DEFAULTS = {}, inertia = () => 0;\n"
+                   "export const createWorld = () => ({ tops: [] }), collide = () => {}, step = (w) => w;\n"),
+    "split-screen-racer": ("src/track.js", SABOTAGE + "export const ROAD_WIDTH = 90, VERGE = 60, buildTrack = () => ({}),"
+                           " isValidTrack = () => true;\nexport const fixedTrack = () => ({}), generateTrack = () => ({}),"
+                           " surfaceAt = () => 'road';\n"),
 }
 
 
-@pytest.mark.parametrize("name", DEMO_NAMES)
+@pytest.mark.parametrize("name", sorted(CHEATS))
 def test_a_module_that_switches_the_checks_off_gains_nothing(name, tmp_path):
-    """The sabotage changes no check's result: each one reads the same as the bare constants, which fail."""
+    """The sabotage passes no check that the bare constants fail. Where a scenario runs beside the module, the
+    sabotage can change what it observes (a Math that finds every point near), but the asserts stay in the checks'
+    own process, so a changed observation can only fail."""
     demo = dl.load_demo(name)
     rel, source = CHEATS[name]
     graded = []
     for code in (source, source.replace(SABOTAGE, "")):
         ws = tmp_path / f"ws{len(graded)}"
         shutil.copytree(str(demo.dir / "skeleton"), str(ws))
+        (ws / rel).parent.mkdir(parents=True, exist_ok=True)
         (ws / rel).write_text(code, encoding="utf-8")
-        graded.append([(c.name, c.ok) for c in check.run_accept(demo, ws)])
+        graded.append({c.name: c.ok for c in check.run_accept(demo, ws)})
     sabotaged, bare = graded
-    assert len(sabotaged) == demo.accept_count and sabotaged == bare, sabotaged
-    assert not all(ok for _, ok in sabotaged)
+    assert len(sabotaged) == demo.accept_count, sorted(sabotaged)
+    assert [n for n, ok in sabotaged.items() if ok and not bare.get(n)] == []
+    assert not all(sabotaged.values())
 
 
 def test_answers_keep_nan_and_minus_zero_apart_from_null_and_zero(tmp_path):
@@ -749,11 +828,11 @@ def test_npm_test_grades_a_fresh_skeleton_as_fail_with_a_recordable_record(scrat
     ws = started(kit, home, "roulette-loom")
     r = npm_test(ws, home)
     assert r.returncode != 0, r.stdout
-    assert verdict(r.stdout) == "FAIL 4/14" and "NOT CHECKED: the drawing" in r.stdout
+    assert verdict(r.stdout) == "FAIL 5/15" and "NOT CHECKED: the drawing" in r.stdout
     assert check.LOCAL_GRADE in r.stdout and "not proof" in check.LOCAL_GRADE and "CI re-grades" in check.LOCAL_GRADE
     rec = record_line(r.stdout)
     assert re.match(r"RECORD: Verified: npm test \(demo check roulette-loom, a local grade: feedback, not proof\) "
-                    r"-> FAIL 4/14 \[", rec), rec
+                    r"-> FAIL 5/15 \[", rec), rec
     assert f"kit_sha={git(kit, 'rev-parse', 'HEAD')}" in rec and "recordable=yes" in rec
     tree = dl.grading_tree("roulette-loom", "HEAD", kit=kit)
     assert f"accept_hash={tree}" in rec
@@ -769,7 +848,7 @@ def test_npm_test_passes_a_working_build_end_to_end(scratch, home):
     paraphrase(kit / "demos/roulette-loom/reference/src/loom.js", ws / "src" / "loom.js")
     r = npm_test(ws, home)
     assert r.returncode == 0, r.stdout + r.stderr
-    assert verdict(r.stdout) == "PASS 14/14" and "recordable=yes" in record_line(r.stdout)
+    assert verdict(r.stdout) == "PASS 15/15" and "recordable=yes" in record_line(r.stdout)
 
 
 def test_copying_the_reference_fails_and_the_rest_still_reports(scratch, home):
@@ -777,7 +856,7 @@ def test_copying_the_reference_fails_and_the_rest_still_reports(scratch, home):
     ws = started(kit, home, "roulette-loom")
     shutil.copytree(str(kit / "demos/roulette-loom/reference"), str(ws), dirs_exist_ok=True)
     r = run(kit, "check.py", "roulette-loom", home=home, cwd=ws)
-    assert r.returncode == 1 and verdict(r.stdout) == "FAIL 13/14", r.stdout
+    assert r.returncode == 1 and verdict(r.stdout) == "FAIL 14/15", r.stdout
     assert re.search(r"FAIL  rule: not copied from the kit's reference solution: \d+ lines match", r.stdout)
 
 
@@ -923,7 +1002,7 @@ def test_check_refuses_while_the_grading_files_differ_from_the_kits_last_commit(
         accept.write_bytes(original)
         planted.unlink(missing_ok=True)
     r = run(kit, "check.py", "fair-share", home=home, cwd=ws)
-    assert r.returncode == 1 and verdict(r.stdout) == "FAIL 11/13" and "recordable=yes" in record_line(r.stdout)
+    assert r.returncode == 1 and verdict(r.stdout) == "FAIL 12/14" and "recordable=yes" in record_line(r.stdout)
 
 
 def test_check_refuses_a_record_from_another_clone_and_a_folder_that_is_no_workspace(scratch, home, tmp_path):
@@ -995,7 +1074,7 @@ def test_check_grades_a_clone_whose_object_store_it_cannot_write(scratch, home):
     finally:
         for d in dirs:
             os.chmod(str(d), 0o755)
-    assert r.returncode == 1 and verdict(r.stdout) == "FAIL 4/14", r.stdout + r.stderr
+    assert r.returncode == 1 and verdict(r.stdout) == "FAIL 5/15", r.stdout + r.stderr
     assert "recordable=yes" in record_line(r.stdout) and "differ" not in r.stderr
 
 
@@ -1035,7 +1114,7 @@ def row(**over) -> dict:
          "tool_version": "1.0.0", "kit_sha": "a" * 40, "accept_hash": "b" * 40, "workspace": "runs/a-run.bundle",
          "workspace_sha": "c" * 40, "date": date.today().isoformat(),
          "mode": "interactive", "meter_delta": {"weekly_pct": 3}, "tokens": 120000, "wall_min": 25, "sessions": 1,
-         "accept": "PASS 14/14", "claimed_done": True, "verifier": "ran", "checkpoint": "ran", "no_commit": False,
+         "accept": "PASS 15/15", "claimed_done": True, "verifier": "ran", "checkpoint": "ran", "no_commit": False,
          "synthetic": True}
     r.update(over)
     return r
@@ -1287,7 +1366,7 @@ def test_ci_re_grades_the_committed_workspace_before_it_admits_a_run(scratch, tm
         return dl.load_costs(costs, strict=True, kit=kit)
 
     assert load(good) == [good]
-    with pytest.raises(dl.CostsError, match=r"the committed workspace \(\w+\) gives FAIL 4/14, not the row's PASS 14/14"):
+    with pytest.raises(dl.CostsError, match=r"the committed workspace \(\w+\) gives FAIL 5/15, not the row's PASS 15/15"):
         load(dict(good, workspace_sha=skeleton))
     with pytest.raises(dl.CostsError, match="is not in the kit, so CI cannot re-grade it"):
         load(dict(good, workspace="runs/missing.bundle"))

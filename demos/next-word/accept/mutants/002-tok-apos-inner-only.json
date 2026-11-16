@@ -1,0 +1,8 @@
+{
+  "id": "002-tok-apos-inner-only",
+  "graded_item": 1,
+  "description": "tokenize keeps apostrophes only inside a word",
+  "file": "src/lm.js",
+  "find": "const TOKEN_RE = /[a-z0-9']+|[.!?,;:]/g;",
+  "replace": "const TOKEN_RE = /[a-z0-9]+(?:'[a-z0-9]+)*|[.!?,;:]/g;"
+}

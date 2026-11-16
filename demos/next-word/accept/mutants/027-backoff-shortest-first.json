@@ -1,0 +1,8 @@
+{
+  "id": "027-backoff-shortest-first",
+  "graded_item": 5,
+  "description": "nextDistribution tries the shortest ending first",
+  "file": "src/lm.js",
+  "find": "  for (let len = maxLen; len >= 1; len--) {",
+  "replace": "  for (let len = 1; len <= maxLen; len++) {"
+}

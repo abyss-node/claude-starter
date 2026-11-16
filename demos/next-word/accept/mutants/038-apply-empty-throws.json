@@ -1,0 +1,8 @@
+{
+  "id": "038-apply-empty-throws",
+  "graded_item": 8,
+  "description": "applySettings on an empty list with T = 0 throws instead of returning []",
+  "file": "src/sampling.js",
+  "find": "  if (list.length === 0) return [];\n",
+  "replace": ""
+}

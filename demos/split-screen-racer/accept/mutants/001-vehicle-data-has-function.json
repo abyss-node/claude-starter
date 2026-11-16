@@ -1,0 +1,8 @@
+{
+  "id": "001-vehicle-data-has-function",
+  "graded_item": 1,
+  "description": "VEHICLES.car carries a function, so it is not plain data",
+  "file": "src/vehicles.js",
+  "find": "    kind: 'car',\n",
+  "replace": "    kind: 'car',\n    handlingNote() { return 1; },\n"
+}

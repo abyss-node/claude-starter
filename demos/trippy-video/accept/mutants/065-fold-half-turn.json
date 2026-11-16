@@ -1,0 +1,8 @@
+{
+ "id": "065-fold-half-turn",
+ "graded_item": 11,
+ "description": "kaleidoscope fold rotates half a turn per loop",
+ "file": "trippy.py",
+ "find": "fold_rot = p[\"fold_spin\"] * theta",
+ "replace": "fold_rot = p[\"fold_spin\"] * 0.5 * theta"
+}

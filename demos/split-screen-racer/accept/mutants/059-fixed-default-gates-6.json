@@ -1,0 +1,8 @@
+{
+  "id": "059-fixed-default-gates-6",
+  "graded_item": 14,
+  "description": "fixedTrack gives 6 gates by default",
+  "file": "src/track.js",
+  "find": "export function fixedTrack({ checkpoints = 8 } = {}) {",
+  "replace": "export function fixedTrack({ checkpoints = 6 } = {}) {"
+}

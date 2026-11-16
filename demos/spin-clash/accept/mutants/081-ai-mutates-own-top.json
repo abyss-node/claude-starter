@@ -1,0 +1,8 @@
+{
+  "id": "081-ai-mutates-own-top",
+  "graded_item": 10,
+  "description": "the computer nudges its own top in the world",
+  "file": "src/ai.js",
+  "find": "  const R = world.config.arenaRadius;",
+  "replace": "  me.x += 1e-9;\n  const R = world.config.arenaRadius;"
+}

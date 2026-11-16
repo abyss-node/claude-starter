@@ -1,0 +1,8 @@
+{
+  "id": "102-ai-rings-foe-out-itself",
+  "graded_item": 13,
+  "description": "the computer rings the other top out of the world when it is close",
+  "file": "src/ai.js",
+  "find": "  const tx = foe.x;\n  const ty = foe.y;",
+  "replace": "  if (best < 0.45) { foe.status = 'ringout'; foe.x = 5; }\n  const tx = foe.x;\n  const ty = foe.y;"
+}

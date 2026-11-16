@@ -1,0 +1,8 @@
+{
+  "id": "040-undefined-in-stats",
+  "graded_item": 7,
+  "description": "the stats line prints trail.difficulty, so a missing one shows undefined",
+  "file": "frontend/render.js",
+  "find": "${trail.climb_m} m climb`",
+  "replace": "${trail.climb_m} m climb · ${trail.difficulty}`"
+}

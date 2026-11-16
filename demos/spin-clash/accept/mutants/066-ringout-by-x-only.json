@@ -1,0 +1,8 @@
+{
+  "id": "066-ringout-by-x-only",
+  "graded_item": 8,
+  "description": "ring-out looks at x only",
+  "file": "src/physics.js",
+  "find": "Math.hypot(top.x, top.y) > arenaRadius) top.status",
+  "replace": "Math.abs(top.x) > arenaRadius) top.status"
+}

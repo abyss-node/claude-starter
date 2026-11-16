@@ -1,0 +1,8 @@
+{
+ "id": "003-zero-frames-allowed",
+ "graded_item": 1,
+ "description": "no minimum of one frame: 1 fps for 0.2 s writes nothing",
+ "file": "trippy.py",
+ "find": "frames = max(1, int(round(args.fps * args.seconds)))",
+ "replace": "frames = int(round(args.fps * args.seconds))"
+}

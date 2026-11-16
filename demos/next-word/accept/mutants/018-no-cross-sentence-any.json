@@ -1,0 +1,8 @@
+{
+  "id": "018-no-cross-sentence-any",
+  "graded_item": 3,
+  "description": "no context that contains a sentence end is counted",
+  "file": "src/lm.js",
+  "find": "    for (let len = 1; len <= order - 1 && len <= i; len++) {",
+  "replace": "    for (let len = 1; len <= order - 1 && len <= i; len++) {\n      if (tokens.slice(i - len, i).some((t) => /^[.!?]$/.test(t))) break;"
+}

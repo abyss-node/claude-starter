@@ -1,0 +1,8 @@
+{
+  "id": "060-crossing-commit-behind-a-merge",
+  "graded_item": 12,
+  "description": "a lane-crossing commit on a side branch, merged with a merge commit",
+  "file": "make-workspace.mjs",
+  "find": "  copy(\"frontend\");\n  commit(\"frontend: show the difficulty badge\", \"frontend\");",
+  "replace": "  git(\"checkout\", \"-q\", \"-b\", \"feature\");\n  copy(\"frontend\");\n  git(\"mv\", \"frontend/style.css\", \"backend/style.css\");\n  commit(\"both lanes on a branch\", \"frontend\", \"backend\");\n  git(\"checkout\", \"-q\", \"-\");\n  git(\"commit\", \"-q\", \"--allow-empty\", \"-m\", \"root note\");\n  git(\"merge\", \"-q\", \"--no-ff\", \"-m\", \"merge feature\", \"feature\");"
+}

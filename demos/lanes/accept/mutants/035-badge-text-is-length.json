@@ -1,0 +1,8 @@
+{
+  "id": "035-badge-text-is-length",
+  "graded_item": 6,
+  "description": "badge text is the level's length, not the level",
+  "file": "frontend/render.js",
+  "find": "${escapeHtml(level)}</span>",
+  "replace": "${escapeHtml(level.length)}</span>"
+}

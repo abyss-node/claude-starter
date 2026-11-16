@@ -1,0 +1,8 @@
+{
+  "id": "033-tie-locale",
+  "graded_item": 6,
+  "description": "equal probabilities are ordered by localeCompare",
+  "file": "src/lm.js",
+  "find": "  return a.token < b.token ? -1 : a.token > b.token ? 1 : 0;",
+  "replace": "  return a.token.localeCompare(b.token);"
+}

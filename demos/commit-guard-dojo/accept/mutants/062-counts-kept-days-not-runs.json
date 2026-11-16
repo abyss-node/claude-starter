@@ -1,0 +1,11 @@
+{
+  "id": "062",
+  "graded_item": 12,
+  "description": "returns the number of kept days, not the longest run",
+  "file": "workspace/habits.py",
+  "find": "        run = run + 1 if day else 0\n",
+  "replace": "        run = run + 1 if day else run\n",
+  "expect": [
+    "test_11"
+  ]
+}

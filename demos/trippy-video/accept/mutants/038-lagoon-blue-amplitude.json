@@ -1,0 +1,8 @@
+{
+ "id": "038-lagoon-blue-amplitude",
+ "graded_item": 6,
+ "description": "lagoon blue amplitude 0.30 instead of 0.40",
+ "file": "trippy.py",
+ "find": "\"lagoon\": ((0.25, 0.50, 0.60), (0.25, 0.40, 0.40)",
+ "replace": "\"lagoon\": ((0.25, 0.50, 0.60), (0.25, 0.40, 0.30)"
+}

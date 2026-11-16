@@ -1,0 +1,8 @@
+{
+  "id": "133-steer-default-zero",
+  "graded_item": 15,
+  "description": "steer defaults to 0 so inputs do nothing",
+  "file": "src/physics.js",
+  "find": "  steer: 2.5,",
+  "replace": "  steer: 0,"
+}

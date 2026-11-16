@@ -1,0 +1,8 @@
+{
+  "id": "legal-008-page-range-bare",
+  "graded_item": 21,
+  "description": "#temperature slider with unquoted attributes",
+  "file": "index.html",
+  "find": "      <input id=\"temperature\" type=\"range\" min=\"0\" max=\"3\" step=\"0.05\" value=\"1\">",
+  "replace": "      <input min=0 max=3 step=0.05 value=1 type=range id=temperature>"
+}

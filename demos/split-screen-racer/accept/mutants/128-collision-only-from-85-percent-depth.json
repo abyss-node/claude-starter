@@ -1,0 +1,8 @@
+{
+  "id": "128-collision-only-from-85-percent-depth",
+  "graded_item": 26,
+  "description": "vehicles are pushed apart only once 15% deep",
+  "file": "src/race.js",
+  "find": "  if (d >= min) return;",
+  "replace": "  if (d >= 0.85 * min) return;"
+}

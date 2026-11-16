@@ -1,0 +1,8 @@
+{
+  "id": "036-corpus-one-follower",
+  "graded_item": 7,
+  "description": "CORPUS is long enough but \"the\" is only ever followed by \"cat\"",
+  "file": "src/corpus.js",
+  "find": "export const CORPUS = `",
+  "replace": "export const CORPUS = 'the cat sat . '.repeat(60); const UNUSED = `"
+}

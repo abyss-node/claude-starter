@@ -1,0 +1,8 @@
+{
+  "id": "100-parse-nolimit",
+  "graded_item": 18,
+  "description": "parseSeed has no 4294967295 cap",
+  "file": "src/seed.js",
+  "find": "  return n <= PARSE_MAX ? n : null;",
+  "replace": "  return n;"
+}

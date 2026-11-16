@@ -1,0 +1,7 @@
+{
+ "id": "002-picked-seed-wide-and-negative",
+ "description": "a picked seed anywhere in plus or minus 2**40: any whole number is a seed",
+ "file": "trippy.py",
+ "find": "random.SystemRandom().randrange(1, 1000000000)",
+ "replace": "random.SystemRandom().randrange(-2 ** 40, 2 ** 40)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "049-first-point-repeated-at-end",
+  "graded_item": 12,
+  "description": "the centreline repeats its first point at the end",
+  "file": "src/track.js",
+  "find": "  return { name, width: ROAD_WIDTH, verge: VERGE, centerline, checkpoints, grid, length: loopLength(centerline) };",
+  "replace": "  centerline.push({ ...centerline[0] });\n  return { name, width: ROAD_WIDTH, verge: VERGE, centerline, checkpoints, grid, length: loopLength(centerline) };"
+}

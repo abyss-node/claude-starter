@@ -1,0 +1,8 @@
+{
+  "id": "105-step-state-leaks-across-races",
+  "graded_item": 21,
+  "description": "a counter that survives across races nudges the heading every 977 steps",
+  "file": "src/race.js",
+  "find": "    stepVehicle(p, input, surface);",
+  "replace": "    stepVehicle(p, input, surface);\n    stepRace.n = (stepRace.n || 0) + 1;\n    if (stepRace.n % 977 === 0) p.heading += 1e-6;"
+}

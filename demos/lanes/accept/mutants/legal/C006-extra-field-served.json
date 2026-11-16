@@ -1,0 +1,7 @@
+{
+  "id": "C006-extra-field-served",
+  "description": "an extra slug field is served beside the original ones",
+  "file": "backend/trails.py",
+  "find": "        \"difficulty\": difficulty(trail[\"length_km\"], trail[\"climb_m\"]),",
+  "replace": "        \"slug\": trail[\"id\"],\n        \"difficulty\": difficulty(trail[\"length_km\"], trail[\"climb_m\"]),"
+}

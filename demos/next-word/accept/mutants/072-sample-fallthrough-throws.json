@@ -1,0 +1,8 @@
+{
+  "id": "072-sample-fallthrough-throws",
+  "graded_item": 14,
+  "description": "sampleToken throws when rounding leaves no token",
+  "file": "src/sampling.js",
+  "find": "  return entries[entries.length - 1].token;",
+  "replace": "  throw new Error('no token');"
+}
