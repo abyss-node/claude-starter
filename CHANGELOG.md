@@ -56,8 +56,39 @@ can show what each one does before it runs.
   spelling, `.claude-starter`, `installs.json` or a demo's `reference/`.
 - `check.py --accept-only` runs the held-out checks alone on a folder, for a
   demo's own mutants runner; it prints no `RECORD:` line.
+- A rule in both rules tiers, "No repo yet: make one, then offer GitHub":
+  beginners were stalled by being asked for a repo they did not have. When a
+  task needs git and the folder is in no repo, the agent runs `git init` itself
+  and says so (never in the home folder, a drive root or the kit's clone; there
+  it proposes and makes `~/projects/<name>`). Then, each step on its own yes, it
+  checks `gh auth status`, asks the user to run `gh auth login` in their own
+  terminal if GitHub is not connected (or points to https://cli.github.com when
+  `gh` is missing), and offers
+  `gh repo create <name> --private --source . --push`. Declining GitHub never
+  holds local work back. A test requires the heading in every tier.
+- The `checkpoint` command gains a step 0: in a folder that is no git repo, it
+  runs `git init` and says so, instead of stopping.
 
 ### Changed
+
+- `--guard-repo` takes a project folder, not only a repo. A folder that is not
+  a git repo yet is made one: the plan shows a `git init (new repo)` step (a
+  dry run writes nothing), and `--yes` runs `git init`, creating the folder if
+  it does not exist yet, before the hooks go in. A folder inside a repo means
+  that repo, as `guard.py install` already resolved it, so no repo is nested in
+  another, and two folders in one repo install its hooks once. The home folder,
+  a folder holding it, a drive or filesystem root, the kit's own clone (the one
+  the installer runs from, or `~/.claude-starter`), a file and a path inside a
+  `.git` folder are refused with exit 2 before anything is written. The
+  installer is the one place that runs `git init`; `guard.py install` still
+  needs an existing repo. The For-you block says when the installer made a
+  repo, and the install record keeps the repo's root.
+- The install flow (`README.md`, `AGENTS.md`, the installer's stop line and the
+  `starter-update` command) asks which project folder the user works in for the
+  commit guard, never for a repo, and suggests `~/projects/<name>` when there
+  is none. `--no-guard` stays, and `--yes` with neither still exits 2.
+- The walkthrough's "Try it on a demo" and "Your first hour" steps no longer
+  require a repo of your own: the agent makes one in a plain project folder.
 
 - With nothing measured, `demo pick` suggests the small demo with the fewest
   held-out checks (Roulette Loom), not the first small one by title.

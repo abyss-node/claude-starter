@@ -30,6 +30,9 @@ Copies files; it translates nothing (scripts/build_adapters.py did that). Safety
   - just before writing, every destination folder is tried by creating and deleting one file in it; if
     any cannot be written (a sandboxed agent session, say) nothing is written and the run exits 3,
     naming the folder. It never falls back to installing into the project folder;
+  - a --guard-repo folder that is not a git repo yet is made one with git init (a folder inside a repo
+    means that repo); the home folder, a folder holding it, a drive root and the kit's own clone are
+    refused with exit 2, before anything is written;
   - any other failure saves a redacted report (scripts/report.py) and prints an issue link; nothing is sent;
   - a successful install ends with a "For you" block: what the person at the keyboard does next, what
     was left to them, and the install's limits. An agent relays only that block, so each item in it
@@ -89,7 +92,7 @@ STAMP = datetime.now().strftime("%Y%m%d-%H%M%S")
 class Step:
     piece: str
     dest: Path | None
-    kind: str                       # file | rules | json | guard | cli | delete | move | git
+    kind: str                       # file | rules | json | init | guard | cli | delete | move | git
     status: str = ""                # create | update | merge | already installed | skipped | failed | ...
     detail: str = ""
     payload: bytes = b""            # final bytes to write (file/rules/json)
@@ -392,19 +395,117 @@ def guard_hooks_current(repo: Path) -> bool:
     return True
 
 
-def plan_guard(repo: str) -> Step:
+def _same_dir(a: Path, b: Path) -> bool:
+    return os.path.normcase(str(a)) == os.path.normcase(str(b))
+
+
+def enclosing_repo(p: Path) -> Path | None:
+    """The top of the git work tree that holds `p` (p itself or a parent), found the way guard.py's
+    repo_root finds it (`git rev-parse --show-toplevel`), or None. A folder that does not exist yet is
+    looked up from its nearest existing parent."""
+    if (p / ".git").exists():
+        return p  # also when git itself refuses to read it (another owner's repo): never re-init one
+    probe = p
+    while not probe.is_dir():
+        if probe.parent == probe:
+            return None
+        probe = probe.parent
+    try:
+        r = subprocess.run(["git", "-C", str(probe), "rev-parse", "--show-toplevel"], capture_output=True,
+                           timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    out = r.stdout.decode("utf-8", errors="replace").strip()
+    return Path(out).resolve() if r.returncode == 0 and out else None
+
+
+def refused_repo(target: Path) -> str | None:
+    """Why `target` must never be made a git repo or get the commit guard, or None. git init in a home
+    folder or a drive root would track every file under it, and the kit's own clone is moved between
+    releases by the updater, so the guard belongs in a project of the user's instead."""
+    h = home().resolve()
+    example = f"Name a project folder instead, for example {h / 'projects' / '<name>'}: the installer creates it " \
+              "and makes it a git repo"
+    if target.parent == target:
+        return f"{target} is the root of a drive or filesystem. {example}"
+    if _same_dir(target, h):
+        return f"{target} is your home directory. {example}"
+    if any(_same_dir(target, a) for a in h.parents):
+        return f"{target} holds your home directory. {example}"
+    for kit in (ROOT, cmd_root(), h / ".claude-starter"):
+        if _same_dir(target, kit.resolve()):
+            return f"{target} is this kit's own clone, which the updater moves between releases. {example}"
+    return None
+
+
+def guard_target(repo: str) -> tuple[Path, bool, str | None]:
+    """(the repo the commit guard's hooks go into, whether git init must make it first, why it cannot
+    be used). A folder inside a repo resolves to that repo rather than nesting a new one, as guard.py
+    install does; a folder that is not in any repo yet (or does not exist) is made one. This is the one
+    place that decides to run git init: guard.py install itself still needs an existing repo."""
     p = Path(repo).expanduser().resolve()
-    s = Step("commit guard (git hooks)", p, "guard")
-    if not (p / ".git").exists():
-        s.status, s.detail = "failed", "not a git repository (no .git)"
-        return s
-    if guard_hooks_current(p):
+    if p.exists() and not p.is_dir():
+        return p, False, f"{p} is a file, not a folder. Name the project folder that holds it"
+    if ".git" in p.parts:
+        return p, False, f"{p} is inside a .git folder. Name the project folder that holds it"
+    root = enclosing_repo(p)
+    target = root or p
+    why = refused_repo(target)
+    if why and root is not None and not _same_dir(root, p) and _same_dir(root, home().resolve()):
+        # A repo at home (a dotfiles repo, say) holds every folder under it; a project needs its own.
+        why = (f"{p} is inside the git repo at {root}, your home directory. Give the project a repo of its own "
+               f"first (git init {p}), then run this again")
+    return target, root is None, why
+
+
+def plan_guard(repo: str) -> list[Step]:
+    """The commit guard's steps for one --guard-repo: git init when the folder is not a repo yet, then
+    the hooks."""
+    target, init, why = guard_target(repo)
+    s = Step("commit guard (git hooks)", target, "guard")
+    if why:
+        s.status, s.detail = "failed", why
+        return [s]
+    steps: list[Step] = []
+    if init:
+        made = "" if target.is_dir() else " and does not exist yet, so it is created"
+        steps.append(Step("git init (new repo)", target, "init", status="run",
+                          detail=f"git init {target}: the folder is not a git repo yet{made}. It stays local "
+                                 f"(no remote); deleting {target / '.git'} undoes it"))
+    elif guard_hooks_current(target):
         # A re-run with the same --guard-repo must write nothing, like every other piece.
         s.status, s.detail = "already installed", "hooks and the guard.py copy they call are current"
-        return s
+        return [s]
     s.status = "run"
-    s.detail = f"python guard.py install {p} (writes .git/hooks; copies guard.py to {guard_data_dir()})"
-    return s
+    s.detail = f"python guard.py install {target} (writes .git/hooks; copies guard.py to {guard_data_dir()})"
+    return steps + [s]
+
+
+def plan_guards(repos) -> list[Step]:
+    """plan_guard for every --guard-repo, each repo once (two folders in one repo are one repo)."""
+    steps: list[Step] = []
+    seen: set = set()
+    for r in repos:
+        for s in plan_guard(r):
+            key = (os.path.normcase(str(s.dest)), s.kind)
+            if key not in seen:
+                seen.add(key)
+                steps.append(s)
+    return steps
+
+
+def guard_refused(steps: list[Step]) -> int | None:
+    """2 when a --guard-repo names a folder the guard cannot go in (the command was wrong), else None.
+    The plan above already shows the step as CANNOT; nothing has been written."""
+    refused = [s for s in steps if s.kind == "guard" and s.status == "failed"]
+    if not refused:
+        return None
+    print("\nerror: the commit guard cannot go where --guard-repo points:", file=sys.stderr)
+    for s in refused:
+        print(f"  {s.detail}.", file=sys.stderr)
+    print("Run it again with another project folder in --guard-repo, or with --no-guard. Nothing was written.",
+          file=sys.stderr)
+    return 2
 
 
 # --------------------------------------------------------------------------
@@ -954,7 +1055,7 @@ def check_file(tool: str, s: Step) -> str | None:
 def structural_check(tool: str, steps: list[Step]) -> tuple[bool, list[str]]:
     bad, n = [], 0
     for s in steps:
-        if not s.dest or s.kind == "guard" or s.status in ("failed", "skipped", "manual"):
+        if not s.dest or s.kind in ("guard", "init") or s.status in ("failed", "skipped", "manual"):
             continue
         n += 1
         try:
@@ -1270,6 +1371,13 @@ def apply(s: Step, repo_python: str) -> None:
             s.status = "done" if r.returncode == 0 else "failed"
             if r.returncode:
                 s.detail = f"git {' '.join(s.argv)} exited {r.returncode}"
+        elif s.kind == "init":
+            s.dest.mkdir(parents=True, exist_ok=True)
+            r = subprocess.run(["git", "init", str(s.dest)], capture_output=True, timeout=300)
+            s.notes.extend((r.stdout + r.stderr).decode("utf-8", errors="replace").strip().splitlines())
+            s.status = "done" if r.returncode == 0 else "failed"
+            if r.returncode:
+                s.detail = f"git init exited {r.returncode}"
         elif s.kind == "guard":
             r = subprocess.run([repo_python, str(GUARD), "install", str(s.dest)], capture_output=True)
             out = (r.stdout + r.stderr).decode("utf-8", errors="replace").strip()
@@ -1309,10 +1417,15 @@ def stop_line(ask: str, next_cmd: str) -> str:
     return f"If you are an AI agent: stop here. Show the user {ask}, and end your turn. {next_cmd} only after they reply."
 
 
+# Asked as "a repo", the question stalled beginners who had none; plan_guard makes one with git init.
+GUARD_ASK = ("which project folder they work in, for the commit guard (one that is not a git repo yet is made "
+             "one; no folder yet: suggest ~/projects/<name>), or none")
+
+
 def agent_stop_line(args) -> str:
     """The installer's stop line, before it applies a plan."""
-    ask = ("ask whether to add the commit guard to a repo" if args.tool == "claude"
-           else "ask which tier (starter or full) and whether to add the commit guard to a repo")
+    ask = (f"ask {GUARD_ASK}" if args.tool == "claude"
+           else f"ask which tier (starter or full) and {GUARD_ASK}")
     return stop_line(f"this plan, {ask}", "Run with --yes")
 
 
@@ -1359,8 +1472,9 @@ def guard_choice_missing(args) -> int | None:
     answer, so an apply that skipped the question would otherwise turn into a permanent no."""
     if getattr(args, "guard_repo", None) or getattr(args, "no_guard", False):
         return None
-    print("\nerror: choose the commit guard before applying: add --guard-repo <repo> to install its git hooks "
-          "in a repo, or --no-guard to install without it. Nothing was written.", file=sys.stderr)
+    print("\nerror: choose the commit guard before applying: add --guard-repo <folder> to install its git hooks "
+          "in that project (a folder that is not a git repo yet is made one), or --no-guard to install without "
+          "it. Nothing was written.", file=sys.stderr)
     return 2
 
 
@@ -1489,8 +1603,11 @@ def install_claude(args) -> int:
             p.status, p.detail = "run", f"claude plugin enable {plugin} (installed but disabled)"
         else:
             p.status = "already installed"
-        steps = [m, p] + [plan_guard(r) for r in args.guard_repo]
+        steps = [m, p] + plan_guards(args.guard_repo)
         show_plan(steps, f"claude-starter -> claude (plugin), config dir: {cfg}")
+        rc = guard_refused(steps)
+        if rc is not None:
+            return rc
         problems = preflight(steps, None)
         if problems:
             return preflight_failed(problems)
@@ -1551,7 +1668,7 @@ def finish_run(tool: str, tier: str | None, steps: list[Step], ok_load: bool, lo
     rec = record() if record else None
     footer(args)
     # Last, so it is what the user and any agent read last; the caveats print nowhere else.
-    print_for_you([*next_steps, guard_status(args), *notice_item(rec), *limits_item(after)])
+    print_for_you([*next_steps, guard_status(args, steps), *notice_item(rec), *limits_item(after)])
     return 0
 
 
@@ -1638,6 +1755,8 @@ def write_targets(steps: list[Step]) -> tuple[list[Path], list[Path]]:
             found = [s.dest.parent]
             if s.dest.is_file():
                 files.append(s.dest)
+        elif s.kind == "init":
+            found = [s.dest]  # git init writes <dest>/.git, making <dest> first if it does not exist
         elif s.kind == "guard":
             found = [guard_hooks_dir(s.dest), guard_data_dir()]
         elif s.kind == "cli":
@@ -1762,13 +1881,22 @@ def check_writable(steps: list[Step], args) -> int | None:
 FOR_YOU = "=== For you (the person at the keyboard) ==="
 
 
-def guard_status(args) -> str:
-    repos = [str(Path(r).expanduser().resolve()) for r in getattr(args, "guard_repo", None) or []]
+def guard_status(args, steps: list[Step] = ()) -> str:
+    """The guard line of the For-you block. With this run's steps it names the repos the hooks went
+    into (a folder inside a repo names that repo) and each folder git init made a repo."""
+    repos = ([str(s.dest) for s in steps if s.kind == "guard"]
+             or [str(Path(r).expanduser().resolve()) for r in getattr(args, "guard_repo", None) or []])
     if repos:
-        return "Commit guard: installed as git hooks in " + ", ".join(repos) + "."
+        made = [str(s.dest) for s in steps if s.kind == "init" and s.status == "done"]
+        new = (f" {', '.join(made)} {'was' if len(made) == 1 else 'were'} not a git repo yet, so the installer ran "
+               "git init there: a local repo with no remote, and deleting its .git folder undoes it. To put it "
+               "on GitHub, ask your agent; it checks that GitHub is connected and asks before creating "
+               "anything." if made else "")
+        return "Commit guard: installed as git hooks in " + ", ".join(repos) + "." + new
     inside = " Inside Claude Code the plugin's hook still checks Claude's own commits." if args.tool == "claude" else ""
-    return "\n".join([f"Commit guard: NOT installed in any repo.{inside} To add it to a repo, run this in your "
-                      "own terminal, with <your-repo> replaced by the repo's folder:",
+    return "\n".join([f"Commit guard: NOT installed in any repo.{inside} To add it to a project, run this in your "
+                      "own terminal, with <your-repo> replaced by the project's folder (one that is not a git "
+                      "repo yet is made one):",
                       *install_lines(args, " --guard-repo <your-repo> --yes")])
 
 
@@ -1895,7 +2023,7 @@ def recorded_files(steps: list[Step]) -> dict:
 
 def guard_option(args, old: dict | None) -> dict | None:
     """The guard answer this run gives, merged with the recorded one; None when never asked."""
-    repos = sorted({str(Path(r).expanduser().resolve()) for r in getattr(args, "guard_repo", None) or []}
+    repos = sorted({str(guard_target(r)[0]) for r in getattr(args, "guard_repo", None) or []}
                    | set((old or {}).get("repos") or []))
     if getattr(args, "guard_repo", None):
         return {"state": "installed", "repos": repos}
@@ -2126,8 +2254,7 @@ def plan_installs(rec: dict, guard_repos: list = ()) -> list[Step]:
         # Hooked repos call this copy by absolute path and skip the guard when it is missing, so it is
         # refreshed, or put back, for every one of them.
         steps.append(plan_file("commit guard copy", GUARD, data_guard))
-    for r in dict.fromkeys(str(Path(r).expanduser().resolve()) for r in guard_repos):
-        steps.append(plan_guard(r))
+    steps += plan_guards(guard_repos)
     return steps
 
 
@@ -2213,8 +2340,8 @@ def print_update_plan(rec: dict, steps: list[Step], sha: str, pid: str, args, sn
         for e in unasked:
             # The answer is part of the plan (--guard-repo adds a step, so it changes the id): it goes into
             # a new plan, never into this plan's apply command.
-            print(f"  commit guard for {e['tool']}: ask the user, then make the plan again with their answer "
-                  "added, --guard-repo <repo> or --no-guard, and apply the command that plan prints")
+            print(f"  commit guard for {e['tool']}: ask the user {GUARD_ASK}, then make the plan again with "
+                  "their answer added, --guard-repo <folder> or --no-guard, and apply the command that plan prints")
         if notices is None and not record_path().is_file():
             print("  update notices: the apply's closing block asks (no install is recorded yet)")
         elif notices is None:
@@ -2269,6 +2396,9 @@ def plan_update_child(args) -> int:
         return 2
     rec = adopt(rec)
     steps = plan_installs(rec, args.guard_repo)
+    rc = guard_refused(steps)
+    if rc is not None:
+        return rc
     pid = plan_id(args.to, rec, steps)
     rc = update_targets_writable(steps)
     if rc is not None:
@@ -2403,6 +2533,9 @@ def apply_update_here(rec: dict | None, sha: str, args) -> int:
     recorded = rec is not None
     rec = adopt(rec)
     steps = plan_installs(rec, args.guard_repo)
+    rc = guard_refused(steps)
+    if rc is not None:
+        return rc
     pid = plan_id(sha, rec, steps)
     if not args.yes:
         if not any(s.writes for s in steps) and prev == sha:
@@ -2427,7 +2560,7 @@ def apply_update_here(rec: dict | None, sha: str, args) -> int:
     unasked = [e for e in rec["installs"] if e["tool"] != "claude" and "guard" not in (e.get("options") or {})]
     if unasked and not (args.guard_repo or args.no_guard):
         print("\nerror: the plan asks about the commit guard. Make the plan again with the user's answer added, "
-              "--guard-repo <repo> or --no-guard, and apply the command that plan prints. Nothing was written.",
+              "--guard-repo <folder> or --no-guard, and apply the command that plan prints. Nothing was written.",
               file=sys.stderr)
         return 2
     rc = update_targets_writable(steps)
@@ -2520,7 +2653,7 @@ def plan_tool(name: str, tier: str, cfg: Path, project: Path | None, guard_repos
                     steps.append(plan_file(piece_name(rel), f, cfg / rel))
     if tool.json_merge:
         steps.append(plan_json(src_dir / tool.json_merge[0], cfg / tool.json_merge[1], tool.union))
-    steps += [plan_guard(r) for r in guard_repos]
+    steps += plan_guards(guard_repos)
 
     return steps
 
@@ -2537,7 +2670,9 @@ def run(argv: list[str] | None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="print the plan; change nothing")
     ap.add_argument("--yes", action="store_true", help="apply without asking")
     ap.add_argument("--guard-repo", action="append", default=[], metavar="PATH",
-                    help="also install the commit guard git hooks into this repo (repeatable)")
+                    help="also install the commit guard git hooks into this project folder (repeatable); one "
+                         "that is not a git repo yet is made one with git init, and a folder inside a repo "
+                         "means that repo")
     ap.add_argument("--no-guard", action="store_true",
                     help="install without the commit guard git hooks (an apply needs this or --guard-repo)")
     ap.add_argument("--update", action="store_true",
@@ -2608,6 +2743,9 @@ def run(argv: list[str] | None) -> int:
     if tool.shared_skills:
         print(f"  (skills go to the shared {shared_skills_dir()}, read by Codex, Cursor, Copilot, Junie and "
               "OpenCode; a second tool's install finds them already installed)")
+    rc = guard_refused(steps)
+    if rc is not None:
+        return rc
     problems = preflight(steps, tool)
     if problems:
         return preflight_failed(problems)

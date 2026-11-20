@@ -211,6 +211,28 @@ shared database. A local edit is undone with git; a sent email, a public post or
 a dropped table is not, and the person who answers for it is the user, not the
 session. Approval for one such action does not carry over to the next.
 
+## No repo yet: make one, then offer GitHub
+
+Beginners were stalled by being asked for a repo they did not have, so never
+ask for one.
+
+- **Make it yourself.** When a task needs git and the folder is in no git repo
+  (`git rev-parse --show-toplevel` fails), run `git init` there and say you did:
+  the repo is local, and deleting its `.git` folder undoes it. Never in the home
+  folder, a drive or filesystem root, or the kit's clone (`~/.claude-starter`):
+  there, propose a project folder such as `~/projects/<name>`, create it, and
+  work in that.
+- **Then GitHub, one step and one yes at a time.** Run `gh auth status`, which
+  only reads. If `gh` is missing, point the user to https://cli.github.com. If
+  it is not logged in, ask the user to connect GitHub by running
+  `gh auth login` in their own terminal: it is interactive, so never drive it
+  or handle a token. Once connected, offer
+  `gh repo create <name> --private --source . --push` and run it only on their
+  yes: it is outward-facing, so "Confirm before anything outward-facing or
+  irreversible" applies to it.
+- **GitHub is optional.** If the user declines, carry on locally; never hold
+  local work back for it.
+
 ## Lanes
 
 **Editing is lane-bound. Reading is not.** In a repo with more than one stack,

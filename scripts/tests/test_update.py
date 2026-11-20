@@ -680,7 +680,8 @@ def test_a_never_asked_guard_goes_into_a_new_plan_not_this_plans_apply(k):
     (k.home / ".agents" / "starter" / "installs.json").write_text(json.dumps(rec), encoding="utf-8")
     head = git(k.kit, "rev-parse", "HEAD")
     plan = run(k, "--update", "--offline", extra=MIG)  # a no-op plan asks nothing
-    assert "commit guard for codex: ask the user, then make the plan again" in plan.stdout, plan.stdout[-3000:]
+    ask = "commit guard for codex: ask the user " + __import__("install").GUARD_ASK + ", then make the plan again"
+    assert ask in plan.stdout, plan.stdout[-3000:]
     assert "to the apply command" not in plan.stdout
     pid = plan_id(plan.stdout)
     r = run(k, "--update", "--offline", "--yes", "--to", head, "--plan", pid, extra=MIG)

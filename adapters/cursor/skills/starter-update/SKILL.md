@@ -59,11 +59,12 @@ misresolve.
 4. **Apply, only after the user's yes.** Run the apply command the plan printed,
    exactly as printed, including its `--to <sha>` and `--plan <id>`. Do not
    write the command yourself and do not drop either flag. If the plan asked
-   about the commit guard, the answer is part of the plan: run step 2 again
-   with `--guard-repo <path>` or `--no-guard` added, as the user answered (never
-   choose for them), show the user what changed, and run the apply command that
-   plan prints. If it exits 2 because the plan changed, go back to step 2 and
-   show the new plan.
+   about the commit guard, the answer is part of the plan: ask which project
+   folder they work in (one that is not a git repo yet is made one; never ask
+   them for a repo), run step 2 again with `--guard-repo <folder>` or
+   `--no-guard` added, as the user answered (never choose for them), show the
+   user what changed, and run the apply command that plan prints. If it exits
+   2 because the plan changed, go back to step 2 and show the new plan.
 
 5. **Relay the result.** On exit 0, pass on the final
    `=== For you (the person at the keyboard) ===` block word for word. Never

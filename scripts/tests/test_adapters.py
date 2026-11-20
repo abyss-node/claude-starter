@@ -49,6 +49,7 @@ def test_adapters_match_a_fresh_build():
 REQUIRED_RULE_HEADINGS = (
     "## Verification honesty",
     "## Confirm before anything outward-facing or irreversible",
+    "## No repo yet: make one, then offer GitHub",
     "## Debugging",
     "## Complexity budget",
     "## Comments and lifetime",

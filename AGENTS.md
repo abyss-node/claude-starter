@@ -42,7 +42,7 @@ Run each command yourself, except where a step says to stop and ask.
    - Pick `--tool` = your own tool: `claude`, `opencode`, `codex`, `cursor`,
      `copilot`, `antigravity`, `junie`, or `generic`. Use `auto` only if you are
      unsure; it refuses when several tools are present.
-   - Do not pick a tier or a commit-guard repo yourself.
+   - Do not pick a tier or a commit-guard folder yourself.
 5. **Preview, ask, and stop.** This approval is required, not an optional
    clarification.
    - Run the install with `--dry-run`, for example
@@ -57,15 +57,21 @@ Run each command yourself, except where a step says to stop and ask.
        it only through the question below.)
      - `full`: also rules for choosing a model and effort per task and for
        coordinating several agents. Worth it on a plan that runs many agents at once.
-   - Ask whether to install the commit guard git hooks in a repo they use. If
-     yes, add `--guard-repo <path>`; if no, add `--no-guard`. An install with
-     `--yes` and neither exits 2 and writes nothing, so never leave the question
-     unasked.
+   - Ask which project folder they work in, for the commit guard's git hooks.
+     If it is not a git repo yet, the installer makes it one (`git init`, shown
+     in the plan); a folder inside a repo means that repo. If they have no
+     folder yet, suggest `~/projects/<name>`, which the installer creates. Do
+     not ask them for a repo, and do not run `git init` yourself first: the
+     installer does it after their yes. Add `--guard-repo <folder>` with their
+     answer, or `--no-guard` if they want none. An install with `--yes` and
+     neither exits 2 and writes nothing, so never leave the question unasked.
+     The installer refuses the home folder, a drive root and the kit's clone
+     with exit 2.
    - Then END YOUR TURN and wait for the user's reply. Do not run another
      command, and do not use an async or optional question tool and carry on.
 6. **Install for real, only after the user's yes.** Run the same command with
-   `--yes` in place of `--dry-run`, and `--guard-repo <path>` in place of
-   `--no-guard` if they want the commit guard in a repo:
+   `--yes` in place of `--dry-run`, and `--guard-repo <folder>` in place of
+   `--no-guard` if they named a project folder for the commit guard:
    `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --yes --no-guard`
    (PowerShell:
    `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --yes --no-guard`).
@@ -91,8 +97,10 @@ Run each command yourself, except where a step says to stop and ask.
      Never install into the project folder instead, and never hand-copy files:
      either would reach only this project or session, never the global config.
    - **Exit 2: the command was wrong** (for example `--tool auto` found several
-     tools). Nothing was written and no report was saved. Fix the command as the
-     message on stderr says, then re-run from step 5.
+     tools, or `--guard-repo` named the home folder, a drive root or the kit's
+     clone). Nothing was written and no report was saved. Fix the command as the
+     message on stderr says, asking the user again where it needs their answer,
+     then re-run from step 5.
 8. **If it succeeds (exit 0),** relay the installer's final
    `=== For you (the person at the keyboard) ===` block to the user word for
    word, including anything it says is not installed or is left to the user. The
@@ -128,8 +136,9 @@ It replaces `git pull` and a re-run of the installer. In short:
 3. Show the user the whole plan, ask, and END YOUR TURN.
 4. After their yes, run the apply command the plan printed, exactly as printed,
    with its `--to <sha>` and `--plan <id>`. If the plan asked about the commit
-   guard, the answer is part of the plan: run step 2 again with
-   `--guard-repo <path>` or `--no-guard` added, as the user answered, show the
+   guard, the answer is part of the plan: ask which project folder they work in
+   (one that is not a git repo yet is made one), run step 2 again with
+   `--guard-repo <folder>` or `--no-guard` added, as the user answered, show the
    new plan, and run the apply command it prints. If the plan changed since, it
    exits 2: show the new plan and ask again.
 
