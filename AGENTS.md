@@ -69,6 +69,11 @@ Run each command yourself, except where a step says to stop and ask.
      The installer refuses, with exit 2, the home folder and any folder that
      holds it, the Desktop, Documents and Downloads folders, the Windows folder,
      a drive root and the kit's clone.
+   - Ask "Get a notice when a new kit version is out?" and recommend yes. This
+     question is required too: without it the notice stays off and unchosen.
+     When on, it prints one line, at most once a day, when a newer release is
+     out, and it never updates anything. You record the answer in step 8; the
+     installer takes no flag for it.
    - Then END YOUR TURN and wait for the user's reply. Do not run another
      command, and do not use an async or optional question tool and carry on.
 6. **Install for real, only after the user's yes.** Run the same command with
@@ -106,7 +111,12 @@ Run each command yourself, except where a step says to stop and ask.
 8. **If it succeeds (exit 0),** relay the installer's final
    `=== For you (the person at the keyboard) ===` block to the user word for
    word, including anything it says is not installed or is left to the user. The
-   restart and the new-chat check come from it.
+   restart and the new-chat check come from it. Then record the user's
+   update-notice answer from step 5 with the line the block's "Update notices"
+   item gives for it: `python ~/.claude-starter/scripts/starter.py notices on`,
+   or `notices off` for no (PowerShell:
+   `python "$HOME\.claude-starter\scripts\starter.py" notices on`). Say which you
+   ran. The item is not printed when an answer is already recorded.
 9. **Never claim a step you did not run.** End by saying what the installer
    checked, using the table below, and what it did not.
 
@@ -149,8 +159,11 @@ a delete or a git step; a plain reinstall still works with `--yes`. The plan id
 proves that a plan was printed, not that the user saw it. Only you can make sure
 they did, so show it in full.
 
-**Update notice.** It is off until the user chooses; the installer's closing
-block asks. `python ~/.claude-starter/scripts/starter.py notices on` turns it on and
+**Update notice.** It is off until the user chooses. Step 5 asks and step 8
+records the answer; until one is recorded, the installer's closing block prints
+the commands, `/starter:setup` asks, and `checkpoint` prints a one-line reminder
+(an install made before v0.4.0 has no record, so it counts as unchosen).
+`python ~/.claude-starter/scripts/starter.py notices on` turns it on and
 `notices off` turns it off (PowerShell: `python "$HOME\.claude-starter\scripts\starter.py" notices on`).
 When on, `update_check.py` prints at most one line a day when a newer release
 is out, and never updates anything. Claude Code shows it at session start; the

@@ -105,6 +105,20 @@ can show what each one does before it runs.
   is none. `--no-guard` stays, and `--yes` with neither still exits 2.
 - The walkthrough's "Try it on a demo" and "Your first hour" steps no longer
   require a repo of your own: the agent makes one in a plain project folder.
+- The update notice is asked about instead of left to a skippable line at the
+  end of the install. The install flow (`README.md`, `AGENTS.md` and the
+  installer's stop line) asks "Get a notice when a new kit version is out?",
+  recommending yes, with the plan's other required questions; after the
+  install the agent records the answer with `starter.py notices on` or `off`.
+  The stop line asks it only while no answer is recorded, and the installer
+  itself never waits on it. The For-you item stays as the fallback while the
+  answer is unrecorded, and now says the agent runs the line when it asked.
+  `/starter:setup` gains a step that asks the same question when the record
+  has no answer or there is no record (an install made before v0.4.0).
+  `checkpoint` runs `update_check.py --remind`, which prints a one-line
+  reminder instead of the notice while the answer is unrecorded, record
+  missing included, and nothing once it is; the checkpoint never waits for
+  the answer. The SessionStart hook and `lanes` do not remind.
 
 - With nothing measured, `demo pick` suggests the small demo with the fewest
   held-out checks (Roulette Loom), not the first small one by title.

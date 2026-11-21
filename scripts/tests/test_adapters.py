@@ -488,6 +488,21 @@ def test_checkpoint_and_lanes_relay_the_update_notice_first(name):
                 assert first < body.index(later), (t, name)
 
 
+def test_only_checkpoint_reminds_about_an_unchosen_notice():
+    """checkpoint passes --remind and says how to record the answer; lanes and the SessionStart hook do
+    not, so the reminder comes from one place and a session start never nags."""
+    src = REPO / "plugins/starter/commands"
+    texts = {"claude": {n: (src / f"{n}.md").read_bytes().decode("utf-8") for n in ("checkpoint", "lanes")}}
+    for t, files in _built().items():
+        texts[t] = {n: files[COMMAND_PATHS[t].format(n=n)] for n in ("checkpoint", "lanes")}
+    for t, cmds in texts.items():
+        cp = cmds["checkpoint"]
+        assert "update_check.py --remind" in cp and 'update_check.py" --remind' in cp, t  # bash, PowerShell
+        assert "starter.py notices on" in cp and "do not wait for an answer" in cp, t
+        assert "--remind" not in cmds["lanes"], t
+    assert "--remind" not in NOTICE.read_text(encoding="utf-8")
+
+
 # --------------------------------------------------------------------------
 # SessionStart update notice (Claude Code plugin hook)
 # --------------------------------------------------------------------------

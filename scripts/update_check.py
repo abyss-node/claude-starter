@@ -7,6 +7,12 @@ check cached in the record's folder when it is under 24 hours old, and otherwise
 `git ls-remote --tags`, killed with its whole process tree after 3 seconds. A failed check is cached
 too, so an offline machine pays those 3 seconds once a day, not at every session. Offline or any
 failure prints nothing. The line itself prints at most once a day. It never fetches into the clone.
+
+    python update_check.py            # the notice line, or nothing (the SessionStart hook, lanes)
+    python update_check.py --remind   # also REMIND while no answer is recorded (checkpoint)
+
+With --remind and no notice answer in the record (or no record at all, as for an install made before
+v0.4.0), it prints REMIND instead and checks nothing. An unreadable record prints nothing, as before.
 """
 from __future__ import annotations
 
@@ -23,6 +29,8 @@ from pathlib import Path
 DAY = 24 * 60 * 60
 TIMEOUT = 3
 TAG = re.compile(r"refs/tags/v(\d+)\.(\d+)\.(\d+)$")
+REMIND = ("claude-starter update notices are not chosen yet: say yes or no to a one-line notice when a new "
+          "kit version is out (yes is recommended; it never updates anything).")
 
 
 def record_dir() -> Path:
@@ -114,9 +122,17 @@ def check() -> str | None:
             "starter-update to see what changed.")
 
 
-def main() -> int:
+def unanswered() -> bool:
+    """True when the record holds no notice answer, or there is no record. Raises on an unreadable one."""
+    path = record_dir() / "installs.json"
+    if not path.is_file():
+        return True
+    return (json.loads(path.read_text(encoding="utf-8")).get("notices") or {}).get("update") is None
+
+
+def main(argv: list[str]) -> int:
     try:
-        line = check()
+        line = REMIND if "--remind" in argv and unanswered() else check()
     except Exception:  # noqa: BLE001 - a notice must never break or slow a session
         return 0
     if line:
@@ -125,4 +141,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

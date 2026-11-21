@@ -993,6 +993,7 @@ def test_a_write_that_fails_mid_apply_still_reports(sandboxed, tmp_path, monkeyp
 # ---- the dry run and the no-terminal run end by telling an agent to stop ------------------
 
 TIER_ASK = "ask which tier (starter or full) and " + install.GUARD_ASK
+NOTICE_TAIL = "; also ask " + install.NOTICE_ASK  # asked while no record holds an answer, as in a clean HOME
 
 
 @pytest.mark.parametrize("tool", ["codex", "cursor", "generic"])
@@ -1002,7 +1003,7 @@ def test_dry_run_ends_with_the_agent_stop_line(tmp_path, tool):
     assert r.returncode == 0, r.stdout[-2000:] + r.stderr
     lines = r.stdout.rstrip("\n").split("\n")
     assert lines[-2:] == ["dry run: nothing written.",
-                          "If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK
+                          "If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK + NOTICE_TAIL
                           + ", and end your turn. Run with --yes only after they reply."]
     assert tree(tmp_path / "home") == {}
 
@@ -1012,11 +1013,11 @@ def test_claude_dry_run_stop_line_has_no_tier(sandboxed, tmp_path, monkeypatch, 
     assert install.run(["--tool", "claude", "--config-dir", str(tmp_path / "claude-cfg"), "--dry-run"]) == 0
     last = capsys.readouterr().out.rstrip("\n").split("\n")[-1]
     assert last == ("If you are an AI agent: stop here. Show the user this plan, ask " + install.GUARD_ASK
-                    + ", and end your turn. Run with --yes only after they reply.")
+                    + NOTICE_TAIL + ", and end your turn. Run with --yes only after they reply.")
     assert "which project folder they work in" in last and "~/projects/<name>" in last
 
 
-STOP_WITH_TIER = ("If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK
+STOP_WITH_TIER = ("If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK + NOTICE_TAIL
                   + ", and end your turn. Run with --yes only after they reply.")
 YES_COMMAND = re.compile(r"install\.py\S*\s.*--yes")  # a ready-to-run apply command, in either shell
 

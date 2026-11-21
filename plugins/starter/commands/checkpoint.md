@@ -3,11 +3,19 @@ description: Verify, summarise and commit the current unit of work
 ---
 
 Before anything else, check for an update notice:
-`python ~/.claude-starter/scripts/update_check.py` (PowerShell:
-`python "$HOME\.claude-starter\scripts\update_check.py"`). It prints one line when
+`python ~/.claude-starter/scripts/update_check.py --remind` (PowerShell:
+`python "$HOME\.claude-starter\scripts\update_check.py" --remind`). It prints one line when
 a newer release of this kit is out and nothing otherwise, and it never updates
 anything. If it prints a line, pass that line on to the user, then carry on. If
 the file does not exist, skip this.
+
+While the user has not chosen whether to get that notice, the line is instead a
+one-line reminder that they have not. Pass it on and carry on with the
+checkpoint: do not wait for an answer. If they answer, record it with
+`python ~/.claude-starter/scripts/starter.py notices on` (or `off`; PowerShell:
+`python "$HOME\.claude-starter\scripts\starter.py" notices on`). Once recorded,
+the reminder stops. If that command exits 2 (no install recorded yet), pass on
+what it printed.
 
 A checkpoint, not a code dump. In order:
 

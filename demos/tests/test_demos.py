@@ -1242,16 +1242,20 @@ def test_every_pick_turn_ends_on_the_agent_stop_line(which):
     assert want.startswith("If you are an AI agent: stop here. Show the user ") and want.endswith(" only after they reply.")
 
 
-def test_the_installers_stop_line_reads_as_it_did():
+@pytest.mark.parametrize("unanswered", [False, True])
+def test_the_installers_stop_line_reads_as_it_did(monkeypatch, unanswered):
     import argparse
     # Pinned word for word: install.stop_line is shared with demo pick, so a change made for one shows
-    # here. The guard question asks for a project folder, never a repo (beginners had none).
+    # here. The guard question asks for a project folder, never a repo (beginners had none). The notice
+    # question is added while the install record holds no answer, so that is pinned both ways.
+    monkeypatch.setattr(install, "notices_unanswered", lambda: unanswered)
     folder = ("which project folder they work in, for the commit guard (one that is not a git repo yet is made "
               "one; no folder yet: suggest ~/projects/<name>), or none")
+    tail = "; also ask whether they want a notice when a new kit version is out (recommend yes)" if unanswered else ""
     for tool, ask in (("claude", "ask " + folder),
                       ("codex", "ask which tier (starter or full) and " + folder)):
         assert install.agent_stop_line(argparse.Namespace(tool=tool)) == (
-            f"If you are an AI agent: stop here. Show the user this plan, {ask}, and end your turn. "
+            f"If you are an AI agent: stop here. Show the user this plan, {ask}{tail}, and end your turn. "
             "Run with --yes only after they reply.")
 
 

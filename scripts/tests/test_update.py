@@ -149,8 +149,20 @@ def test_install_for_you_asks_about_update_notices(k):
     r = run(k, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
     assert r.returncode == 0
     tail = r.stdout.split("=== For you (the person at the keyboard) ===", 1)[1]
-    assert "Update notices: choose" in tail and "starter.py" in tail and "notices on" in tail
-    assert "notices off" in tail
+    assert "Update notices: not chosen yet" in tail and "starter.py" in tail and "notices on" in tail
+    assert "notices off" in tail and "If your agent asked you" in tail
+
+
+def test_install_stop_line_asks_about_notices_until_an_answer_is_recorded(k):
+    def last_line():
+        r = run(k, "--tool", "codex", "--tier", "starter", "--dry-run")
+        assert r.returncode == 0, r.stdout[-2000:] + r.stderr
+        return r.stdout.rstrip("\n").split("\n")[-1]
+    assert "also ask whether they want a notice when a new kit version is out (recommend yes)" in last_line()
+    assert run(k, "notices", "off", script="starter.py").returncode == 0
+    assert "notice" not in last_line()
+    r = run(k, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
+    assert r.returncode == 0 and "Update notices:" not in r.stdout.split("=== For you", 1)[1]
 
 
 def test_second_install_from_another_clone_exits_2(k, src, tmp_path):
@@ -335,6 +347,31 @@ def test_notice_is_silent_until_turned_on_and_without_a_record(k):
     assert notice(k) == ""
     (k.home / ".agents" / "starter" / "installs.json").unlink()
     assert notice(k) == ""
+
+
+def remind(k):
+    r = run(k, "--remind", script="update_check.py")
+    assert r.returncode == 0 and not r.stderr, r.stderr
+    return r.stdout
+
+
+def test_remind_prints_one_line_until_an_answer_is_recorded(k):
+    line = remind(k)
+    assert line.startswith("claude-starter update notices are not chosen yet") and line.count("\n") == 1
+    assert notice(k) == ""  # without --remind (the SessionStart hook, lanes) there is no reminder
+    assert run(k, "notices", "off", script="starter.py").returncode == 0
+    assert remind(k) == ""
+    rec_path = k.home / ".agents" / "starter" / "installs.json"
+    rec_path.write_text("{not json", encoding="utf-8")
+    assert remind(k) == ""  # an unreadable record: silent, never a nag on top of it
+    rec_path.unlink()
+    assert remind(k) == line  # no record (an install before v0.4.0): not chosen
+
+
+def test_remind_still_prints_the_notice_once_notices_are_on(k):
+    release(k, "0.4.1")
+    assert run(k, "notices", "on", script="starter.py").returncode == 0
+    assert remind(k).startswith("claude-starter v0.4.1 is available")
 
 
 def test_notice_prints_exactly_one_line_for_a_newer_tag(k):

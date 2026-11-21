@@ -1,5 +1,5 @@
 ---
-description: Install the starter CLAUDE.md, merge read-only settings, and choose the commit guard mode. Backs up before any change; asks before replacing anything; safe to re-run.
+description: Install the starter CLAUDE.md, merge read-only settings, choose the commit guard mode, and ask about update notices. Backs up before any change; asks before replacing anything; safe to re-run.
 allowed-tools: Read, Glob, Grep, AskUserQuestion
 ---
 
@@ -51,7 +51,8 @@ Tell the user, in about these words:
    project) and merges a few safe settings into `settings.json`.
 2. Nothing you already have is overwritten; every changed file is backed up first.
 3. It also sets the commit guard, which checks commits for secrets and for a
-   note of what was verified.
+   note of what was verified, and asks whether you want a notice when a new
+   version of the kit is out.
 
 ## 2. Choose the tier
 
@@ -146,7 +147,30 @@ config file if it exists, write the change exactly as the README describes, and
 read it back. If the README is missing or does not say how to change the mode,
 skip this step and say so rather than guessing a file format.
 
-## 6. Report
+## 6. Update notices
+
+The notice comes from the kit's clone, not from this plugin: `KIT` = the clone
+at `~/.claude-starter` (on Windows, `%USERPROFILE%\.claude-starter`). If
+`KIT/scripts/starter.py` does not exist, skip this step and say why: there is no
+clone, so there is no notice to turn on.
+
+Run `python "KIT/scripts/starter.py" status` with `KIT` substituted (it reads one
+local file and uses no network). If its `update notices:` line says `on` or
+`off`, report "already set up". If it says `never asked`, or it reports no
+install record (an install made before v0.4.0 has none), the user has not
+chosen. Ask with AskUserQuestion, one question, "Get a notice when a new kit
+version is out?", two options:
+
+- **Yes (recommended)**: a new session prints one line, at most once a day,
+  when a newer release exists. It never updates anything.
+- **No**: no notice. `starter.py notices on` turns it on later.
+
+Record the answer with `python "KIT/scripts/starter.py" notices on` (or
+`notices off`). If it exits 2 because no install is recorded, list this under
+Skipped with what it printed: the answer can be recorded once an update has
+recorded the install.
+
+## 7. Report
 
 Print three short lists:
 

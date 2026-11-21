@@ -1467,10 +1467,27 @@ GUARD_ASK = ("which project folder they work in, for the commit guard (one that 
              "one; no folder yet: suggest ~/projects/<name>), or none")
 
 
+# Left to a skippable For-you line at the end of the install, the choice mostly went unmade, so the agent
+# asks it with the plan's other questions and records the answer with the For-you item's launcher lines.
+NOTICE_ASK = "whether they want a notice when a new kit version is out (recommend yes)"
+
+
+def notices_unanswered() -> bool:
+    """True while the record holds no update-notice answer, or there is no record yet. An unreadable
+    record is not asked about: a question on top of a broken record helps nobody."""
+    try:
+        rec = load_record()
+    except (OSError, ValueError, RuntimeError):
+        return False
+    return not rec or (rec.get("notices") or {}).get("update") is None
+
+
 def agent_stop_line(args) -> str:
     """The installer's stop line, before it applies a plan."""
     ask = (f"ask {GUARD_ASK}" if args.tool == "claude"
            else f"ask which tier (starter or full) and {GUARD_ASK}")
+    if notices_unanswered():
+        ask += f"; also ask {NOTICE_ASK}"
     return stop_line(f"this plan, {ask}", "Run with --yes")
 
 
@@ -2099,7 +2116,8 @@ def record_install(tool: str, tier: str | None, cfg: Path, steps: list[Step], ar
 
 
 def notice_item(rec: dict | None) -> list[str]:
-    """The For-you item that asks about update notices while the record says they were never chosen."""
+    """The For-you item that asks about update notices while the record says they were never chosen: the
+    fallback for an install no agent asked about, and the launcher lines an agent records the answer with."""
     if not rec or (rec.get("notices") or {}).get("update") is not None:
         return []
     on_b, on_p = launcher_lines("notices", "on")
@@ -2109,9 +2127,10 @@ def notice_item(rec: dict | None) -> list[str]:
         ["the checkpoint and lanes commands" + (" in your other tools" if "claude" in tools else "")]
         if tools - {"claude"} else [])
     return ["\n".join([
-        f"Update notices: choose whether to get one. When on, {' and '.join(where) or 'a new session'} "
+        f"Update notices: not chosen yet. When on, {' and '.join(where) or 'a new session'} "
         f"print{'s' if where in ([], ['a new Claude Code session']) else ''} one line when a newer version of the kit is out, at most once "
-        "a day (it never updates anything). Run one of these in your own terminal:",
+        "a day (it never updates anything). If your agent asked you, it runs the line for your answer; "
+        "otherwise run one of these in your own terminal:",
         f"  on,  bash:       {on_b}", f"  on,  PowerShell: {on_p}",
         f"  off, bash:       {off_b}", f"  off, PowerShell: {off_p}"])]
 
