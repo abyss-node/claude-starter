@@ -116,7 +116,7 @@ commands and skills below, and backed up every file it changed.
 | `/lanes` | Splits a repo with several stacks (say, a frontend and a backend) into lanes |
 | `/starter-update` | Updates the kit: shows the plan, applies nothing until you say yes |
 | Guardrail skills | Checks while writing endpoints, UI, data jobs and code that calls a model |
-| Commit guard | In repos you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
+| Commit guard | In the project folders you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
 
 The agents are read-only by instruction; where your tool can enforce it, the
 installer set that too, and its closing message said which. To add the commit
@@ -164,10 +164,10 @@ Next: type `/onboard 7` to go on.
 
 Do this in a project folder of your own. If it is not a git repo yet, the
 agent runs `git init` there and says so: the repo stays on your machine, and
-deleting its `.git` folder undoes it. It then offers to put the project on
-GitHub, and does nothing there without your yes. In a repo that already has
-commits, start from a clean `git status` and make a branch first, so nothing
-lands on your main branch by accident.
+deleting its `.git` folder undoes it. After the first commit, it offers to
+put the project on GitHub, and does nothing there without your yes. In a repo
+that already has commits, start from a clean `git status` and make a branch
+first, so nothing lands on your main branch by accident.
 
 1. **Open it.** Start your agent in the project's folder.
 2. **Give the repo its own rules.** If your tool has a command that drafts a

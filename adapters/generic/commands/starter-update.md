@@ -43,7 +43,7 @@ misresolve.
 3. **Show the plan and stop.** Show the user the whole plan: the plan id, what
    changed in each newer release, every migration by title, which files change,
    which edited files are backed up first, and any question it asks (for
-   example whether to keep the commit guard in a repo). Ask whether to apply it.
+   example which project folder the commit guard goes in). Ask whether to apply it.
    Then END YOUR TURN and wait for the user's reply. Do not run another command,
    and do not use an async or optional question tool and carry on.
 

@@ -414,6 +414,41 @@ def test_update_guard_repo_installs_the_hooks_and_a_hooked_repo_still_blocks_aft
     assert again.returncode != 0, again.stdout + again.stderr
 
 
+def _refused_target(k, where: str) -> Path:
+    return {"home": k.home, "kit clone": k.kit, "kit subfolder": k.kit / "scripts"}[where]
+
+
+@pytest.mark.parametrize("mode", ["plan", "apply"])
+@pytest.mark.parametrize("where", ["home", "kit clone", "kit subfolder"])
+def test_update_here_refuses_a_guard_repo_a_repo_would_harm(k, where, mode):
+    # The clone is at the newest commit, so apply_update_here plans (and with --yes applies) in-process.
+    before = state(k)
+    yes = ["--yes"] if mode == "apply" else []
+    r = run(k, "--update", "--offline", *yes, "--guard-repo", str(_refused_target(k, where)))
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    why = "is your home directory" if where == "home" else "is this kit's own clone"
+    assert why in r.stderr and "Nothing was written" in r.stderr, r.stderr
+    assert state(k) == before  # HOME (no .git, no record change) and the clone's files
+    assert not (k.kit / ".git" / "hooks" / "pre-commit").exists()  # state() skips the clone's .git
+
+
+@pytest.mark.parametrize("mode", ["plan", "verify"])
+@pytest.mark.parametrize("where", ["home", "kit clone"])
+def test_update_to_a_new_release_refuses_a_guard_repo_in_the_plan_child(k, where, mode):
+    # A newer release makes the snapshot's installer (plan_update_child) plan, or verify a plan id, in a
+    # child process; a refused --guard-repo must stop it there, before the clone moves.
+    sha = release(k, "0.4.1")
+    before = state(k)
+    extra = ["--yes", "--to", sha, "--plan", "0" * 16] if mode == "verify" else []
+    r = run(k, "--update", *extra, "--guard-repo", str(_refused_target(k, where)))
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    why = "is your home directory" if where == "home" else "is this kit's own clone"
+    assert why in r.stderr and "Nothing was written" in r.stderr, r.stderr
+    assert "plan changed" not in r.stderr  # refused before the plan id was even compared
+    assert state(k) == before  # HEAD included: no fast-forward
+    assert not (k.kit / ".git" / "hooks" / "pre-commit").exists()
+
+
 # ---- orphans, adoption, and the move and git step kinds ------------------------------------------
 
 def test_orphan_is_deleted_only_with_the_pin_and_an_edited_orphan_stays(k):
@@ -508,7 +543,7 @@ def test_repeat_commands_carry_the_guard_answer(k):
     assert all(ln.endswith("--no-guard --yes") for ln in install.install_lines(a))
     cursor = "\n".join(install.next_cursor(k.home, a))
     assert cursor.count("--no-guard --project <your-repo> --yes") == 2, cursor
-    guard = install.install_lines(a, " --guard-repo <your-repo> --yes")
+    guard = install.install_lines(a, " --guard-repo <project-folder> --yes")
     assert not any("--no-guard" in ln for ln in guard)
 
 

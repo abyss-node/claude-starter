@@ -110,8 +110,9 @@ called first; `uninstall` restores it. A broken Python or a guard crash never bl
 block code does. `pre-push` also scans the diffs of the pushed commits for secrets.
 
 `install` needs an existing repo (a folder inside one means that repo). The kit's installer, `scripts/install.py
---guard-repo <folder>`, is the one that runs `git init` first for a folder that is not a repo yet; it refuses the home
-folder, a drive root and the kit's own clone.
+--guard-repo <folder>`, is the one that runs `git init` first for a folder that is not a repo yet; it refuses folders
+that hold far more than one project (the home folder and any folder holding it, Desktop, Documents, Downloads, the
+Windows folder, a drive root) and the kit's own clone.
 
 `install` copies `guard.py` to `~/.claude/commit-guard/guard.py` and points the hooks at that copy, because the
 plugin directory changes on update and would break a hook that named it. The copy does not update itself: re-run

@@ -58,15 +58,17 @@ Run each command yourself, except where a step says to stop and ask.
      - `full`: also rules for choosing a model and effort per task and for
        coordinating several agents. Worth it on a plan that runs many agents at once.
    - Ask which project folder they work in, for the commit guard's git hooks.
-     If it is not a git repo yet, the installer makes it one (`git init`, shown
-     in the plan); a folder inside a repo means that repo. If they have no
-     folder yet, suggest `~/projects/<name>`, which the installer creates. Do
-     not ask them for a repo, and do not run `git init` yourself first: the
-     installer does it after their yes. Add `--guard-repo <folder>` with their
-     answer, or `--no-guard` if they want none. An install with `--yes` and
-     neither exits 2 and writes nothing, so never leave the question unasked.
-     The installer refuses the home folder, a drive root and the kit's clone
-     with exit 2.
+     If it is not a git repo yet, the installer makes it one (`git init`, in
+     the `--yes` run of step 6); a folder inside a repo means that repo. If
+     they have no folder yet, suggest `~/projects/<name>`, which the installer
+     creates. Do not ask them for a repo, and do not run `git init` yourself
+     first: the installer does it after their yes. Add `--guard-repo <folder>`
+     with their answer, or `--no-guard` if they want none. An install with
+     `--yes` and neither exits 2 and writes nothing, so never leave the
+     question unasked.
+     The installer refuses, with exit 2, the home folder and any folder that
+     holds it, the Desktop, Documents and Downloads folders, the Windows folder,
+     a drive root and the kit's clone.
    - Then END YOUR TURN and wait for the user's reply. Do not run another
      command, and do not use an async or optional question tool and carry on.
 6. **Install for real, only after the user's yes.** Run the same command with
@@ -97,10 +99,10 @@ Run each command yourself, except where a step says to stop and ask.
      Never install into the project folder instead, and never hand-copy files:
      either would reach only this project or session, never the global config.
    - **Exit 2: the command was wrong** (for example `--tool auto` found several
-     tools, or `--guard-repo` named the home folder, a drive root or the kit's
-     clone). Nothing was written and no report was saved. Fix the command as the
-     message on stderr says, asking the user again where it needs their answer,
-     then re-run from step 5.
+     tools, or `--guard-repo` named the home folder, a drive root or another
+     folder it refuses). Nothing was written and no report was saved. Fix the
+     command as the message on stderr says, asking the user again where it
+     needs their answer, then re-run from step 5.
 8. **If it succeeds (exit 0),** relay the installer's final
    `=== For you (the person at the keyboard) ===` block to the user word for
    word, including anything it says is not installed or is left to the user. The

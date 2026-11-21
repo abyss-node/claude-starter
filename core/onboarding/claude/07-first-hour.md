@@ -2,10 +2,10 @@
 
 Do this in a project folder of your own. If it is not a git repo yet, the
 agent runs `git init` there and says so: the repo stays on your machine, and
-deleting its `.git` folder undoes it. It then offers to put the project on
-GitHub, and does nothing there without your yes. In a repo that already has
-commits, start from a clean `git status` and make a branch first, so nothing
-lands on your main branch by accident.
+deleting its `.git` folder undoes it. After the first commit, it offers to
+put the project on GitHub, and does nothing there without your yes. In a repo
+that already has commits, start from a clean `git status` and make a branch
+first, so nothing lands on your main branch by accident.
 
 1. **Open it.** `cd` into the project's folder and run `claude`.
 2. **Run `/init`.** Read the `CLAUDE.md` it writes. Correct anything wrong: how

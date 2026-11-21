@@ -396,7 +396,13 @@ def guard_hooks_current(repo: Path) -> bool:
 
 
 def _same_dir(a: Path, b: Path) -> bool:
-    return os.path.normcase(str(a)) == os.path.normcase(str(b))
+    """Whether `a` and `b` name one folder. samefile when both exist: os.path.normcase folds no case on
+    POSIX, so on macOS's case-insensitive default filesystem /users/alice would otherwise pass for a
+    folder other than /Users/alice."""
+    try:
+        return os.path.samefile(a, b)
+    except (OSError, ValueError):
+        return os.path.normcase(str(a)) == os.path.normcase(str(b))
 
 
 def enclosing_repo(p: Path) -> Path | None:
@@ -416,22 +422,42 @@ def enclosing_repo(p: Path) -> Path | None:
     except (OSError, subprocess.TimeoutExpired):
         return None
     out = r.stdout.decode("utf-8", errors="replace").strip()
-    return Path(out).resolve() if r.returncode == 0 and out else None
+    if r.returncode == 0 and out:
+        return Path(out).resolve()
+    # git also fails on a repo it will not read (another owner's: safe.directory, common on exFAT and USB
+    # drives), which must not pass for no repo and get a new one nested in it.
+    return next((d for d in (probe, *probe.parents) if (d / ".git").exists()), None)
+
+
+def shared_folder(d: Path) -> str | None:
+    """How `d` holds far more than one project, or None: a repo there would track every file under it.
+    The Windows folder counts with everything in it, since an elevated terminal opens in System32."""
+    h = home().resolve()
+    if d.parent == d:
+        return "is the root of a drive or filesystem"
+    if _same_dir(d, h):
+        return "is your home directory"
+    if any(_same_dir(d, a) for a in h.parents):
+        return "holds your home directory"
+    for name in ("Desktop", "Documents", "Downloads"):
+        if _same_dir(d, h / name):
+            return f"is your {name} folder"
+    windows = os.environ.get("SystemRoot")
+    if windows and any(_same_dir(x, Path(windows)) for x in (d, *d.parents)):
+        return "is in the Windows folder"
+    return None
 
 
 def refused_repo(target: Path) -> str | None:
-    """Why `target` must never be made a git repo or get the commit guard, or None. git init in a home
-    folder or a drive root would track every file under it, and the kit's own clone is moved between
-    releases by the updater, so the guard belongs in a project of the user's instead."""
+    """Why `target` must never be made a git repo or get the commit guard, or None: a shared folder
+    (shared_folder), or the kit's own clone, which the updater moves between releases, so the guard
+    belongs in a project of the user's instead."""
     h = home().resolve()
     example = f"Name a project folder instead, for example {h / 'projects' / '<name>'}: the installer creates it " \
               "and makes it a git repo"
-    if target.parent == target:
-        return f"{target} is the root of a drive or filesystem. {example}"
-    if _same_dir(target, h):
-        return f"{target} is your home directory. {example}"
-    if any(_same_dir(target, a) for a in h.parents):
-        return f"{target} holds your home directory. {example}"
+    why = shared_folder(target)
+    if why:
+        return f"{target} {why}. {example}"
     for kit in (ROOT, cmd_root(), h / ".claude-starter"):
         if _same_dir(target, kit.resolve()):
             return f"{target} is this kit's own clone, which the updater moves between releases. {example}"
@@ -443,25 +469,50 @@ def guard_target(repo: str) -> tuple[Path, bool, str | None]:
     be used). A folder inside a repo resolves to that repo rather than nesting a new one, as guard.py
     install does; a folder that is not in any repo yet (or does not exist) is made one. This is the one
     place that decides to run git init: guard.py install itself still needs an existing repo."""
-    p = Path(repo).expanduser().resolve()
+    given = Path(repo).expanduser()
+    if given.drive and not given.root:
+        # "C:" is the current folder on C:, so it would git init wherever the shell happens to be.
+        return given, False, f"{repo} names a drive, not a folder. Give the project folder's full path"
+    plain = Path(os.path.abspath(given))
+    if plain.parent == plain:
+        # Checked before resolving: resolve() maps a subst drive's root (Q:\) to the folder behind it.
+        return plain, False, refused_repo(plain)
+    p = given.resolve()
     if p.exists() and not p.is_dir():
         return p, False, f"{p} is a file, not a folder. Name the project folder that holds it"
     if ".git" in p.parts:
         return p, False, f"{p} is inside a .git folder. Name the project folder that holds it"
     root = enclosing_repo(p)
+    if root is not None and not _same_dir(root, p) and shared_folder(root):
+        # A repo at home (a dotfiles repo, say) holds every folder under it but is no project's own: the
+        # project gets a repo of its own, which git allows inside another.
+        root = None
     target = root or p
-    why = refused_repo(target)
-    if why and root is not None and not _same_dir(root, p) and _same_dir(root, home().resolve()):
-        # A repo at home (a dotfiles repo, say) holds every folder under it; a project needs its own.
-        why = (f"{p} is inside the git repo at {root}, your home directory. Give the project a repo of its own "
-               f"first (git init {p}), then run this again")
-    return target, root is None, why
+    return target, root is None, refused_repo(target)
 
 
-def plan_guard(repo: str) -> list[Step]:
-    """The commit guard's steps for one --guard-repo: git init when the folder is not a repo yet, then
+def guard_targets(repos) -> list[tuple[Path, bool, str | None]]:
+    """guard_target for every --guard-repo, each repo once: two folders in one repo are that repo, and
+    two folders that are no repo yet, one inside the other, are one new repo at the outer one (made
+    apart, the inner would be a repo nested in the outer)."""
+    found = [guard_target(r) for r in repos]
+    new = [t for t, init, why in found if init and not why]
+    out: list = []
+    seen: set = set()
+    for t, init, why in found:
+        if init and not why:
+            t = min((o for o in new if any(_same_dir(a, o) for a in t.parents)), key=lambda o: len(o.parts),
+                    default=t)
+        key = os.path.normcase(str(t))
+        if key not in seen:
+            seen.add(key)
+            out.append((t, init, why))
+    return out
+
+
+def plan_guard(target: Path, init: bool, why: str | None) -> list[Step]:
+    """The commit guard's steps for one guard_target: git init when the folder is not a repo yet, then
     the hooks."""
-    target, init, why = guard_target(repo)
     s = Step("commit guard (git hooks)", target, "guard")
     if why:
         s.status, s.detail = "failed", why
@@ -482,16 +533,8 @@ def plan_guard(repo: str) -> list[Step]:
 
 
 def plan_guards(repos) -> list[Step]:
-    """plan_guard for every --guard-repo, each repo once (two folders in one repo are one repo)."""
-    steps: list[Step] = []
-    seen: set = set()
-    for r in repos:
-        for s in plan_guard(r):
-            key = (os.path.normcase(str(s.dest)), s.kind)
-            if key not in seen:
-                seen.add(key)
-                steps.append(s)
-    return steps
+    """plan_guard for every repo the --guard-repo values name (guard_targets)."""
+    return [s for t in guard_targets(repos) for s in plan_guard(*t)]
 
 
 def guard_refused(steps: list[Step]) -> int | None:
@@ -1374,7 +1417,9 @@ def apply(s: Step, repo_python: str) -> None:
         elif s.kind == "init":
             s.dest.mkdir(parents=True, exist_ok=True)
             r = subprocess.run(["git", "init", str(s.dest)], capture_output=True, timeout=300)
-            s.notes.extend((r.stdout + r.stderr).decode("utf-8", errors="replace").strip().splitlines())
+            # Without the hint lines: git's advice on naming the first branch is noise to a beginner.
+            s.notes.extend(ln for ln in (r.stdout + r.stderr).decode("utf-8", errors="replace").strip().splitlines()
+                           if not ln.startswith("hint:"))
             s.status = "done" if r.returncode == 0 else "failed"
             if r.returncode:
                 s.detail = f"git init exited {r.returncode}"
@@ -1890,14 +1935,14 @@ def guard_status(args, steps: list[Step] = ()) -> str:
         made = [str(s.dest) for s in steps if s.kind == "init" and s.status == "done"]
         new = (f" {', '.join(made)} {'was' if len(made) == 1 else 'were'} not a git repo yet, so the installer ran "
                "git init there: a local repo with no remote, and deleting its .git folder undoes it. To put it "
-               "on GitHub, ask your agent; it checks that GitHub is connected and asks before creating "
-               "anything." if made else "")
+               "on GitHub once it has a first commit, ask your agent; it checks that GitHub is connected and "
+               "asks before creating anything." if made else "")
         return "Commit guard: installed as git hooks in " + ", ".join(repos) + "." + new
     inside = " Inside Claude Code the plugin's hook still checks Claude's own commits." if args.tool == "claude" else ""
     return "\n".join([f"Commit guard: NOT installed in any repo.{inside} To add it to a project, run this in your "
-                      "own terminal, with <your-repo> replaced by the project's folder (one that is not a git "
-                      "repo yet is made one):",
-                      *install_lines(args, " --guard-repo <your-repo> --yes")])
+                      "own terminal, with <project-folder> replaced by the project's folder (one that is not a "
+                      "git repo yet is made one):",
+                      *install_lines(args, " --guard-repo <project-folder> --yes")])
 
 
 def limits_item(after: list[str]) -> list[str]:
@@ -2023,7 +2068,7 @@ def recorded_files(steps: list[Step]) -> dict:
 
 def guard_option(args, old: dict | None) -> dict | None:
     """The guard answer this run gives, merged with the recorded one; None when never asked."""
-    repos = sorted({str(guard_target(r)[0]) for r in getattr(args, "guard_repo", None) or []}
+    repos = sorted({str(t) for t, _, _ in guard_targets(getattr(args, "guard_repo", None) or [])}
                    | set((old or {}).get("repos") or []))
     if getattr(args, "guard_repo", None):
         return {"state": "installed", "repos": repos}

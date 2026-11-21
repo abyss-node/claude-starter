@@ -58,16 +58,23 @@ can show what each one does before it runs.
   demo's own mutants runner; it prints no `RECORD:` line.
 - A rule in both rules tiers, "No repo yet: make one, then offer GitHub":
   beginners were stalled by being asked for a repo they did not have. When a
-  task needs git and the folder is in no repo, the agent runs `git init` itself
-  and says so (never in the home folder, a drive root or the kit's clone; there
-  it proposes and makes `~/projects/<name>`). Then, each step on its own yes, it
-  checks `gh auth status`, asks the user to run `gh auth login` in their own
-  terminal if GitHub is not connected (or points to https://cli.github.com when
-  `gh` is missing), and offers
-  `gh repo create <name> --private --source . --push`. Declining GitHub never
-  holds local work back. A test requires the heading in every tier.
+  task needs git and the folder is in no repo (or only in a dotfiles repo at
+  home), the agent runs `git init` itself and says so. Never in a folder that
+  holds far more than one project, the same ones the installer refuses: the
+  home folder or one that holds it (`C:\Users`, `/home`, `/Users`), Desktop,
+  Documents, Downloads, the Windows folder, a drive root, or the kit's clone;
+  there it proposes and makes `~/projects/<name>`. With no git name or email
+  set, it asks the user for them before the first commit. After that first
+  commit (`gh repo create --push` fails on a repo with none), it runs
+  `gh auth status`, which only reads, asks the user to run `gh auth login` in
+  their own terminal if GitHub is not connected (or points to
+  https://cli.github.com when `gh` is missing), and offers
+  `gh repo create <name> --private --source . --push`, run only on their yes.
+  Declining GitHub never holds local work back. A test requires the heading in
+  every tier.
 - The `checkpoint` command gains a step 0: in a folder that is no git repo, it
-  runs `git init` and says so, instead of stopping.
+  runs `git init` and says so, instead of stopping; step 5 makes the GitHub
+  offer only once the commit exists.
 
 ### Changed
 
@@ -76,13 +83,22 @@ can show what each one does before it runs.
   dry run writes nothing), and `--yes` runs `git init`, creating the folder if
   it does not exist yet, before the hooks go in. A folder inside a repo means
   that repo, as `guard.py install` already resolved it, so no repo is nested in
-  another, and two folders in one repo install its hooks once. The home folder,
-  a folder holding it, a drive or filesystem root, the kit's own clone (the one
-  the installer runs from, or `~/.claude-starter`), a file and a path inside a
-  `.git` folder are refused with exit 2 before anything is written. The
-  installer is the one place that runs `git init`; `guard.py install` still
-  needs an existing repo. The For-you block says when the installer made a
-  repo, and the install record keeps the repo's root.
+  another, and two folders in one repo install its hooks once. Two new folders,
+  one inside the other, make one repo at the outer one. A repo git will not
+  read (another owner's, under `safe.directory`) still counts as a repo, so
+  none is nested in it, and a project inside a dotfiles repo at home gets a
+  repo of its own. The home folder, a folder holding it, the Desktop,
+  Documents and Downloads folders, the Windows folder and anything in it, a
+  drive or filesystem root (a `subst` drive's too, checked before the path is
+  resolved), a bare drive letter such as `C:` (the current folder on that
+  drive), the kit's own clone (the one the installer runs from, or
+  `~/.claude-starter`), a file and a path inside a `.git` folder are refused
+  with exit 2 before anything is written. Folders are compared as the
+  filesystem sees them, so a case variant of the home folder on macOS is still
+  refused. The installer is the one place that runs `git init`; `guard.py
+  install` still needs an existing repo. The For-you block says when the
+  installer made a repo, without git's branch-name hints, and the install
+  record keeps the repo's root.
 - The install flow (`README.md`, `AGENTS.md`, the installer's stop line and the
   `starter-update` command) asks which project folder the user works in for the
   commit guard, never for a repo, and suggests `~/projects/<name>` when there
