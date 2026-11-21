@@ -13,10 +13,12 @@ skills below. It backed up every file it changed.
 | `/lanes` | Splits a repo with several stacks (say, a frontend and a backend) into lanes |
 | `/starter-update` | Updates the kit: shows the plan, applies nothing until you say yes |
 | Guardrail skills | Checks while writing endpoints, UI, data jobs and code that calls a model |
-| Commit guard | In repos you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
+| Commit guard | In the project folders you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
 
 To check it all loaded, run `opencode agent list` in a terminal and look for
-the three agents. To add the commit guard to a repo, run the installer again
-with `--guard-repo` (use the tier you installed; `--dry-run` changes nothing):
-- bash: `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --guard-repo <your-repo> --dry-run`
-- PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --guard-repo <your-repo> --dry-run`
+the three agents. To add the commit guard to a project, run the installer
+again with `--guard-repo` and the project's folder (use the tier you
+installed). A folder that is not a git repo yet is made one with `git init`;
+`--dry-run` changes nothing:
+- bash: `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --guard-repo <project-folder> --dry-run`
+- PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --guard-repo <project-folder> --dry-run`

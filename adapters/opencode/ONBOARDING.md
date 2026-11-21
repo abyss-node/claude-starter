@@ -128,23 +128,25 @@ skills below. It backed up every file it changed.
 | `/lanes` | Splits a repo with several stacks (say, a frontend and a backend) into lanes |
 | `/starter-update` | Updates the kit: shows the plan, applies nothing until you say yes |
 | Guardrail skills | Checks while writing endpoints, UI, data jobs and code that calls a model |
-| Commit guard | In repos you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
+| Commit guard | In the project folders you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
 
 To check it all loaded, run `opencode agent list` in a terminal and look for
-the three agents. To add the commit guard to a repo, run the installer again
-with `--guard-repo` (use the tier you installed; `--dry-run` changes nothing):
-- bash: `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --guard-repo <your-repo> --dry-run`
-- PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --guard-repo <your-repo> --dry-run`
+the three agents. To add the commit guard to a project, run the installer
+again with `--guard-repo` and the project's folder (use the tier you
+installed). A folder that is not a git repo yet is made one with `git init`;
+`--dry-run` changes nothing:
+- bash: `python ~/.claude-starter/scripts/install.py --tool opencode --tier starter --guard-repo <project-folder> --dry-run`
+- PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool opencode --tier starter --guard-repo <project-folder> --dry-run`
 
 Next: type `/onboard 6` to go on.
 
 ## Step 6 of 8: Try it on a demo
 
-Skip this step if you have a repo of your own to practise on: the next step
-uses it. If you have none, or want to see the whole chain work before you trust
-the kit with your code, try a demo. A demo is a small project your agent builds
-in a new folder from a brief, graded by held-out checks kept in the kit, not in
-that folder.
+Skip this step if you have a project of your own to practise on: the next step
+uses it, and it need not be a git repo yet. If you have none, or want to see
+the whole chain work before you trust the kit with your code, try a demo. A
+demo is a small project your agent builds in a new folder from a brief, graded
+by held-out checks kept in the kit, not in that folder.
 
 1. **Pick one.** Run this in a terminal, or ask your agent to run it. It asks
    what you want to spend, then lists the demos with what each costs on your
@@ -171,10 +173,14 @@ Next: type `/onboard 7` to go on.
 
 ## Step 7 of 8: Your first hour
 
-Do this in a repo of your own with a clean `git status`. Make a branch first so
-nothing lands on your main branch by accident.
+Do this in a project folder of your own. If it is not a git repo yet, the
+agent runs `git init` there and says so: the repo stays on your machine, and
+deleting its `.git` folder undoes it. After the first commit, it offers to
+put the project on GitHub, and does nothing there without your yes. In a repo
+that already has commits, start from a clean `git status` and make a branch
+first, so nothing lands on your main branch by accident.
 
-1. **Open it.** `cd` into the repo and run `opencode`.
+1. **Open it.** `cd` into the project's folder and run `opencode`.
 2. **Run `/init`.** Read the `AGENTS.md` it writes. Correct anything wrong: how
    to run the tests, what the project is, what must never break. This file is
    worth more than any prompt you will type.

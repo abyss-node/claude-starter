@@ -30,6 +30,40 @@ shared database. A local edit is undone with git; a sent email, a public post or
 a dropped table is not, and the person who answers for it is the user, not the
 session. Approval for one such action does not carry over to the next.
 
+## No repo yet: make one, then offer GitHub
+
+Beginners were stalled by being asked for a repo they did not have, so never
+ask for one.
+
+- **Make it yourself.** When a task needs git and the folder is in no git repo
+  (`git rev-parse --show-toplevel` fails, or names the home folder: a dotfiles
+  repo there is no project's own), run `git init` there and say you did: the
+  repo is local, and deleting its `.git` folder undoes it. Never in a folder
+  that holds far more than one project, since a repo there would track
+  everything under it: the home folder, a folder that holds it (such as
+  `C:\Users`, `/home` or `/Users`), the Desktop, Documents or Downloads folder,
+  the Windows folder or anything in it (an elevated terminal opens in
+  `System32`), or a drive or filesystem root. Nor in the kit's clone
+  (`~/.claude-starter`), which the updater moves. There, propose a project
+  folder such as `~/projects/<name>`, create it, and work in that. The
+  installer refuses the same folders.
+- **Name the author before the first commit.** If `git config user.name` or
+  `git config user.email` prints nothing, the commit fails with "Please tell me
+  who you are": ask the user for the name and email to put on their commits,
+  and on their yes set them with `git config --global`.
+- **Then GitHub, after the first commit, one step and one yes at a time.**
+  `gh repo create --source . --push` fails on a repo with no commits, so make
+  this offer once the repo has one (checkpoint makes it), never straight after
+  `git init`. Run `gh auth status`, which only reads. If `gh` is missing, point
+  the user to https://cli.github.com. If it is not logged in, ask the user to
+  connect GitHub by running `gh auth login` in their own terminal: it is
+  interactive, so never drive it or handle a token. Once connected, offer
+  `gh repo create <name> --private --source . --push` and run it only on their
+  yes: it is outward-facing, so "Confirm before anything outward-facing or
+  irreversible" applies to it.
+- **GitHub is optional.** If the user declines, carry on locally; never hold
+  local work back for it.
+
 ## Classify the task out loud
 
 Before starting, say which of these it is so the user can overrule you:

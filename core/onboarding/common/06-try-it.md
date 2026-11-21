@@ -1,10 +1,10 @@
 # Try it on a demo
 
-Skip this step if you have a repo of your own to practise on: the next step
-uses it. If you have none, or want to see the whole chain work before you trust
-the kit with your code, try a demo. A demo is a small project your agent builds
-in a new folder from a brief, graded by held-out checks kept in the kit, not in
-that folder.
+Skip this step if you have a project of your own to practise on: the next step
+uses it, and it need not be a git repo yet. If you have none, or want to see
+the whole chain work before you trust the kit with your code, try a demo. A
+demo is a small project your agent builds in a new folder from a brief, graded
+by held-out checks kept in the kit, not in that folder.
 
 1. **Pick one.** Run this in a terminal, or ask your agent to run it. It asks
    what you want to spend, then lists the demos with what each costs on your

@@ -49,6 +49,7 @@ def test_adapters_match_a_fresh_build():
 REQUIRED_RULE_HEADINGS = (
     "## Verification honesty",
     "## Confirm before anything outward-facing or irreversible",
+    "## No repo yet: make one, then offer GitHub",
     "## Debugging",
     "## Complexity budget",
     "## Comments and lifetime",
@@ -80,6 +81,56 @@ def test_rule_files_are_found_for_every_tier_and_tool():
 def test_every_tier_carries_the_required_rule_headings(path):
     missing = [h for h in REQUIRED_RULE_HEADINGS if h not in _headings(path)]
     assert not missing, f"{path.name} lacks {missing}"
+
+
+# The folders install.shared_folder and refused_repo refuse, as the agent's prose names them. The agent
+# rule once listed fewer than the installer refused, so an agent would git init C:\Users or /home.
+REFUSED_IN_PROSE = ("home folder", "holds it", "Desktop", "Documents", "Downloads", "Windows folder",
+                    "root", "kit's clone")
+
+
+def _flat(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _no_repo_section(path: Path) -> str:
+    text = path.read_bytes().decode("utf-8")
+    start = text.index("## No repo yet: make one, then offer GitHub")
+    end = text.find("\n## ", start + 1)
+    return _flat(text[start:end if end > 0 else None])
+
+
+@pytest.mark.parametrize("path", _rule_files(), ids=lambda p: f"{p.parent.name}/{p.name}")
+def test_the_no_repo_rule_refuses_what_the_installer_refuses_and_offers_github_after_a_commit(path):
+    section = _no_repo_section(path)
+    missing = [w for w in REFUSED_IN_PROSE if w not in section]
+    assert not missing, f"{path.name}: the no-repo rule omits {missing}"
+    # gh repo create --source . --push fails on a repo with no commits, which is the state git init leaves.
+    assert "after the first commit" in section and "never straight after `git init`" in section, path
+    assert "`gh auth login` in their own terminal" in section and "only on their yes" in section, path
+    assert "`git config user.email`" in section, path  # with no identity the first commit fails
+
+
+def _checkpoint_files() -> list:
+    files = [SCRIPTS.parent / "plugins" / "starter" / "commands" / "checkpoint.md"]
+    for p in sorted((SCRIPTS.parent / "adapters").rglob("*")):
+        if p.is_file() and (p.name == "checkpoint.md" or p.parent.name == "checkpoint"):
+            files.append(p)
+    return files
+
+
+@pytest.mark.parametrize("path", _checkpoint_files(), ids=lambda p: f"{p.parent.parent.name}/{p.parent.name}/{p.name}")
+def test_checkpoint_step_zero_refuses_what_the_installer_refuses(path):
+    text = _flat(path.read_bytes().decode("utf-8"))
+    step0 = text[text.index("**No repo yet? Make one.**"):text.index("1. **Run the checks")]
+    missing = [w for w in REFUSED_IN_PROSE if w not in step0]
+    assert not missing, f"{path}: step 0 omits {missing}"
+    assert "Once the commit is made" in text and "fails on a repo with no commits" in text, path
+
+
+def test_checkpoint_files_are_found_for_every_tool():
+    tools = {p.relative_to(SCRIPTS.parent / "adapters").parts[0] for p in _checkpoint_files()[1:]}
+    assert len(tools) >= 7, tools
 
 
 def test_no_adapter_claims_the_commit_guard_is_always_installed():
@@ -435,6 +486,21 @@ def test_checkpoint_and_lanes_relay_the_update_notice_first(name):
         for later in ("In order:", "## 1."):
             if later in body:
                 assert first < body.index(later), (t, name)
+
+
+def test_only_checkpoint_reminds_about_an_unchosen_notice():
+    """checkpoint passes --remind and says how to record the answer; lanes and the SessionStart hook do
+    not, so the reminder comes from one place and a session start never nags."""
+    src = REPO / "plugins/starter/commands"
+    texts = {"claude": {n: (src / f"{n}.md").read_bytes().decode("utf-8") for n in ("checkpoint", "lanes")}}
+    for t, files in _built().items():
+        texts[t] = {n: files[COMMAND_PATHS[t].format(n=n)] for n in ("checkpoint", "lanes")}
+    for t, cmds in texts.items():
+        cp = cmds["checkpoint"]
+        assert "update_check.py --remind" in cp and 'update_check.py" --remind' in cp, t  # bash, PowerShell
+        assert "starter.py notices on" in cp and "do not wait for an answer" in cp, t
+        assert "--remind" not in cmds["lanes"], t
+    assert "--remind" not in NOTICE.read_text(encoding="utf-8")
 
 
 # --------------------------------------------------------------------------

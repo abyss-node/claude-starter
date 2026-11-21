@@ -1,9 +1,13 @@
 # Your first hour
 
-Do this in a repo of your own with a clean `git status`. Make a branch first so
-nothing lands on your main branch by accident.
+Do this in a project folder of your own. If it is not a git repo yet, the
+agent runs `git init` there and says so: the repo stays on your machine, and
+deleting its `.git` folder undoes it. After the first commit, it offers to
+put the project on GitHub, and does nothing there without your yes. In a repo
+that already has commits, start from a clean `git status` and make a branch
+first, so nothing lands on your main branch by accident.
 
-1. **Open it.** Start your agent in the repo's folder.
+1. **Open it.** Start your agent in the project's folder.
 2. **Give the repo its own rules.** If your tool has a command that drafts a
    rules file by reading the repo, run it; otherwise ask the agent to write an
    `AGENTS.md` that says how to run the tests, what the project is and what

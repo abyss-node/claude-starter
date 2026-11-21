@@ -149,8 +149,20 @@ def test_install_for_you_asks_about_update_notices(k):
     r = run(k, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
     assert r.returncode == 0
     tail = r.stdout.split("=== For you (the person at the keyboard) ===", 1)[1]
-    assert "Update notices: choose" in tail and "starter.py" in tail and "notices on" in tail
-    assert "notices off" in tail
+    assert "Update notices: not chosen yet" in tail and "starter.py" in tail and "notices on" in tail
+    assert "notices off" in tail and "If your agent asked you" in tail
+
+
+def test_install_stop_line_asks_about_notices_until_an_answer_is_recorded(k):
+    def last_line():
+        r = run(k, "--tool", "codex", "--tier", "starter", "--dry-run")
+        assert r.returncode == 0, r.stdout[-2000:] + r.stderr
+        return r.stdout.rstrip("\n").split("\n")[-1]
+    assert "also ask whether they want a notice when a new kit version is out (recommend yes)" in last_line()
+    assert run(k, "notices", "off", script="starter.py").returncode == 0
+    assert "notice" not in last_line()
+    r = run(k, "--tool", "codex", "--tier", "starter", "--yes", "--no-guard")
+    assert r.returncode == 0 and "Update notices:" not in r.stdout.split("=== For you", 1)[1]
 
 
 def test_second_install_from_another_clone_exits_2(k, src, tmp_path):
@@ -337,6 +349,31 @@ def test_notice_is_silent_until_turned_on_and_without_a_record(k):
     assert notice(k) == ""
 
 
+def remind(k):
+    r = run(k, "--remind", script="update_check.py")
+    assert r.returncode == 0 and not r.stderr, r.stderr
+    return r.stdout
+
+
+def test_remind_prints_one_line_until_an_answer_is_recorded(k):
+    line = remind(k)
+    assert line.startswith("claude-starter update notices are not chosen yet") and line.count("\n") == 1
+    assert notice(k) == ""  # without --remind (the SessionStart hook, lanes) there is no reminder
+    assert run(k, "notices", "off", script="starter.py").returncode == 0
+    assert remind(k) == ""
+    rec_path = k.home / ".agents" / "starter" / "installs.json"
+    rec_path.write_text("{not json", encoding="utf-8")
+    assert remind(k) == ""  # an unreadable record: silent, never a nag on top of it
+    rec_path.unlink()
+    assert remind(k) == line  # no record (an install before v0.4.0): not chosen
+
+
+def test_remind_still_prints_the_notice_once_notices_are_on(k):
+    release(k, "0.4.1")
+    assert run(k, "notices", "on", script="starter.py").returncode == 0
+    assert remind(k).startswith("claude-starter v0.4.1 is available")
+
+
 def test_notice_prints_exactly_one_line_for_a_newer_tag(k):
     assert run(k, "notices", "on", script="starter.py").returncode == 0
     assert notice(k) == ""  # no newer tag yet
@@ -412,6 +449,41 @@ def test_update_guard_repo_installs_the_hooks_and_a_hooked_repo_still_blocks_aft
     assert r.returncode == 0 and (data / "guard.py").is_file(), r.stdout[-3000:] + r.stderr
     again = commit(k, repo, "leak3.txt", f"key={FAKE_KEY}\n")
     assert again.returncode != 0, again.stdout + again.stderr
+
+
+def _refused_target(k, where: str) -> Path:
+    return {"home": k.home, "kit clone": k.kit, "kit subfolder": k.kit / "scripts"}[where]
+
+
+@pytest.mark.parametrize("mode", ["plan", "apply"])
+@pytest.mark.parametrize("where", ["home", "kit clone", "kit subfolder"])
+def test_update_here_refuses_a_guard_repo_a_repo_would_harm(k, where, mode):
+    # The clone is at the newest commit, so apply_update_here plans (and with --yes applies) in-process.
+    before = state(k)
+    yes = ["--yes"] if mode == "apply" else []
+    r = run(k, "--update", "--offline", *yes, "--guard-repo", str(_refused_target(k, where)))
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    why = "is your home directory" if where == "home" else "is this kit's own clone"
+    assert why in r.stderr and "Nothing was written" in r.stderr, r.stderr
+    assert state(k) == before  # HOME (no .git, no record change) and the clone's files
+    assert not (k.kit / ".git" / "hooks" / "pre-commit").exists()  # state() skips the clone's .git
+
+
+@pytest.mark.parametrize("mode", ["plan", "verify"])
+@pytest.mark.parametrize("where", ["home", "kit clone"])
+def test_update_to_a_new_release_refuses_a_guard_repo_in_the_plan_child(k, where, mode):
+    # A newer release makes the snapshot's installer (plan_update_child) plan, or verify a plan id, in a
+    # child process; a refused --guard-repo must stop it there, before the clone moves.
+    sha = release(k, "0.4.1")
+    before = state(k)
+    extra = ["--yes", "--to", sha, "--plan", "0" * 16] if mode == "verify" else []
+    r = run(k, "--update", *extra, "--guard-repo", str(_refused_target(k, where)))
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    why = "is your home directory" if where == "home" else "is this kit's own clone"
+    assert why in r.stderr and "Nothing was written" in r.stderr, r.stderr
+    assert "plan changed" not in r.stderr  # refused before the plan id was even compared
+    assert state(k) == before  # HEAD included: no fast-forward
+    assert not (k.kit / ".git" / "hooks" / "pre-commit").exists()
 
 
 # ---- orphans, adoption, and the move and git step kinds ------------------------------------------
@@ -508,7 +580,7 @@ def test_repeat_commands_carry_the_guard_answer(k):
     assert all(ln.endswith("--no-guard --yes") for ln in install.install_lines(a))
     cursor = "\n".join(install.next_cursor(k.home, a))
     assert cursor.count("--no-guard --project <your-repo> --yes") == 2, cursor
-    guard = install.install_lines(a, " --guard-repo <your-repo> --yes")
+    guard = install.install_lines(a, " --guard-repo <project-folder> --yes")
     assert not any("--no-guard" in ln for ln in guard)
 
 
@@ -556,10 +628,43 @@ def test_notice_line_prints_at_most_once_a_day(k):
     assert "v0.4.1 is available" in notice(k)
 
 
-def test_notices_without_a_record_exits_2_and_says_how(k):
+def test_notices_without_a_record_starts_one_and_the_reminder_stops(k):
+    """A Claude Code plugin installed before v0.4.0: a clone, no record, and no update that adopts it."""
+    rec_path = k.home / ".agents" / "starter" / "installs.json"
+    rec_path.unlink()
+    shutil.rmtree(k.home / ".codex")  # no other tool's install for an update to adopt
+    assert remind(k).startswith("claude-starter update notices are not chosen yet")
+    r = run(k, "notices", "off", script="starter.py")
+    assert r.returncode == 0 and r.stdout == "update notices: off\n", r.stdout + r.stderr
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
+    assert rec["notices"]["update"] is False and rec["installs"] == []
+    assert Path(rec["kit"]["kit_root"]).resolve() == k.kit.resolve() and rec["kit"]["version"]
+    assert remind(k) == ""
+    # An update from this clone reads the record it started; a clone it does not name is still refused.
+    r = run(k, "update", script="starter.py")
+    assert r.returncode == 2 and "Nothing to update" in r.stderr and "names the clone" not in r.stderr, r.stderr
+    release(k, "0.4.1")
+    assert run(k, "notices", "on", script="starter.py").returncode == 0
+    assert notice(k).startswith("claude-starter v0.4.1 is available")
+
+
+def test_a_record_started_by_notices_still_lets_update_adopt_an_install(k):
+    """`notices` starts a record with this clone's sha and no installs; an unrecorded install whose files
+    already match must still be adopted by the next update, not hidden behind 'Nothing to update'."""
     (k.home / ".agents" / "starter" / "installs.json").unlink()
+    before = run(k, "update", "--offline", script="starter.py")
+    assert "adopted: codex" in before.stdout, before.stdout + before.stderr
+    assert run(k, "notices", "on", script="starter.py").returncode == 0
+    r = run(k, "update", "--offline", script="starter.py")
+    assert "adopted: codex" in r.stdout and "Nothing to update" not in r.stdout, r.stdout + r.stderr
+
+
+def test_notices_with_an_unreadable_record_exits_1_and_leaves_it(k):
+    rec_path = k.home / ".agents" / "starter" / "installs.json"
+    rec_path.write_text("{not json", encoding="utf-8")
     r = run(k, "notices", "on", script="starter.py")
-    assert r.returncode == 2 and "update" in r.stderr and "apply" in r.stderr, r.stderr
+    assert r.returncode == 1 and "cannot read the install record" in r.stderr and "Traceback" not in r.stderr
+    assert rec_path.read_text(encoding="utf-8") == "{not json"
 
 
 # ---- re-runs with a hooked repo, git steps, --dry-run, and what the plan asks -------------------
@@ -680,7 +785,8 @@ def test_a_never_asked_guard_goes_into_a_new_plan_not_this_plans_apply(k):
     (k.home / ".agents" / "starter" / "installs.json").write_text(json.dumps(rec), encoding="utf-8")
     head = git(k.kit, "rev-parse", "HEAD")
     plan = run(k, "--update", "--offline", extra=MIG)  # a no-op plan asks nothing
-    assert "commit guard for codex: ask the user, then make the plan again" in plan.stdout, plan.stdout[-3000:]
+    ask = "commit guard for codex: ask the user " + __import__("install").GUARD_ASK + ", then make the plan again"
+    assert ask in plan.stdout, plan.stdout[-3000:]
     assert "to the apply command" not in plan.stdout
     pid = plan_id(plan.stdout)
     r = run(k, "--update", "--offline", "--yes", "--to", head, "--plan", pid, extra=MIG)

@@ -145,11 +145,11 @@ Next: type `/starter:onboard 6` to go on.
 
 ## Step 6 of 8: Try it on a demo
 
-Skip this step if you have a repo of your own to practise on: the next step
-uses it. If you have none, or want to see the whole chain work before you trust
-the kit with your code, try a demo. A demo is a small project your agent builds
-in a new folder from a brief, graded by held-out checks kept in the kit, not in
-that folder.
+Skip this step if you have a project of your own to practise on: the next step
+uses it, and it need not be a git repo yet. If you have none, or want to see
+the whole chain work before you trust the kit with your code, try a demo. A
+demo is a small project your agent builds in a new folder from a brief, graded
+by held-out checks kept in the kit, not in that folder.
 
 1. **Pick one.** Run this in a terminal, or ask your agent to run it. It asks
    what you want to spend, then lists the demos with what each costs on your
@@ -176,10 +176,14 @@ Next: type `/starter:onboard 7` to go on.
 
 ## Step 7 of 8: Your first hour
 
-Do this in a repo of your own with a clean `git status`. Make a branch first so
-nothing lands on your main branch by accident.
+Do this in a project folder of your own. If it is not a git repo yet, the
+agent runs `git init` there and says so: the repo stays on your machine, and
+deleting its `.git` folder undoes it. After the first commit, it offers to
+put the project on GitHub, and does nothing there without your yes. In a repo
+that already has commits, start from a clean `git status` and make a branch
+first, so nothing lands on your main branch by accident.
 
-1. **Open it.** `cd` into the repo and run `claude`.
+1. **Open it.** `cd` into the project's folder and run `claude`.
 2. **Run `/init`.** Read the `CLAUDE.md` it writes. Correct anything wrong: how
    to run the tests, what the project is, what must never break. This file is
    worth more than any prompt you will type.

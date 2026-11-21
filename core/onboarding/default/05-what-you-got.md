@@ -12,12 +12,13 @@ commands and skills below, and backed up every file it changed.
 | {{cmd:lanes}} | Splits a repo with several stacks (say, a frontend and a backend) into lanes |
 | {{cmd:starter-update}} | Updates the kit: shows the plan, applies nothing until you say yes |
 | Guardrail skills | Checks while writing endpoints, UI, data jobs and code that calls a model |
-| Commit guard | In repos you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
+| Commit guard | In the project folders you gave the installer with `--guard-repo`: checks commits for secrets, personal data and a `Verified:` or `Unverified:` line |
 
 The agents are read-only by instruction; where your tool can enforce it, the
 installer set that too, and its closing message said which. To add the commit
-guard to a repo, run the installer again with `--guard-repo`, using the tier
-you installed and any `--config-dir` or `--project` you used; `--dry-run`
-changes nothing:
-- bash: `python ~/.claude-starter/scripts/install.py --tool {{tool}} --tier starter --guard-repo <your-repo> --dry-run`
-- PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool {{tool}} --tier starter --guard-repo <your-repo> --dry-run`
+guard to a project, run the installer again with `--guard-repo` and the
+project's folder, using the tier you installed and any `--config-dir` or
+`--project` you used. A folder that is not a git repo yet is made one with
+`git init`; `--dry-run` changes nothing:
+- bash: `python ~/.claude-starter/scripts/install.py --tool {{tool}} --tier starter --guard-repo <project-folder> --dry-run`
+- PowerShell: `python "$HOME\.claude-starter\scripts\install.py" --tool {{tool}} --tier starter --guard-repo <project-folder> --dry-run`

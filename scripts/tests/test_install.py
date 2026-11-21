@@ -478,7 +478,7 @@ def test_successful_install_ends_with_the_for_you_block(tmp_path, tool):
     r = run_clean(tmp_path, "--tool", tool, "--tier", "starter", *cfg, "--yes", "--no-guard", extra=extra)
     assert r.returncode == 0, r.stdout[-3000:] + r.stderr
     tail = "\n".join(for_you_tail(r.stdout))
-    assert "Commit guard: NOT installed in any repo" in tail and "--guard-repo <your-repo> --yes" in tail
+    assert "Commit guard: NOT installed in any repo" in tail and "--guard-repo <project-folder> --yes" in tail
     assert "PowerShell:" in tail
     # An agent relays only this block, so no item may lean on text printed before it.
     assert not re.search(r"\b(above|earlier)\b", tail, re.I), tail
@@ -587,6 +587,258 @@ def test_for_you_names_the_guarded_repo(tmp_path):
     tail = "\n".join(for_you_tail(r.stdout))
     assert f"Commit guard: installed as git hooks in {repo.resolve()}" in tail
     assert "NOT installed" not in tail
+
+
+# ---- --guard-repo on a folder that is not a git repo yet: the installer makes it one ----------------
+# Beginners were stalled by being asked for a repo they did not have, so a plain project folder (or
+# one that does not exist yet) is made a repo with git init, and only folders where a repo does harm
+# are refused.
+
+def _guard_install(tmp_path: Path, target: Path, mode: str = "--yes") -> subprocess.CompletedProcess:
+    return run_clean(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                     "--guard-repo", str(target), mode)
+
+
+def _hooked(repo: Path) -> bool:
+    hook = repo / ".git" / "hooks" / "pre-commit"
+    return hook.is_file() and "# commit-guard-managed" in hook.read_text(encoding="utf-8")
+
+
+def test_guard_repo_on_a_plain_folder_dry_run_plans_git_init_and_writes_nothing(tmp_path):
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    (proj / "notes.txt").write_text("mine\n", encoding="utf-8")
+    (tmp_path / "home").mkdir()  # the sandbox HOME, which run_clean makes anyway
+    before = tree(tmp_path)
+    r = _guard_install(tmp_path, proj, "--dry-run")
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    assert re.search(r"RUN +git init \(new repo\) +-> " + re.escape(str(proj.resolve())), r.stdout), r.stdout
+    assert f"git init {proj.resolve()}" in r.stdout
+    assert tree(tmp_path) == before
+
+
+def test_guard_repo_on_a_plain_folder_makes_the_repo_and_installs_the_hooks(tmp_path):
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    (proj / "notes.txt").write_text("mine\n", encoding="utf-8")
+    r = _guard_install(tmp_path, proj)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    assert (proj / ".git").is_dir() and _hooked(proj)
+    assert (proj / "notes.txt").read_text(encoding="utf-8") == "mine\n"
+    tail = "\n".join(for_you_tail(r.stdout))
+    assert f"Commit guard: installed as git hooks in {proj.resolve()}" in tail
+    assert "ran git init there" in tail and "deleting its .git folder undoes" in tail
+    # git init's advice on branch names is noise to a beginner. It prints when init.defaultBranch is
+    # unset, which Git for Windows sets in its system config, so that config is left out here.
+    hinted = tmp_path / "hinted"
+    h = run_clean(tmp_path, "--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                  "--guard-repo", str(hinted), "--yes", extra={"GIT_CONFIG_NOSYSTEM": "1"})
+    assert h.returncode == 0 and (hinted / ".git").is_dir(), h.stdout[-3000:] + h.stderr
+    assert "hint:" not in h.stdout, h.stdout
+    again = _guard_install(tmp_path, proj, "--dry-run")  # now a repo: no second git init
+    assert again.returncode == 0 and "git init (new repo)" not in again.stdout, again.stdout[-2000:]
+
+
+def test_guard_repo_on_a_folder_that_does_not_exist_yet_creates_it(tmp_path):
+    proj = tmp_path / "projects" / "new-app"
+    dry = _guard_install(tmp_path, proj, "--dry-run")
+    assert dry.returncode == 0, dry.stdout[-3000:] + dry.stderr
+    assert "does not exist yet, so it is created" in dry.stdout
+    assert not (tmp_path / "projects").exists()
+    r = _guard_install(tmp_path, proj)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    assert (proj / ".git").is_dir() and _hooked(proj)
+
+
+def test_guard_repo_in_a_subfolder_of_a_repo_uses_that_repo(tmp_path):
+    repo = tmp_path / "repo"
+    sub = repo / "src" / "app"
+    sub.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+    r = _guard_install(tmp_path, sub)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    assert "git init (new repo)" not in r.stdout
+    assert not (sub / ".git").exists() and not (repo / "src" / ".git").exists()
+    assert _hooked(repo)
+    tail = "\n".join(for_you_tail(r.stdout))
+    assert f"Commit guard: installed as git hooks in {repo.resolve()}." in tail
+
+
+@pytest.mark.parametrize("where", ["home", "kit clone", "kit clone subfolder", "file"])
+def test_guard_repo_refuses_folders_a_repo_would_harm(tmp_path, where):
+    home = tmp_path / "home"
+    home.mkdir()
+    kit = home / ".claude-starter"
+    (kit / "scripts").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(kit)], check=True, capture_output=True)
+    (tmp_path / "a-file").write_text("x\n", encoding="utf-8")
+    target = {"home": home, "kit clone": kit, "kit clone subfolder": kit / "scripts",
+              "file": tmp_path / "a-file"}[where]
+    before = tree(tmp_path)
+    r = _guard_install(tmp_path, target)
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    assert tree(tmp_path) == before  # no .git, no hooks, no config, no record
+    assert "Nothing was written" in r.stderr and "--no-guard" in r.stderr
+    why = {"home": "is your home directory", "kit clone": "is this kit's own clone",
+           "kit clone subfolder": "is this kit's own clone", "file": "is a file, not a folder"}[where]
+    assert why in r.stderr and why in r.stdout, r.stderr  # in the plan, and in the refusal
+    if where != "file":
+        assert str(home / "projects" / "<name>") in r.stderr
+
+
+def test_guard_repo_refuses_the_kit_this_installer_runs_from(tmp_path):
+    # A dry run only: a broken refusal must not reach the real clone's hooks.
+    r = _guard_install(tmp_path, install.ROOT, "--dry-run")
+    assert r.returncode == 2 and "is this kit's own clone" in r.stderr, r.stdout[-3000:] + r.stderr
+
+
+def test_guard_target_refuses_a_filesystem_root_and_a_folder_holding_home(tmp_path, monkeypatch):
+    monkeypatch.setattr(install, "home", lambda: tmp_path / "home")
+    root = Path(tmp_path.anchor)
+    target, init, why = install.guard_target(str(root))
+    assert why and "root of a drive or filesystem" in why, why
+    target, init, why = install.guard_target(str(tmp_path))
+    assert why and "holds your home directory" in why, why
+    ok = install.guard_target(str(tmp_path / "home" / "projects" / "x"))
+    assert ok == ((tmp_path / "home" / "projects" / "x").resolve(), True, None)
+
+
+def test_two_paths_into_one_repo_plan_its_hooks_once(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "sub").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+    steps = install.plan_guards([str(repo), str(repo / "sub")])
+    assert [(s.kind, s.dest) for s in steps] == [("guard", repo.resolve())]
+
+
+def test_two_new_folders_one_inside_the_other_make_one_repo(tmp_path):
+    # Neither is a repo at plan time, so each alone would get its own git init: nested repos.
+    outer = tmp_path / "p"
+    steps = install.plan_guards([str(outer / "sub"), str(outer)])
+    assert [(s.kind, s.dest) for s in steps] == [("init", outer.resolve()), ("guard", outer.resolve())]
+
+
+def _no_writes(monkeypatch):
+    """An in-process install that fails the test at the first step past the refusal, so a refusal that
+    broke can never probe, git init or hook the folder it was meant to refuse."""
+    for name in ("preflight", "check_writable", "apply", "confirm"):
+        monkeypatch.setattr(install, name, lambda *a, _n=name, **k: pytest.fail(f"{_n} ran: the refusal let it through"))
+
+
+@pytest.mark.parametrize("form", ["anchor", "dotdot"])
+def test_install_refuses_a_drive_root_through_the_real_entry_point(sandboxed, tmp_path, monkeypatch, capsys, form):
+    _no_writes(monkeypatch)
+    root = Path(tmp_path.anchor)
+    arg = str(root) if form == "anchor" else str(Path(tmp_path, *[".."] * len(tmp_path.parts)))
+    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                      "--guard-repo", arg, "--yes"])
+    out = capsys.readouterr()
+    assert rc == 2, out.out[-3000:] + out.err
+    assert "is the root of a drive or filesystem" in out.err and "Nothing was written" in out.err, out.err
+    assert not (tmp_path / "cfg").exists()
+
+
+def test_install_refuses_the_root_a_subst_drive_resolves_away(sandboxed, tmp_path, monkeypatch, capsys):
+    # On Windows, Path.resolve() maps a subst drive's root (Q:\) to the folder behind it, so a check
+    # made after resolving never sees a root. Simulated: the root resolves to a plain folder.
+    _no_writes(monkeypatch)
+    root, backing = Path(tmp_path.anchor), tmp_path / "backing"
+    backing.mkdir()
+    real = Path.resolve
+    monkeypatch.setattr(Path, "resolve", lambda self, strict=False: backing if self == root else real(self, strict))
+    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                      "--guard-repo", str(root), "--yes"])
+    err = capsys.readouterr().err
+    assert rc == 2 and "is the root of a drive or filesystem" in err, err
+    assert not (backing / ".git").exists()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="drive-relative paths (C:) exist only on Windows")
+def test_install_refuses_a_bare_drive_letter(sandboxed, tmp_path, monkeypatch, capsys):
+    # "C:" alone means the current folder on C:, not its root, so it would git init wherever the shell is.
+    _no_writes(monkeypatch)
+    here = tmp_path / "somewhere"
+    here.mkdir()
+    monkeypatch.chdir(here)
+    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                      "--guard-repo", tmp_path.drive, "--yes"])
+    err = capsys.readouterr().err
+    assert rc == 2 and "names a drive, not a folder" in err, err
+    assert not (here / ".git").exists()
+
+
+def test_install_refuses_a_folder_that_holds_home_through_the_real_entry_point(tmp_path):
+    # run_clean's HOME is tmp_path/home, so tmp_path holds it, as C:\Users or /home holds a real one.
+    (tmp_path / "home").mkdir()
+    before = tree(tmp_path)
+    r = _guard_install(tmp_path, tmp_path)
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    assert "holds your home directory" in r.stderr and "Nothing was written" in r.stderr, r.stderr
+    assert tree(tmp_path) == before
+
+
+@pytest.mark.parametrize("name", ["Desktop", "Documents", "Downloads"])
+def test_install_refuses_the_shared_folders_under_home(tmp_path, name):
+    # Each holds files from many places, so a repo there would track all of them, as one at home would.
+    shared = tmp_path / "home" / name
+    shared.mkdir(parents=True)
+    before = tree(tmp_path)
+    r = _guard_install(tmp_path, shared)
+    assert r.returncode == 2, r.stdout[-3000:] + r.stderr
+    assert f"is your {name} folder" in r.stderr, r.stderr
+    assert tree(tmp_path) == before
+    ok = _guard_install(tmp_path, shared / "my-app", "--dry-run")  # a project inside one is fine
+    assert ok.returncode == 0 and "git init (new repo)" in ok.stdout, ok.stdout[-3000:] + ok.stderr
+
+
+def test_install_refuses_the_windows_folder(sandboxed, tmp_path, monkeypatch, capsys):
+    # An elevated Windows terminal opens in C:\Windows\System32. Simulated with SystemRoot in tmp_path.
+    _no_writes(monkeypatch)
+    windows = tmp_path / "Windows"
+    (windows / "System32").mkdir(parents=True)
+    monkeypatch.setenv("SystemRoot", str(windows))
+    rc = install.run(["--tool", "generic", "--tier", "starter", "--config-dir", str(tmp_path / "cfg"),
+                      "--guard-repo", str(windows / "System32"), "--yes"])
+    err = capsys.readouterr().err
+    assert rc == 2 and "is in the Windows folder" in err, err
+
+
+def test_home_matches_in_another_case_where_normcase_folds_nothing(tmp_path, monkeypatch):
+    # macOS's default filesystem ignores case, but os.path.normcase folds nothing on POSIX, so
+    # /users/alice must still be found to be /Users/alice. Simulated on this filesystem.
+    home = tmp_path / "Home"
+    home.mkdir()
+    monkeypatch.setattr(install, "home", lambda: home)
+    monkeypatch.setattr(install.os.path, "normcase", lambda s: s)
+    if not (Path(str(home).swapcase())).is_dir():
+        pytest.skip("this filesystem is case-sensitive")
+    assert "is your home directory" in (install.refused_repo(Path(str(home).swapcase())) or "")
+    assert "holds your home directory" in (install.refused_repo(Path(str(tmp_path).swapcase())) or "")
+
+
+def test_a_project_in_a_dotfiles_repo_at_home_gets_a_repo_of_its_own(tmp_path):
+    home = tmp_path / "home"
+    proj = home / "projects" / "app"
+    proj.mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(home)], check=True, capture_output=True)
+    r = _guard_install(tmp_path, proj)
+    assert r.returncode == 0, r.stdout[-3000:] + r.stderr
+    assert (proj / ".git").is_dir() and _hooked(proj)
+    assert not _hooked(home)
+    refused = _guard_install(tmp_path, home, "--dry-run")  # home itself is still refused
+    assert refused.returncode == 2 and "is your home directory" in refused.stderr, refused.stderr
+
+
+def test_a_repo_git_will_not_read_is_still_found_so_none_is_nested(tmp_path, monkeypatch):
+    # git rev-parse exits 128 on a repo of another owner's (safe.directory: common on exFAT and USB
+    # drives), which looked the same as no repo at all.
+    repo = tmp_path / "repo"
+    (repo / "src").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+    refused = subprocess.CompletedProcess([], 128, b"", b"fatal: detected dubious ownership in repository")
+    monkeypatch.setattr(install.subprocess, "run", lambda *a, **k: refused)
+    assert install.enclosing_repo((repo / "src").resolve()) == repo.resolve()
+    assert install.guard_target(str(repo / "src"))[:2] == (repo.resolve(), False)
 
 
 class FakeClaude:
@@ -740,7 +992,8 @@ def test_a_write_that_fails_mid_apply_still_reports(sandboxed, tmp_path, monkeyp
 
 # ---- the dry run and the no-terminal run end by telling an agent to stop ------------------
 
-TIER_ASK = "ask which tier (starter or full) and whether to add the commit guard to a repo"
+TIER_ASK = "ask which tier (starter or full) and " + install.GUARD_ASK
+NOTICE_TAIL = "; also ask " + install.NOTICE_ASK  # asked while no record holds an answer, as in a clean HOME
 
 
 @pytest.mark.parametrize("tool", ["codex", "cursor", "generic"])
@@ -750,7 +1003,7 @@ def test_dry_run_ends_with_the_agent_stop_line(tmp_path, tool):
     assert r.returncode == 0, r.stdout[-2000:] + r.stderr
     lines = r.stdout.rstrip("\n").split("\n")
     assert lines[-2:] == ["dry run: nothing written.",
-                          "If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK
+                          "If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK + NOTICE_TAIL
                           + ", and end your turn. Run with --yes only after they reply."]
     assert tree(tmp_path / "home") == {}
 
@@ -759,11 +1012,12 @@ def test_claude_dry_run_stop_line_has_no_tier(sandboxed, tmp_path, monkeypatch, 
     _claude(monkeypatch, tmp_path)
     assert install.run(["--tool", "claude", "--config-dir", str(tmp_path / "claude-cfg"), "--dry-run"]) == 0
     last = capsys.readouterr().out.rstrip("\n").split("\n")[-1]
-    assert last == ("If you are an AI agent: stop here. Show the user this plan, ask whether to add the commit "
-                    "guard to a repo, and end your turn. Run with --yes only after they reply.")
+    assert last == ("If you are an AI agent: stop here. Show the user this plan, ask " + install.GUARD_ASK
+                    + NOTICE_TAIL + ", and end your turn. Run with --yes only after they reply.")
+    assert "which project folder they work in" in last and "~/projects/<name>" in last
 
 
-STOP_WITH_TIER = ("If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK
+STOP_WITH_TIER = ("If you are an AI agent: stop here. Show the user this plan, " + TIER_ASK + NOTICE_TAIL
                   + ", and end your turn. Run with --yes only after they reply.")
 YES_COMMAND = re.compile(r"install\.py\S*\s.*--yes")  # a ready-to-run apply command, in either shell
 
