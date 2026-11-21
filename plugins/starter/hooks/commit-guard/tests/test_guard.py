@@ -81,6 +81,10 @@ def env(tmp_path):
         COMMIT_GUARD_HOME=str(tmp_path / "home"),
         GIT_CONFIG_GLOBAL=str(gitcfg),
         GIT_CONFIG_NOSYSTEM="1",
+        # git stops looking for a repo at tmp_path. With pytest's basetemp inside a worktree, a folder here that is
+        # no repo was taken for that worktree's repo: test_install_refuses_non_repo installed the guard's hooks
+        # into the enclosing clone's shared .git/hooks, and failed.
+        GIT_CEILING_DIRECTORIES=str(tmp_path),
     )
     for k in ("COMMIT_GUARD_BYPASS", "COMMIT_GUARD_REASON"):
         e.pop(k, None)
