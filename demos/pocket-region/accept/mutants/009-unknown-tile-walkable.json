@@ -1,0 +1,8 @@
+{
+  "id": "009-unknown-tile-walkable",
+  "graded_item": 2,
+  "description": "an unknown character is walkable",
+  "file": "src/map.js",
+  "find": "if (!WALKABLE.has(t)) return 'tile';",
+  "replace": "if (t === '#' || t === '~' || t === 'T') return 'tile';"
+}

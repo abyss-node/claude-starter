@@ -1,0 +1,8 @@
+{
+  "id": "022-mode-minor-third-is-major",
+  "graded_item": 5,
+  "description": "minor template uses the major third",
+  "file": "src/analysis.js",
+  "find": "const min = (c[r] + c[(r + 3) % 12] + fifth) / total;",
+  "replace": "const min = (c[r] + c[(r + 4) % 12] + fifth) / total;"
+}

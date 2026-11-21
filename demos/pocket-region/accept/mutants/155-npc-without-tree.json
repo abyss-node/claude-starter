@@ -1,0 +1,8 @@
+{
+  "id": "155-npc-without-tree",
+  "graded_item": 17,
+  "description": "a person speaks a tree that does not exist",
+  "file": "src/content.js",
+  "find": "{ id: 'tansy', x: 2, y: 5, tree: 'tansy' }",
+  "replace": "{ id: 'tansy', x: 2, y: 5, tree: 'tanzy' }"
+}

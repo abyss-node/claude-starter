@@ -1,0 +1,8 @@
+{
+  "id": "065-pulse-half",
+  "graded_item": 12,
+  "description": "a flash sets the pulse to 0.5",
+  "file": "src/synth.js",
+  "find": "s.pulse = 1;",
+  "replace": "s.pulse = 0.5;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "170-north-is-down",
+  "graded_item": 13,
+  "description": "north moves down the map",
+  "file": "src/game.js",
+  "find": "n: [0, -1]",
+  "replace": "n: [0, 1]"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "163-creature-name-from-another-game",
+  "graded_item": 17,
+  "description": "a creature is called after an existing franchise",
+  "file": "src/content.js",
+  "find": "name: 'Pebblet'",
+  "replace": "name: 'Pika' + 'chu'"
+}

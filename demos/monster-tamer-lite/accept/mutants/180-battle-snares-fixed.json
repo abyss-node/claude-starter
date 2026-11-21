@@ -1,0 +1,8 @@
+{
+  "id": "180-battle-snares-fixed",
+  "graded_item": 13,
+  "description": "the battle ignores the snares the game has",
+  "file": "src/game.js",
+  "find": "    snares: game.snares,\n    sides:",
+  "replace": "    snares: START_SNARES,\n    sides:"
+}

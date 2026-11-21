@@ -1,0 +1,8 @@
+{
+  "id": "123-no-draw-at-rate-zero",
+  "graded_item": 15,
+  "description": "no draw is made when the map has no rate",
+  "file": "src/game.js",
+  "find": "  const a = rngNext(g.rng);\n  const list = map.encounters || [];",
+  "replace": "  if (!map.encounterRate) return;\n  const a = rngNext(g.rng);\n  const list = map.encounters || [];"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "050-damage-floors-parts",
+  "graded_item": 5,
+  "description": "damage floors the base before the multipliers",
+  "file": "src/rules.js",
+  "find": "return Math.max(1, Math.floor(num / den));",
+  "replace": "return Math.max(1, Math.floor((Math.floor((move.power * attacker.stats.atk * (attacker.level + 10)) / (defender.stats.def * 30)) * typePct * stabPct) / 10000));"
+}

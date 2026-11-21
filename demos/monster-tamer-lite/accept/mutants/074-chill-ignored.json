@@ -1,0 +1,8 @@
+{
+  "id": "074-chill-ignored",
+  "graded_item": 6,
+  "description": "chill does not slow anyone",
+  "file": "src/rules.js",
+  "find": "return creature.status && creature.status.kind === 'chill' ? Math.floor(spd / 2) : spd;",
+  "replace": "return spd;"
+}

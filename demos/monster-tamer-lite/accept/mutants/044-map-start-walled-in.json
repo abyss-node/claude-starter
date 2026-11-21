@@ -1,0 +1,8 @@
+{
+  "id": "044-map-start-walled-in",
+  "graded_item": 4,
+  "description": "the start tile is walled in",
+  "file": "src/data.js",
+  "find": "  '#S....\"\"\"....#',\n  '#.####.\"\"\".#.#',",
+  "replace": "  '#S#...\"\"\"....#',\n  '######.\"\"\".#.#',"
+}

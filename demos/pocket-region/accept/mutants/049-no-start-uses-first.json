@@ -1,0 +1,8 @@
+{
+  "id": "049-no-start-uses-first",
+  "graded_item": 6,
+  "description": "with no matching start the first entry is used anyway",
+  "file": "src/dialogue.js",
+  "find": "nodeId = hit ? hit.node : null;",
+  "replace": "nodeId = hit ? hit.node : tree.start[0].node;"
+}

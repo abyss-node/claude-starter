@@ -1,0 +1,8 @@
+{
+  "id": "legal-021-islegal-guard-and-strict-compare",
+  "graded_item": 0,
+  "description": "isLegalAction written inline: null guard, strict equality on slot and to",
+  "file": "src/battle.js",
+  "find": "return legalActions(battle, side).some((a) => sameAction(a, action));",
+  "replace": "return action != null && legalActions(battle, side).some((a) => a.kind === action.kind && (a.kind !== 'move' || a.slot === action.slot) && (a.kind !== 'switch' || a.to === action.to));"
+}

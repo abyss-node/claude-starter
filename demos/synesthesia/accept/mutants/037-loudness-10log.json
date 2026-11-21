@@ -1,0 +1,8 @@
+{
+  "id": "037-loudness-10log",
+  "graded_item": 8,
+  "description": "level in 10 log10",
+  "file": "src/analysis.js",
+  "find": "const db = 20 * Math.log10(",
+  "replace": "const db = 10 * Math.log10("
+}

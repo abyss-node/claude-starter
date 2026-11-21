@@ -1,0 +1,8 @@
+{
+  "id": "090-flash-not-recorded",
+  "graded_item": 15,
+  "description": "an allowed flash is not recorded",
+  "file": "src/safety.js",
+  "find": "        last = time;\n        return true;",
+  "replace": "        return true;"
+}

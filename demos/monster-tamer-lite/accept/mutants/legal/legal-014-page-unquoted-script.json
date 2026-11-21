@@ -1,0 +1,8 @@
+{
+  "id": "legal-014-page-unquoted-script",
+  "graded_item": 0,
+  "description": "the module script written without quotes, with ./src",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script src=./src/main.js type=module></script>"
+}

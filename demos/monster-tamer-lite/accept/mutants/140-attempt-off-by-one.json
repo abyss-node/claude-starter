@@ -1,0 +1,8 @@
+{
+  "id": "140-attempt-off-by-one",
+  "graded_item": 11,
+  "description": "attemptCatch is one point stricter",
+  "file": "src/rules.js",
+  "find": "return rand() * 100 < catchChance(creature);",
+  "replace": "return rand() * 100 < catchChance(creature) - 1;"
+}

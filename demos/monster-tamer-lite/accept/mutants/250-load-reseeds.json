@@ -1,0 +1,8 @@
+{
+  "id": "250-load-reseeds",
+  "graded_item": 18,
+  "description": "loadGame restarts the random state from the seed",
+  "file": "src/game.js",
+  "find": "  return g;\n}",
+  "replace": "  g.rng = createRng(g.seed);\n  return g;\n}"
+}

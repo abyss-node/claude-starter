@@ -1,0 +1,8 @@
+{
+  "id": "legal-011-six-species",
+  "graded_item": 0,
+  "description": "a roster of six",
+  "file": "src/data.js",
+  "find": "  { id: 'embermoth', name: 'Embermoth', type: 'cinder', base: { hp: 40, atk: 60, def: 35, spd: 70 }, baseXp: 70, catchRate: 35, moves: ['wick-flick', 'ash-burst', 'jolt-hum'], hue: 36 },\n",
+  "replace": ""
+}

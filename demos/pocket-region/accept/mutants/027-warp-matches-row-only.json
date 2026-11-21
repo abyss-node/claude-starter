@@ -1,0 +1,8 @@
+{
+  "id": "027-warp-matches-row-only",
+  "graded_item": 4,
+  "description": "a warp is found by its row alone",
+  "file": "src/movement.js",
+  "find": "find((w) => w.x === tx && w.y === ty)",
+  "replace": "find((w) => w.y === ty)"
+}

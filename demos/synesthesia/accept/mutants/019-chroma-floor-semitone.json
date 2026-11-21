@@ -1,0 +1,8 @@
+{
+  "id": "019-chroma-floor-semitone",
+  "graded_item": 4,
+  "description": "nearest semitone is floored",
+  "file": "src/analysis.js",
+  "find": "const semitones = Math.round(12 * Math.log2(f / 440));",
+  "replace": "const semitones = Math.floor(12 * Math.log2(f / 440));"
+}

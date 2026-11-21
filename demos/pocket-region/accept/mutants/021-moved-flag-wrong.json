@@ -1,0 +1,8 @@
+{
+  "id": "021-moved-flag-wrong",
+  "graded_item": 3,
+  "description": "moved is false on a plain step",
+  "file": "src/movement.js",
+  "find": "return { player: { map: player.map, x: tx, y: ty, facing: dir }, moved: true,",
+  "replace": "return { player: { map: player.map, x: tx, y: ty, facing: dir }, moved: false,"
+}

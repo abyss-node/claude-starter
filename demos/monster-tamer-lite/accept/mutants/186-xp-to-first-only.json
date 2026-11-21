@@ -1,0 +1,8 @@
+{
+  "id": "186-xp-to-first-only",
+  "graded_item": 14,
+  "description": "only the first creature gets XP",
+  "file": "src/game.js",
+  "find": "for (const c of game.party) if (c.hp > 0) gainXp(c, xp);",
+  "replace": "for (const c of game.party.slice(0, 1)) if (c.hp > 0) gainXp(c, xp);"
+}

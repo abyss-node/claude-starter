@@ -1,0 +1,8 @@
+{
+  "id": "040-view-has-hidden-field",
+  "graded_item": 5,
+  "description": "the view carries the node text twice",
+  "file": "src/dialogue.js",
+  "find": "    ended: false,\n    battle: null,\n  };\n  return { game: next, view };",
+  "replace": "    ended: false,\n    battle: null,\n    speaker: node.speaker,\n  };\n  return { game: next, view };"
+}

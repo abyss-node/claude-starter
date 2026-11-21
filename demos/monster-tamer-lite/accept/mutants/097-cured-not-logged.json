@@ -1,0 +1,8 @@
+{
+  "id": "097-cured-not-logged",
+  "graded_item": 8,
+  "description": "the end of a status is not logged",
+  "file": "src/battle.js",
+  "find": "        battle.log.push({ type: 'cured', side, kind: c.status.kind });\n",
+  "replace": ""
+}

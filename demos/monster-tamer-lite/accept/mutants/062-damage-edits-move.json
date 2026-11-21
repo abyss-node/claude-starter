@@ -1,0 +1,8 @@
+{
+  "id": "062-damage-edits-move",
+  "graded_item": 5,
+  "description": "calcDamage clamps the move power in place",
+  "file": "src/rules.js",
+  "find": "const stabPct = move.type === attacker.type ? 150 : 100;",
+  "replace": "move.power = Math.min(move.power, 150);\n  const stabPct = move.type === attacker.type ? 150 : 100;"
+}

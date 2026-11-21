@@ -1,0 +1,8 @@
+{
+  "id": "legal-010-unquoted-attrs",
+  "graded_item": 21,
+  "description": "unquoted attributes in the page",
+  "file": "index.html",
+  "find": "<input id=\"limiter\" type=\"checkbox\" checked>",
+  "replace": "<input type=checkbox id=limiter checked>"
+}

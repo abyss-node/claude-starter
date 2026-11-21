@@ -1,0 +1,8 @@
+{
+  "id": "157-stats-not-recomputed",
+  "graded_item": 12,
+  "description": "levelling leaves the stats alone",
+  "file": "src/rules.js",
+  "find": "    restat(creature);\n    if (creature.hp",
+  "replace": "    creature.maxHp = calcMaxHp(creature.base.hp, creature.level);\n    if (creature.hp"
+}

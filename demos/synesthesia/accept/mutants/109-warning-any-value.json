@@ -1,0 +1,8 @@
+{
+  "id": "109-warning-any-value",
+  "graded_item": 18,
+  "description": "any stored value acknowledges",
+  "file": "src/safety.js",
+  "find": "return storage.getItem(WARNING_KEY) !== 'yes';",
+  "replace": "return storage.getItem(WARNING_KEY) === null;"
+}

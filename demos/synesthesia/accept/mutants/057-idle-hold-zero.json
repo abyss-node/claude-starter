@@ -1,0 +1,8 @@
+{
+  "id": "057-idle-hold-zero",
+  "graded_item": 11,
+  "description": "no hold: idle between clicks",
+  "file": "src/synth.js",
+  "find": "export const IDLE_HOLD = 1.5;",
+  "replace": "export const IDLE_HOLD = 0;"
+}

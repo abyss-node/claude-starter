@@ -1,0 +1,8 @@
+{
+  "id": "127-null-always-allowed",
+  "graded_item": 10,
+  "description": "a missing choice is accepted",
+  "file": "src/battle.js",
+  "find": "if (legal.length > 0) throw new Error(`side ${side} must choose an action`);",
+  "replace": "if (false) throw new Error(\"x\");"
+}

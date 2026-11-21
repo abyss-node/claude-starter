@@ -1,0 +1,8 @@
+{
+  "id": "154-xp-uncapped",
+  "graded_item": 12,
+  "description": "XP is not capped at level 30",
+  "file": "src/rules.js",
+  "find": "creature.xp = Math.min(xpForLevel(MAX_LEVEL), creature.xp + add);",
+  "replace": "creature.xp = creature.xp + add;"
+}

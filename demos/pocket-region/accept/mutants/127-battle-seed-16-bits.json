@@ -1,0 +1,8 @@
+{
+  "id": "127-battle-seed-16-bits",
+  "graded_item": 15,
+  "description": "the battle seed is only 16 bits wide",
+  "file": "src/game.js",
+  "find": "Math.floor(rngNext(g.rng) * 4294967296)",
+  "replace": "Math.floor(rngNext(g.rng) * 65536)"
+}

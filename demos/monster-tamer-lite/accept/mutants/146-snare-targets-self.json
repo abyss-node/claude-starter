@@ -1,0 +1,8 @@
+{
+  "id": "146-snare-targets-self",
+  "graded_item": 11,
+  "description": "the snare is tried on the thrower's own creature",
+  "file": "src/battle.js",
+  "find": "attemptCatch(activeOf(battle, 1),",
+  "replace": "attemptCatch(activeOf(battle, 0),"
+}

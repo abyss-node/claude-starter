@@ -1,0 +1,11 @@
+{
+  "id": "104-state-holds-a-function",
+  "graded_item": 12,
+  "description": "the state carries a closure",
+  "file": "src/rng.js",
+  "find": "return { s: Number(seed) >>> 0 };",
+  "replace": "return { s: Number(seed) >>> 0, tick() { return 1; } };",
+  "expect": [
+    "Graded 12:"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "247-load-xy-unchecked",
+  "graded_item": 18,
+  "description": "loadGame accepts a position that is not whole numbers",
+  "file": "src/game.js",
+  "find": "if (!Array.isArray(g.map) || !Number.isInteger(g.x) || !Number.isInteger(g.y)) throw",
+  "replace": "if (!Array.isArray(g.map)) throw"
+}

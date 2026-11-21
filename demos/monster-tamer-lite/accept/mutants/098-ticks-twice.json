@@ -1,0 +1,8 @@
+{
+  "id": "098-ticks-twice",
+  "graded_item": 8,
+  "description": "a status loses two turns each end of turn",
+  "file": "src/battle.js",
+  "find": "c.status.turns -= 1;",
+  "replace": "c.status.turns -= 2;"
+}

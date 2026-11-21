@@ -1,0 +1,8 @@
+{
+  "id": "legal-010-eighth-species",
+  "graded_item": 0,
+  "description": "a roster of eight",
+  "file": "src/data.js",
+  "find": "moves: ['pebble-toss', 'boulder-drop', 'splashjab'], hue: 30 },\n];",
+  "replace": "moves: ['pebble-toss', 'boulder-drop', 'splashjab'], hue: 30 },\n  { id: 'dunecat', name: 'Dunecat', type: 'stone', base: { hp: 48, atk: 64, def: 50, spd: 60 }, baseXp: 80, catchRate: 30, moves: ['pebble-toss', 'jolt-hum', 'wick-flick'], hue: 40 },\n];"
+}

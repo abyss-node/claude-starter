@@ -1,0 +1,8 @@
+{
+  "id": "211-who-not-advanced",
+  "graded_item": 15,
+  "description": "the second player is not named after the first picks",
+  "file": "src/duel.js",
+  "find": "    duel.who = duel.queue[0];\n    duel.stage = 'handoff';\n  } else {",
+  "replace": "    duel.stage = 'handoff';\n  } else {"
+}

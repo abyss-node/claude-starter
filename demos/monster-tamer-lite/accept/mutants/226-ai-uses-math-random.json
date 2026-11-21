@@ -1,0 +1,8 @@
+{
+  "id": "226-ai-uses-math-random",
+  "graded_item": 16,
+  "description": "the computer explores with Math.random",
+  "file": "src/ai.js",
+  "find": "const explore = nextFloat(probe) < 0.15;",
+  "replace": "const explore = Math.random() < 0.15;"
+}

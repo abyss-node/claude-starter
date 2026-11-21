@@ -1,0 +1,8 @@
+{
+  "id": "088-revive-rounds-up",
+  "graded_item": 11,
+  "description": "a revive rounds the half up",
+  "file": "src/inventory.js",
+  "find": "Math.max(1, Math.floor(target.maxHp / 2))",
+  "replace": "Math.max(1, Math.ceil(target.maxHp / 2))"
+}

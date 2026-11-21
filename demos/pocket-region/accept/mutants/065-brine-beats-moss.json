@@ -1,0 +1,8 @@
+{
+  "id": "065-brine-beats-moss",
+  "graded_item": 8,
+  "description": "the type chart has brine beating moss",
+  "file": "src/battle.js",
+  "find": "brine: 'ember'",
+  "replace": "brine: 'moss'"
+}

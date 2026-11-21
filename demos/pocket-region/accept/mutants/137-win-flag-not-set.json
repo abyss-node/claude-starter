@@ -1,0 +1,8 @@
+{
+  "id": "137-win-flag-not-set",
+  "graded_item": 16,
+  "description": "a win does not set its flag",
+  "file": "src/game.js",
+  "find": "if (b.winner === 'player' && b.winFlag) g.flags[b.winFlag] = true;",
+  "replace": ""
+}

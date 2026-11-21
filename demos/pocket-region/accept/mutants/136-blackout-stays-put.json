@@ -1,0 +1,8 @@
+{
+  "id": "136-blackout-stays-put",
+  "graded_item": 16,
+  "description": "a blackout leaves the player where they fell",
+  "file": "src/game.js",
+  "find": "    g.player = { map: s.map, x: s.x, y: s.y, facing: s.facing };\n    for",
+  "replace": "    for"
+}

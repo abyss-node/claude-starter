@@ -1,0 +1,8 @@
+{
+  "id": "054-defence-divisor",
+  "graded_item": 5,
+  "description": "the defence divisor is 25",
+  "file": "src/rules.js",
+  "find": "const den = defender.stats.def * 30 * 100 * 100;",
+  "replace": "const den = defender.stats.def * 25 * 100 * 100;"
+}

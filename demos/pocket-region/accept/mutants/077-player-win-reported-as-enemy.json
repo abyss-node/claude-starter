@@ -1,0 +1,8 @@
+{
+  "id": "077-player-win-reported-as-enemy",
+  "graded_item": 10,
+  "description": "a player win is reported as an enemy win",
+  "file": "src/battle.js",
+  "find": "b.over = true; b.winner = 'player';",
+  "replace": "b.over = true; b.winner = 'enemy';"
+}

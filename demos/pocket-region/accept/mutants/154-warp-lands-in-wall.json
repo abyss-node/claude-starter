@@ -1,0 +1,8 @@
+{
+  "id": "154-warp-lands-in-wall",
+  "graded_item": 17,
+  "description": "a warp lands on a wall tile",
+  "file": "src/content.js",
+  "find": "{ x: 11, y: 4, to: 'route1', tx: 1, ty: 3, facing: 'right' }",
+  "replace": "{ x: 11, y: 4, to: 'route1', tx: 0, ty: 1, facing: 'right' }"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "150-level-for-xp-strict",
+  "graded_item": 12,
+  "description": "a level needs one XP more than its threshold",
+  "file": "src/rules.js",
+  "find": "while (level < MAX_LEVEL && xp >= xpForLevel(level + 1)) level++;",
+  "replace": "while (level < MAX_LEVEL && xp > xpForLevel(level + 1)) level++;"
+}

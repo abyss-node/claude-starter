@@ -1,0 +1,8 @@
+{
+  "id": "119-save-drops-rng",
+  "graded_item": 14,
+  "description": "the generator state is not saved",
+  "file": "src/save.js",
+  "find": "return canonicalJson({ version: SAVE_VERSION, game });",
+  "replace": "return canonicalJson({ version: SAVE_VERSION, game: { ...game, rng: { s: 0 } } });"
+}

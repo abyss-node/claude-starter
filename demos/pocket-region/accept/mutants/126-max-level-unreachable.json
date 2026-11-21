@@ -1,0 +1,8 @@
+{
+  "id": "126-max-level-unreachable",
+  "graded_item": 15,
+  "description": "the highest level is never picked",
+  "file": "src/game.js",
+  "find": "(pick.maxLevel - pick.minLevel + 1))",
+  "replace": "(pick.maxLevel - pick.minLevel))"
+}

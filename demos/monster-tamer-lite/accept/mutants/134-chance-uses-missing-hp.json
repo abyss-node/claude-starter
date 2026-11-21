@@ -1,0 +1,8 @@
+{
+  "id": "134-chance-uses-missing-hp",
+  "graded_item": 11,
+  "description": "catchChance drops the factors 3 and 2",
+  "file": "src/rules.js",
+  "find": "Math.floor((creature.catchRate * (3 * creature.maxHp - 2 * creature.hp)) / (3 * creature.maxHp))",
+  "replace": "Math.floor((creature.catchRate * (creature.maxHp - creature.hp)) / creature.maxHp)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "189-snares-not-carried",
+  "graded_item": 14,
+  "description": "the snares left do not carry back",
+  "file": "src/game.js",
+  "find": "  game.snares = b.snares;\n",
+  "replace": ""
+}

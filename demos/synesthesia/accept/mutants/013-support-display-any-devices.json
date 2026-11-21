@@ -1,0 +1,8 @@
+{
+  "id": "013-support-display-any-devices",
+  "graded_item": 3,
+  "description": "display support is any mediaDevices",
+  "file": "src/capture.js",
+  "find": "display: typeof devices?.getDisplayMedia === 'function',",
+  "replace": "display: Boolean(devices),"
+}

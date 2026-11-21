@@ -1,0 +1,8 @@
+{
+  "id": "246-load-no-rng-check",
+  "graded_item": 18,
+  "description": "loadGame accepts a save without random state",
+  "file": "src/game.js",
+  "find": "  if (!g.rng || typeof g.rng !== 'object') throw new Error('save has no random state');\n",
+  "replace": ""
+}

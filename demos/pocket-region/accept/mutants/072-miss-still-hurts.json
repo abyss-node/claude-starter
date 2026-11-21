@@ -1,0 +1,8 @@
+{
+  "id": "072-miss-still-hurts",
+  "graded_item": 9,
+  "description": "a miss still does damage",
+  "file": "src/battle.js",
+  "find": "const dmg = hit ? damage(s.mon, target, s.move) : 0;",
+  "replace": "const dmg = damage(s.mon, target, s.move);"
+}

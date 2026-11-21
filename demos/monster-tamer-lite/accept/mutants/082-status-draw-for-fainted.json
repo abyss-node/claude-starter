@@ -1,0 +1,8 @@
+{
+  "id": "082-status-draw-for-fainted",
+  "graded_item": 7,
+  "description": "a status draw is taken for a foe that fainted",
+  "file": "src/battle.js",
+  "find": "if (move.status && alive(foe) && foe.status === null) {",
+  "replace": "if (move.status && foe.status === null) {"
+}

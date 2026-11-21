@@ -1,0 +1,8 @@
+{
+  "id": "242-load-empty-party",
+  "graded_item": 18,
+  "description": "loadGame accepts an empty party",
+  "file": "src/game.js",
+  "find": "if (!Array.isArray(g.party) || g.party.length === 0) throw new Error('save has no party');",
+  "replace": "if (!Array.isArray(g.party)) throw new Error('save has no party');"
+}

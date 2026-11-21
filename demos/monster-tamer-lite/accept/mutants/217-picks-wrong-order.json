@@ -1,0 +1,8 @@
+{
+  "id": "217-picks-wrong-order",
+  "graded_item": 15,
+  "description": "the picks are handed to the battle swapped",
+  "file": "src/duel.js",
+  "find": "    resolveTurn(duel.battle, duel.picks);",
+  "replace": "    resolveTurn(duel.battle, [duel.picks[1], duel.picks[0]]);"
+}

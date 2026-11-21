@@ -1,0 +1,8 @@
+{
+  "id": "025-lookup-swapped",
+  "graded_item": 3,
+  "description": "typeMultiplier looks the pair up the wrong way round",
+  "file": "src/rules.js",
+  "find": "const row = TYPE_CHART[attackType];\n  const v = row && row[defendType];",
+  "replace": "const row = TYPE_CHART[defendType];\n  const v = row && row[attackType];"
+}

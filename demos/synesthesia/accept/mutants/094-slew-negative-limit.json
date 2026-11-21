@@ -1,0 +1,8 @@
+{
+  "id": "094-slew-negative-limit",
+  "graded_item": 16,
+  "description": "a negative limit moves away",
+  "file": "src/safety.js",
+  "find": "export function slewToward(current, target, maxChange) {\n  const limit = Math.max(0, maxChange);",
+  "replace": "export function slewToward(current, target, maxChange) {\n  const limit = maxChange;"
+}

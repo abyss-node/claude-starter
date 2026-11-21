@@ -1,0 +1,8 @@
+{
+  "id": "133-level-fixed-at-min",
+  "graded_item": 15,
+  "description": "the level is always the lowest",
+  "file": "src/game.js",
+  "find": "const lv = pick.minLevel + Math.floor(rngNext(g.rng) * (pick.maxLevel - pick.minLevel + 1));",
+  "replace": "const lv = pick.minLevel;"
+}

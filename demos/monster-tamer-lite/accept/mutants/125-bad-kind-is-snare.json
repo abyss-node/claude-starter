@@ -1,0 +1,8 @@
+{
+  "id": "125-bad-kind-is-snare",
+  "graded_item": 10,
+  "description": "an unknown action kind is treated as a snare",
+  "file": "src/battle.js",
+  "find": "  if (action.kind === 'snare') return { kind: 'snare' };\n  return { kind: action.kind };",
+  "replace": "  return { kind: 'snare' };"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "081-enemy-ties-go-high",
+  "graded_item": 10,
+  "description": "ties in the enemy choice go to the highest slot",
+  "file": "src/battle.js",
+  "find": "if (dmg > bestDmg)",
+  "replace": "if (dmg >= bestDmg)"
+}

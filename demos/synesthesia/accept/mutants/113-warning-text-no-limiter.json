@@ -1,0 +1,8 @@
+{
+  "id": "113-warning-text-no-limiter",
+  "graded_item": 18,
+  "description": "the warning text does not mention the limiter",
+  "file": "src/safety.js",
+  "find": "'The flash limiter is on and caps flashes at about three per second; leave it on unless you know it is safe for everyone watching.';",
+  "replace": "'Flashes are capped at about three per second; leave the cap on unless you know it is safe for everyone watching.';"
+}

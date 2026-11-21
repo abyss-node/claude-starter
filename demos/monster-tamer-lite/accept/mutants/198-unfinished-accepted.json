@@ -1,0 +1,8 @@
+{
+  "id": "198-unfinished-accepted",
+  "graded_item": 14,
+  "description": "endBattle accepts an unfinished battle",
+  "file": "src/game.js",
+  "find": "if (!b || b.phase !== 'over') throw new Error('there is no finished battle');",
+  "replace": "if (!b) throw new Error('there is no finished battle');"
+}

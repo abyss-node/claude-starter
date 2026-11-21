@@ -1,0 +1,8 @@
+{
+  "id": "116-warning-ack-reports-false",
+  "graded_item": 18,
+  "description": "acknowledge reports failure when it saved",
+  "file": "src/safety.js",
+  "find": "storage.setItem(WARNING_KEY, 'yes');\n    return true;",
+  "replace": "storage.setItem(WARNING_KEY, 'yes');\n    return false;"
+}

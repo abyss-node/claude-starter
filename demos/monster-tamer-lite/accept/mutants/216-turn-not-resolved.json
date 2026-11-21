@@ -1,0 +1,8 @@
+{
+  "id": "216-turn-not-resolved",
+  "graded_item": 15,
+  "description": "the battle is never resolved",
+  "file": "src/duel.js",
+  "find": "    resolveTurn(duel.battle, duel.picks);\n",
+  "replace": ""
+}

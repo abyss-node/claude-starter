@@ -1,0 +1,8 @@
+{
+  "id": "084-miss-still-hits",
+  "graded_item": 7,
+  "description": "a miss goes on to do damage",
+  "file": "src/battle.js",
+  "find": "battle.log.push({ type: 'miss', side, move: move.id });\n    return;",
+  "replace": "battle.log.push({ type: 'miss', side, move: move.id });"
+}

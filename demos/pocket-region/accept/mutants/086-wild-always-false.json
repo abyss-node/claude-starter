@@ -1,0 +1,8 @@
+{
+  "id": "086-wild-always-false",
+  "graded_item": 10,
+  "description": "startBattle ignores the wild option",
+  "file": "src/battle.js",
+  "find": "wild: Boolean(options.wild),",
+  "replace": "wild: false,"
+}

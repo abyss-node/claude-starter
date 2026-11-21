@@ -1,0 +1,8 @@
+{
+  "id": "006-franchise-name",
+  "graded_item": 1,
+  "description": "a species carries a franchise creature name",
+  "file": "src/data.js",
+  "find": "name: 'Wickling'",
+  "replace": "name: 'Pika\u0063hu'"
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Pocket Region",
+  "app": "Pocket Region",
+  "tier": "L",
+  "stack": "browser",
+  "summary": "a small top-down role-playing game engine in the browser: tile maps, warps, a gated door, dialogue trees, a turn-based battle, an inventory, canonical-JSON save and load, and two scripted playthroughs",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "the page and how it feels: the canvas drawing, the walking, the battle screen, the bag, the save and load buttons, the music and the story; whether src/main.js uses the engine correctly; only the modules under src/ are checked",
+  "accept_count": 19,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 1200
+}

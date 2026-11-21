@@ -1,0 +1,8 @@
+{
+  "id": "149-new-game-shares-inventory",
+  "graded_item": 16,
+  "description": "the new game shares the start inventory",
+  "file": "src/game.js",
+  "find": "inventory: { ...(s.inventory || {}) },",
+  "replace": "inventory: s.inventory || {},"
+}

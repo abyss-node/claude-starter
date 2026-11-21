@@ -1,0 +1,8 @@
+{
+  "id": "010-main-ignores-duel",
+  "graded_item": 1,
+  "description": "main.js does not import the duel module",
+  "file": "src/main.js",
+  "find": "import { createDuel, duelContinue, duelPick, duelView } from './duel.js';\n",
+  "replace": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "010-support-mic-is-display",
+  "graded_item": 3,
+  "description": "mic support reads getDisplayMedia",
+  "file": "src/capture.js",
+  "find": "mic: typeof devices?.getUserMedia === 'function',",
+  "replace": "mic: typeof devices?.getDisplayMedia === 'function',"
+}

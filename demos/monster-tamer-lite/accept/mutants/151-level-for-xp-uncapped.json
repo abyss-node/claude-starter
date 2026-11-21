@@ -1,0 +1,8 @@
+{
+  "id": "151-level-for-xp-uncapped",
+  "graded_item": 12,
+  "description": "levelForXp has no cap",
+  "file": "src/rules.js",
+  "find": "while (level < MAX_LEVEL && xp >= xpForLevel(level + 1)) level++;",
+  "replace": "while (xp >= xpForLevel(level + 1)) level++;"
+}

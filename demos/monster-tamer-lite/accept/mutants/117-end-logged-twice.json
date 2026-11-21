@@ -1,0 +1,8 @@
+{
+  "id": "117-end-logged-twice",
+  "graded_item": 9,
+  "description": "the end of the battle is logged twice",
+  "file": "src/battle.js",
+  "find": "    battle.log.push({ type: 'end', winner: battle.winner });\n    return;",
+  "replace": "    battle.log.push({ type: 'end', winner: battle.winner });\n    battle.log.push({ type: 'end', winner: battle.winner });\n    return;"
+}

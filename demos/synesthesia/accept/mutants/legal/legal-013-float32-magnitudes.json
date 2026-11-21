@@ -1,0 +1,8 @@
+{
+  "id": "legal-013-float32-magnitudes",
+  "graded_item": 2,
+  "description": "magnitudesFromDb returns a Float32Array (what getFloatFrequencyData fills)",
+  "file": "src/capture.js",
+  "find": "const out = new Array(n);",
+  "replace": "const out = new Float32Array(n);"
+}

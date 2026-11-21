@@ -1,0 +1,8 @@
+{
+  "id": "015-chroma-offset-8",
+  "graded_item": 4,
+  "description": "pitch class offset by one semitone",
+  "file": "src/analysis.js",
+  "find": "const pc = (((semitones + 9) % 12) + 12) % 12;",
+  "replace": "const pc = (((semitones + 8) % 12) + 12) % 12;"
+}

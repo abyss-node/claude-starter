@@ -1,0 +1,8 @@
+{
+  "id": "078-accuracy-inverted",
+  "graded_item": 7,
+  "description": "a draw below accuracy is a miss",
+  "file": "src/battle.js",
+  "find": "if (move.accuracy < 100 && !(nextFloat(battle.rng) * 100 < move.accuracy)) {",
+  "replace": "if (move.accuracy < 100 && (nextFloat(battle.rng) * 100 < move.accuracy)) {"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "088-flash-gap-quarter",
+  "graded_item": 15,
+  "description": "flash gap is 1/6 s",
+  "file": "src/safety.js",
+  "find": "if (time - last >= MIN_FLASH_GAP - 1e-9) {",
+  "replace": "if (time - last >= MIN_FLASH_GAP / 2) {"
+}

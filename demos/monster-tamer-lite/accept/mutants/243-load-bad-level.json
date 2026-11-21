@@ -1,0 +1,8 @@
+{
+  "id": "243-load-bad-level",
+  "graded_item": 18,
+  "description": "loadGame accepts any level",
+  "file": "src/game.js",
+  "find": "    if (!Number.isInteger(c.level) || c.level < 1 || c.level > 30) throw new Error('bad level in save');\n",
+  "replace": ""
+}

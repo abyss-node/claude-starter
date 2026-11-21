@@ -1,0 +1,8 @@
+{
+  "id": "142-snare-free",
+  "graded_item": 11,
+  "description": "a snare is not used up",
+  "file": "src/battle.js",
+  "find": "    battle.snares -= 1;\n",
+  "replace": ""
+}

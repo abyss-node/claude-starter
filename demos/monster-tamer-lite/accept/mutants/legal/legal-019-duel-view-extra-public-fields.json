@@ -1,0 +1,8 @@
+{
+  "id": "legal-019-duel-view-extra-public-fields",
+  "graded_item": 0,
+  "description": "the duel view carries extra public information",
+  "file": "src/duel.js",
+  "find": "const base = { stage: duel.stage, turn: b.turn, names: b.sides.map((s) => s.name) };",
+  "replace": "const base = { stage: duel.stage, turn: b.turn, names: b.sides.map((s) => s.name), over: b.phase === 'over', counts: b.sides.map((s) => s.team.filter((c) => c.hp > 0).length) };"
+}

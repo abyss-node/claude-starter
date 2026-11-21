@@ -1,0 +1,8 @@
+{
+  "id": "046-stat-constant",
+  "graded_item": 5,
+  "description": "calcStat adds 4",
+  "file": "src/rules.js",
+  "find": "return Math.floor((base * level) / 25) + 5;",
+  "replace": "return Math.floor((base * level) / 25) + 4;"
+}

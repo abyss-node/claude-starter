@@ -1,0 +1,8 @@
+{
+  "id": "072-chill-any-status",
+  "graded_item": 6,
+  "description": "any status halves the speed",
+  "file": "src/rules.js",
+  "find": "creature.status && creature.status.kind === 'chill' ? Math.floor(spd / 2) : spd",
+  "replace": "creature.status ? Math.floor(spd / 2) : spd"
+}

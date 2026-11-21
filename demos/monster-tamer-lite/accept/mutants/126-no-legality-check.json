@@ -1,0 +1,8 @@
+{
+  "id": "126-no-legality-check",
+  "graded_item": 10,
+  "description": "resolveTurn does not check legality",
+  "file": "src/battle.js",
+  "find": "} else if (!legal.some((a) => sameAction(a, picks[side]))) {",
+  "replace": "} else if (false) {"
+}

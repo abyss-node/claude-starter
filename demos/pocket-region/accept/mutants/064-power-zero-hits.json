@@ -1,0 +1,8 @@
+{
+  "id": "064-power-zero-hits",
+  "graded_item": 8,
+  "description": "a power-0 move does damage",
+  "file": "src/battle.js",
+  "find": "if (move.power <= 0) return 0;",
+  "replace": ""
+}

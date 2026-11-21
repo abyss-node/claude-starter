@@ -1,0 +1,8 @@
+{
+  "id": "109-switch-to-fainted-legal",
+  "graded_item": 9,
+  "description": "fainted creatures are offered as switches",
+  "file": "src/battle.js",
+  "find": "if (i !== s.active && alive(c)) switches.push",
+  "replace": "if (i !== s.active) switches.push"
+}

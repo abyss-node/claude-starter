@@ -1,0 +1,8 @@
+{
+  "id": "113-finished-battle-resolves",
+  "graded_item": 9,
+  "description": "a finished battle accepts another turn",
+  "file": "src/battle.js",
+  "find": "if (battle.phase !== 'choose' && battle.phase !== 'replace') throw new Error(`cannot resolve a turn in phase ${battle.phase}`);",
+  "replace": "if (false) throw new Error(\"x\");"
+}

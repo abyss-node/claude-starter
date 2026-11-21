@@ -1,0 +1,8 @@
+{
+  "id": "038-flags-changed-in-place",
+  "graded_item": 5,
+  "description": "entering a node changes the flags it was given",
+  "file": "src/dialogue.js",
+  "find": "const flags = { ...game.flags };\n  for (const f of node.set || []) flags[f] = true;",
+  "replace": "const flags = game.flags;\n  for (const f of node.set || []) flags[f] = true;"
+}

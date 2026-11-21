@@ -1,0 +1,11 @@
+{
+  "id": "103-half-range",
+  "graded_item": 12,
+  "description": "draws only cover [0, 0.5)",
+  "file": "src/rng.js",
+  "find": ">>> 0) / 4294967296;",
+  "replace": ">>> 0) / 8589934592;",
+  "expect": [
+    "Graded 12:"
+  ]
+}

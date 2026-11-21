@@ -125,7 +125,19 @@ that the answers are its own (below).
   and start no process. The model limits files and processes, not the network,
   and it hides no path: the code can learn where the kit is (below), though
   not read it. Node documents the model as a seat belt for code you trust, not
-  a sandbox against code that sets out to escape it. And the agent itself has
+  a sandbox against code that sets out to escape it. Where a scenario runs
+  beside that code, the probe first freezes the JavaScript built-ins, the few
+  Node globals the kit uses there and what the kit's modules there export,
+  takes away Node's heap snapshots and promise hooks, and holds the clocks
+  itself (`demos/AUTHORING.md`, "What a scenario's process freezes"), so the
+  code cannot change how the scenario looks: workspaces once hid real bugs by
+  changing `Number.prototype.toFixed`, `Object.getPrototypeOf` or
+  `Math.random`, or a scenario's own table of seeds, in 3 to 7 lines each, and
+  a planted one read the probe's answer key from a heap snapshot. What the
+  code still controls there is its own values, whose getters or Proxy traps
+  run as the scenario reads them; past that it can make the answers wrong, on
+  purpose or not, only by doing the work wrong. The freeze leaves `process`, `console` and the timers alone, and
+  holds only within the permission model above. And the agent itself has
   a shell, as you: it can edit and commit the kit's clone, or fake a grade, so
   a local grade is feedback, not proof, and only CI's re-grade admits a run.
   CI runs the workspace's code too, under the same permission model. Look in

@@ -1,0 +1,8 @@
+{
+  "id": "123-legal-ignores-slot",
+  "graded_item": 10,
+  "description": "isLegalAction ignores the slot",
+  "file": "src/battle.js",
+  "find": "if (a.kind === 'move') return a.slot === b.slot;",
+  "replace": "if (a.kind === 'move') return true;"
+}

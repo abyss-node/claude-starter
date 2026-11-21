@@ -1,0 +1,8 @@
+{
+  "id": "056-maxhp-plus-five",
+  "graded_item": 8,
+  "description": "maxHp adds 5 instead of 10",
+  "file": "src/battle.js",
+  "find": "Math.floor((s.hp * level) / 10) + level + 10",
+  "replace": "Math.floor((s.hp * level) / 10) + level + 5"
+}

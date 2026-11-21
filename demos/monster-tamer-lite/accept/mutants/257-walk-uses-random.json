@@ -1,0 +1,8 @@
+{
+  "id": "257-walk-uses-random",
+  "graded_item": 19,
+  "description": "walk touches Math.random",
+  "file": "src/game.js",
+  "find": "game.steps += 1;",
+  "replace": "game.steps += 1 + Math.random() * 0;"
+}

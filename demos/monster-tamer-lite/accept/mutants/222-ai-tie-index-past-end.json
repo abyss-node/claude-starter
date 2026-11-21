@@ -1,0 +1,8 @@
+{
+  "id": "222-ai-tie-index-past-end",
+  "graded_item": 16,
+  "description": "the computer sometimes picks past its tied moves",
+  "file": "src/ai.js",
+  "find": "return top[Math.floor(draw * top.length)];",
+  "replace": "return top[Math.floor(draw * (top.length + 1))];"
+}

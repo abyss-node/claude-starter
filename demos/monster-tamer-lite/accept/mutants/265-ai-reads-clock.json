@@ -1,0 +1,8 @@
+{
+  "id": "265-ai-reads-clock",
+  "graded_item": 19,
+  "description": "the computer reads the clock",
+  "file": "src/ai.js",
+  "find": "const draw = nextFloat(probe);",
+  "replace": "const draw = nextFloat(probe) + Date.now() * 0;"
+}

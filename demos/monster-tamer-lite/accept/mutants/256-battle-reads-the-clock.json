@@ -1,0 +1,8 @@
+{
+  "id": "256-battle-reads-the-clock",
+  "graded_item": 19,
+  "description": "a battle records Date.now",
+  "file": "src/battle.js",
+  "find": "    turn: 1,\n    phase: 'choose',",
+  "replace": "    turn: 1,\n    startedAt: Date.now(),\n    phase: 'choose',"
+}

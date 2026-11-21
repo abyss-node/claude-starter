@@ -1,0 +1,8 @@
+{
+  "id": "125-weights-ignored",
+  "graded_item": 15,
+  "description": "every entry counts as weight 1 in the walk",
+  "file": "src/game.js",
+  "find": "acc += e.weight;",
+  "replace": "acc += 1;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "096-faint-keeps-status",
+  "graded_item": 8,
+  "description": "a fainted creature keeps its status",
+  "file": "src/battle.js",
+  "find": "  c.hp = 0;\n  c.status = null;\n",
+  "replace": "  c.hp = 0;\n"
+}

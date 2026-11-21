@@ -1,0 +1,8 @@
+{
+  "id": "legal-018-walk-returns-after-heal",
+  "graded_item": 0,
+  "description": "healing spring heals through a loop over a copy",
+  "file": "src/game.js",
+  "find": "  if (tile === '+') healParty(game);",
+  "replace": "  if (tile === '+') for (const c of game.party.slice()) { c.hp = c.maxHp; c.status = null; }"
+}

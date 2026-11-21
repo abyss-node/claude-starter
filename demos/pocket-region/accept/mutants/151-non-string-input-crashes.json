@@ -1,0 +1,8 @@
+{
+  "id": "151-non-string-input-crashes",
+  "graded_item": 16,
+  "description": "a non-string input is not ignored",
+  "file": "src/game.js",
+  "find": "if (typeof input !== 'string') return g;",
+  "replace": ""
+}

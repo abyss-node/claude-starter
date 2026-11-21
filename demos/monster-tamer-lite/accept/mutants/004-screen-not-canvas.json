@@ -1,0 +1,8 @@
+{
+  "id": "004-screen-not-canvas",
+  "graded_item": 1,
+  "description": "the screen is a div",
+  "file": "index.html",
+  "find": "<canvas id=\"screen\" width=\"480\" height=\"288\"></canvas>",
+  "replace": "<div id=\"screen\"></div>"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "040-duplicate-move-name",
+  "graded_item": 4,
+  "description": "two moves share a name",
+  "file": "src/data.js",
+  "find": "name: 'Splashjab'",
+  "replace": "name: 'Wick Flick'"
+}

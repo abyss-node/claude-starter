@@ -1,0 +1,8 @@
+{
+  "id": "141-choose-out-of-range-throws",
+  "graded_item": 16,
+  "description": "a choose beyond the visible choices throws",
+  "file": "src/game.js",
+  "find": "if (m && Number(m[1]) < view.choices.length) {",
+  "replace": "if (m) {"
+}

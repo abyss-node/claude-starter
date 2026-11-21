@@ -1,0 +1,8 @@
+{
+  "id": "legal-005-battle-extra-field",
+  "graded_item": 0,
+  "description": "the battle carries an extra field",
+  "file": "src/battle.js",
+  "find": "    history: [],\n  };",
+  "replace": "    history: [],\n    meta: { created: 1 },\n  };"
+}

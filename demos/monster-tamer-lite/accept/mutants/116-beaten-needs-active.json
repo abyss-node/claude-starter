@@ -1,0 +1,8 @@
+{
+  "id": "116-beaten-needs-active",
+  "graded_item": 9,
+  "description": "a side is beaten only when its active creature falls",
+  "file": "src/battle.js",
+  "find": "const living = battle.sides.map((s) => s.team.some(alive));",
+  "replace": "const living = battle.sides.map((s) => alive(s.team[s.active]));"
+}

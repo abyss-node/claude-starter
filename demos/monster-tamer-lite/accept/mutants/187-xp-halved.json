@@ -1,0 +1,8 @@
+{
+  "id": "187-xp-halved",
+  "graded_item": 14,
+  "description": "the XP reward is halved",
+  "file": "src/game.js",
+  "find": "xp = xpReward(foe);",
+  "replace": "xp = Math.floor(xpReward(foe) / 2);"
+}

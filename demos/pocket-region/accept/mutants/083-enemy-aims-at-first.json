@@ -1,0 +1,8 @@
+{
+  "id": "083-enemy-aims-at-first",
+  "graded_item": 10,
+  "description": "the enemy choice looks at the first party member, not the active one",
+  "file": "src/battle.js",
+  "find": "const foe = battle.playerParty[activeIndex(battle.playerParty)];",
+  "replace": "const foe = battle.playerParty[0];"
+}

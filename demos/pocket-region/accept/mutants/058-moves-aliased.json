@@ -1,0 +1,8 @@
+{
+  "id": "058-moves-aliased",
+  "graded_item": 8,
+  "description": "the move list is shared with the species",
+  "file": "src/battle.js",
+  "find": "moves: [...s.moves],",
+  "replace": "moves: s.moves,"
+}

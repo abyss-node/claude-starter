@@ -1,0 +1,8 @@
+{
+  "id": "129-history-aliases-input",
+  "graded_item": 10,
+  "description": "history keeps the caller's own objects",
+  "file": "src/battle.js",
+  "find": "battle.history.push(clone(picks));",
+  "replace": "battle.history.push(choices);"
+}

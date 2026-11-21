@@ -1,0 +1,8 @@
+{
+  "id": "020-blocked-turns-input",
+  "graded_item": 3,
+  "description": "a blocked move turns the player by changing the object it was given",
+  "file": "src/movement.js",
+  "find": "{ player: { ...player, facing: dir }, moved: false,",
+  "replace": "{ player: Object.assign(player, { facing: dir }), moved: false,"
+}

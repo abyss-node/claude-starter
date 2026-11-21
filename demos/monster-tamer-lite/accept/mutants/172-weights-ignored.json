@@ -1,0 +1,8 @@
+{
+  "id": "172-weights-ignored",
+  "graded_item": 13,
+  "description": "every wild entry is equally likely",
+  "file": "src/game.js",
+  "find": "WILD_TABLE.reduce((n, e) => n + e.weight, 0)",
+  "replace": "WILD_TABLE.reduce((n, e) => n + 1, 0)"
+}

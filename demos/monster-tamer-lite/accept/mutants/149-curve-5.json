@@ -1,0 +1,8 @@
+{
+  "id": "149-curve-5",
+  "graded_item": 12,
+  "description": "the curve uses 5 instead of 6",
+  "file": "src/rules.js",
+  "find": "return 6 * level * (level - 1);",
+  "replace": "return 5 * level * (level - 1);"
+}

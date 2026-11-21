@@ -1,0 +1,8 @@
+{
+  "id": "111-no-empty-side-check",
+  "graded_item": 9,
+  "description": "a side with nothing able to fight is accepted",
+  "file": "src/battle.js",
+  "find": "    if (first === -1) throw new Error(`side ${s.name} has no creature that can fight`);\n",
+  "replace": ""
+}

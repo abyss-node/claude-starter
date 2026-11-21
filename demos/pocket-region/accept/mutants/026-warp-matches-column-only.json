@@ -1,0 +1,8 @@
+{
+  "id": "026-warp-matches-column-only",
+  "graded_item": 4,
+  "description": "a warp is found by its column alone",
+  "file": "src/movement.js",
+  "find": "find((w) => w.x === tx && w.y === ty)",
+  "replace": "find((w) => w.x === tx)"
+}

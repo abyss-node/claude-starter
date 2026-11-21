@@ -1,0 +1,8 @@
+{
+  "id": "016-seed-mod-7",
+  "graded_item": 2,
+  "description": "the seed is reduced modulo 7",
+  "file": "src/rng.js",
+  "find": "return Number.isFinite(n) ? Math.floor(n) >>> 0 : 0;",
+  "replace": "return Number.isFinite(n) ? (Math.floor(n) % 7) >>> 0 : 0;"
+}

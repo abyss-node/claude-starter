@@ -1,0 +1,8 @@
+{
+  "id": "137-warning-hidden",
+  "graded_item": 21,
+  "description": "warning hidden in the markup",
+  "file": "index.html",
+  "find": "<div id=\"warning\" role=\"alertdialog\"",
+  "replace": "<div id=\"warning\" hidden role=\"alertdialog\""
+}

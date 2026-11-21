@@ -1,0 +1,8 @@
+{
+  "id": "178-snares-start-3",
+  "graded_item": 13,
+  "description": "the game starts with 3 snares",
+  "file": "src/data.js",
+  "find": "export const START_SNARES = 5;",
+  "replace": "export const START_SNARES = 3;"
+}

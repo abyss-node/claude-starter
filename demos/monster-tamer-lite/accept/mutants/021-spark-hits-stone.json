@@ -1,0 +1,8 @@
+{
+  "id": "021-spark-hits-stone",
+  "graded_item": 3,
+  "description": "spark no longer has no effect on stone",
+  "file": "src/data.js",
+  "find": "spark:  { cinder: 1, tide: 2, moss: 0.5, spark: 0.5, stone: 0 },",
+  "replace": "spark:  { cinder: 1, tide: 2, moss: 0.5, spark: 0.5, stone: 0.5 },"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "255-battle-holds-a-map",
+  "graded_item": 19,
+  "description": "a battle holds a Map",
+  "file": "src/battle.js",
+  "find": "    log: [],\n    history: [],\n  };",
+  "replace": "    log: [],\n    history: [],\n    seen: new Map(),\n  };"
+}

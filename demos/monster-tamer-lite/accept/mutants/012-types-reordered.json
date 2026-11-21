@@ -1,0 +1,8 @@
+{
+  "id": "012-types-reordered",
+  "graded_item": 1,
+  "description": "TYPES in a different order",
+  "file": "src/data.js",
+  "find": "export const TYPES = ['cinder', 'tide', 'moss', 'spark', 'stone'];",
+  "replace": "export const TYPES = ['tide', 'cinder', 'moss', 'spark', 'stone'];"
+}

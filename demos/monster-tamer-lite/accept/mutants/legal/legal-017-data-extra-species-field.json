@@ -1,0 +1,8 @@
+{
+  "id": "legal-017-data-extra-species-field",
+  "graded_item": 0,
+  "description": "species with extra art fields",
+  "file": "src/data.js",
+  "find": "baseXp: 60, catchRate: 45, moves: ['wick-flick', 'ash-burst', 'pebble-toss'], hue: 18 }",
+  "replace": "baseXp: 60, catchRate: 45, moves: ['wick-flick', 'ash-burst', 'pebble-toss'], hue: 18, blurb: 'A small flame that follows you home.' }"
+}

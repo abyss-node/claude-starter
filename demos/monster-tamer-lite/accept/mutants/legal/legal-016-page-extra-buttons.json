@@ -1,0 +1,8 @@
+{
+  "id": "legal-016-page-extra-buttons",
+  "graded_item": 0,
+  "description": "extra controls and ids beside the required ones",
+  "file": "index.html",
+  "find": "<button id=\"sound\">Sound: off</button>",
+  "replace": "<button id=\"sound\">Sound: off</button>\n    <button id=\"help\">Help</button>"
+}

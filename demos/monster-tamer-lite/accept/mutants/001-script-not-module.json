@@ -1,0 +1,8 @@
+{
+  "id": "001-script-not-module",
+  "graded_item": 1,
+  "description": "index.html loads main.js as a classic script",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script src=\"src/main.js\"></script>"
+}

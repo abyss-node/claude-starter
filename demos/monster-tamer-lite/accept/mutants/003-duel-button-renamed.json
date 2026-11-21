@@ -1,0 +1,8 @@
+{
+  "id": "003-duel-button-renamed",
+  "graded_item": 1,
+  "description": "the duel button has another id",
+  "file": "index.html",
+  "find": "<button id=\"mode-duel\">",
+  "replace": "<button id=\"mode-two\">"
+}

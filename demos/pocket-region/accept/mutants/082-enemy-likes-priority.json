@@ -1,0 +1,8 @@
+{
+  "id": "082-enemy-likes-priority",
+  "graded_item": 10,
+  "description": "the enemy choice favours priority moves",
+  "file": "src/battle.js",
+  "find": "const dmg = damage(me, foe, content.moves[id]);",
+  "replace": "const dmg = damage(me, foe, content.moves[id]) + (content.moves[id].priority ?? 0) * 1000;"
+}

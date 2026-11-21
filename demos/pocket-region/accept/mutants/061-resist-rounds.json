@@ -1,0 +1,8 @@
+{
+  "id": "061-resist-rounds",
+  "graded_item": 8,
+  "description": "a resisted hit rounds instead of flooring",
+  "file": "src/battle.js",
+  "find": "d = Math.floor(d / 2);",
+  "replace": "d = Math.round(d / 2);"
+}

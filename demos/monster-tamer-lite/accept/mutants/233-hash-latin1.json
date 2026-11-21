@@ -1,0 +1,8 @@
+{
+  "id": "233-hash-latin1",
+  "graded_item": 17,
+  "description": "hashLog hashes one byte per character",
+  "file": "src/replay.js",
+  "find": "const bytes = new TextEncoder().encode(JSON.stringify(log));",
+  "replace": "const bytes = Array.from(JSON.stringify(log), (ch) => ch.charCodeAt(0) & 255);"
+}

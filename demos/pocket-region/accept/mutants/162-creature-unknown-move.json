@@ -1,0 +1,8 @@
+{
+  "id": "162-creature-unknown-move",
+  "graded_item": 17,
+  "description": "a creature knows a move that does not exist",
+  "file": "src/content.js",
+  "find": "moves: ['embertap', 'quickstep'] }",
+  "replace": "moves: ['embertap', 'quickstep', 'zap'] }"
+}

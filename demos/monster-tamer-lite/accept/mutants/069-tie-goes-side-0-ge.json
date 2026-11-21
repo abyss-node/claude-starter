@@ -1,0 +1,8 @@
+{
+  "id": "069-tie-goes-side-0-ge",
+  "graded_item": 6,
+  "description": "ties go to side 0 through >=",
+  "file": "src/battle.js",
+  "find": "if (s0 > s1) order = [0, 1];",
+  "replace": "if (s0 >= s1) order = [0, 1];"
+}

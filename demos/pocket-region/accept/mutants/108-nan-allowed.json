@@ -1,0 +1,8 @@
+{
+  "id": "108-nan-allowed",
+  "graded_item": 13,
+  "description": "NaN and Infinity are written as null",
+  "file": "src/save.js",
+  "find": "if (!Number.isFinite(value)) throw new TypeError(`cannot save ${value}`);",
+  "replace": "if (!Number.isFinite(value)) return 'null';"
+}

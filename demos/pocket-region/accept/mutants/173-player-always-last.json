@@ -1,0 +1,11 @@
+{
+  "id": "173-player-always-last",
+  "graded_item": 19,
+  "description": "the player always attacks last",
+  "file": "src/battle.js",
+  "find": "return a.actor === 'player' ? -1 : 1;\n  });",
+  "replace": "return a.actor === 'player' ? 1 : -1;\n  });\n  sides.reverse();",
+  "expect": [
+    "Graded 19:"
+  ]
+}

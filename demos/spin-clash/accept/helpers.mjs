@@ -60,7 +60,7 @@ export function kinds(value, path = 'world', out = []) {
   return out;
 }
 
-export const PLAIN_KINDS = new Set(['null', 'number', 'string', 'boolean', 'array', 'object']);
+export const PLAIN_KINDS = ['null', 'number', 'string', 'boolean', 'array', 'object'];
 
 // True when a spin went up by more than float noise (a part in a billion). A
 // solver that rebuilds a spin from an impulse of zero may land one ulp higher; a
@@ -85,24 +85,6 @@ export function energy(world) {
     e += 0.5 * (0.5 * t.mass * t.radius * t.radius) * t.spin * t.spin;
   }
   return e;
-}
-
-// Replace the global sources of nondeterminism with ones that throw, run fn, restore.
-export async function withoutClocksOrRandom(fn) {
-  const saved = { random: Math.random, now: Date.now, perf: globalThis.performance };
-  const boom = (what) => () => { throw new Error(`physics called ${what}; use the seed and the tick instead`); };
-  Math.random = boom('Math.random');
-  Date.now = boom('Date.now');
-  Object.defineProperty(globalThis, 'performance', {
-    value: { now: boom('performance.now') }, configurable: true, writable: true,
-  });
-  try {
-    return await fn();
-  } finally {
-    Math.random = saved.random;
-    Date.now = saved.now;
-    Object.defineProperty(globalThis, 'performance', { value: saved.perf, configurable: true, writable: true });
-  }
 }
 
 // The scripted opponents the solo-mode checks use. Both are functions of the

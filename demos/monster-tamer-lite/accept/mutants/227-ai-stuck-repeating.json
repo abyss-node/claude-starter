@@ -1,0 +1,8 @@
+{
+  "id": "227-ai-stuck-repeating",
+  "graded_item": 16,
+  "description": "the computer decides from the battle state alone, so it can repeat forever",
+  "file": "src/ai.js",
+  "find": "  for (let i = 0; i < battle.turn; i++) nextFloat(probe);\n",
+  "replace": ""
+}

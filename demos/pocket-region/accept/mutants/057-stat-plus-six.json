@@ -1,0 +1,8 @@
+{
+  "id": "057-stat-plus-six",
+  "graded_item": 8,
+  "description": "other stats add 6",
+  "file": "src/battle.js",
+  "find": "const stat = (b) => Math.floor((b * level) / 10) + 5;",
+  "replace": "const stat = (b) => Math.floor((b * level) / 10) + 6;"
+}

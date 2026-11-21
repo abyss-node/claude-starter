@@ -1,0 +1,8 @@
+{
+  "id": "059-onset-gap-long",
+  "graded_item": 12,
+  "description": "refractory 0.6 s",
+  "file": "src/onsets.js",
+  "find": "export const MIN_ONSET_GAP = 0.1;",
+  "replace": "export const MIN_ONSET_GAP = 0.6;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "107-both-pending",
+  "graded_item": 9,
+  "description": "both sides always have to replace",
+  "file": "src/battle.js",
+  "find": "battle.pending = [0, 1].map((side) => !alive(activeOf(battle, side)));",
+  "replace": "battle.pending = [0, 1].map(() => true);"
+}

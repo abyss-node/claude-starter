@@ -1,0 +1,8 @@
+{
+  "id": "126-state-getter-live",
+  "graded_item": 19,
+  "description": "the state getter returns the live object",
+  "file": "src/synth.js",
+  "find": "get state() {\n      return { ...s };",
+  "replace": "get state() {\n      return s;"
+}

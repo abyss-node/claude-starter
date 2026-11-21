@@ -1,0 +1,8 @@
+{
+  "id": "131-throw-leaves-a-mark",
+  "graded_item": 10,
+  "description": "a call that throws still changes the log",
+  "file": "src/battle.js",
+  "find": "  const picks = [0, 1].map((side) => normalise(choices && choices[side]));\n",
+  "replace": "  battle.log.push({ type: 'attempt' });\n  const picks = [0, 1].map((side) => normalise(choices && choices[side]));\n"
+}

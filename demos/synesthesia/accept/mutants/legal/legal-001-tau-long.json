@@ -1,0 +1,8 @@
+{
+  "id": "legal-001-tau-long",
+  "graded_item": 12,
+  "description": "pulse fades with a time constant of 0.2 s",
+  "file": "src/synth.js",
+  "find": "export const PULSE_TAU = 0.15;",
+  "replace": "export const PULSE_TAU = 0.2;"
+}

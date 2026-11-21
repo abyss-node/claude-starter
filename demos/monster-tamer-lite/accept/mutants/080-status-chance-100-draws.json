@@ -1,0 +1,8 @@
+{
+  "id": "080-status-chance-100-draws",
+  "graded_item": 7,
+  "description": "a draw is taken even for chance 100",
+  "file": "src/battle.js",
+  "find": "if (move.status.chance >= 100 || nextFloat(battle.rng) * 100 < move.status.chance) {",
+  "replace": "if (nextFloat(battle.rng) * 100 < move.status.chance) {"
+}

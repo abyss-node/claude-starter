@@ -1,0 +1,8 @@
+{
+  "id": "214-view-hints-the-picks",
+  "graded_item": 15,
+  "description": "the pick view carries a hint made from the picks",
+  "file": "src/duel.js",
+  "find": "      ...base, who: duel.who, teams: teams(b), actions: legalActions(b, duel.who),",
+  "replace": "      ...base, who: duel.who, teams: teams(b), actions: legalActions(b, duel.who), hint: JSON.stringify(duel.picks),"
+}

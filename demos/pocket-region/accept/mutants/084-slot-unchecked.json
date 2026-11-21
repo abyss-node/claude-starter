@@ -1,0 +1,8 @@
+{
+  "id": "084-slot-unchecked",
+  "graded_item": 10,
+  "description": "an unknown move slot is not refused",
+  "file": "src/battle.js",
+  "find": " || action.slot >= pc.moves.length",
+  "replace": ""
+}

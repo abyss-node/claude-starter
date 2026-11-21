@@ -1,0 +1,8 @@
+{
+  "id": "207-never-over",
+  "graded_item": 15,
+  "description": "a finished duel never reaches the over stage",
+  "file": "src/duel.js",
+  "find": "if (duel.battle.phase === 'over') {",
+  "replace": "if (false) {"
+}

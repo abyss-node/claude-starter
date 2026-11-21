@@ -1,0 +1,8 @@
+{
+  "id": "120-pattern-math-random",
+  "graded_item": 19,
+  "description": "pattern uses Math.random",
+  "file": "src/synth.js",
+  "find": "return (s.pattern + 1 + Math.floor(rng() * (PATTERN_COUNT - 1))) % PATTERN_COUNT;",
+  "replace": "return (s.pattern + 1 + Math.floor(Math.random() * (PATTERN_COUNT - 1))) % PATTERN_COUNT;"
+}

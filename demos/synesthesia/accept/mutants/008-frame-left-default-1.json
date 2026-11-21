@@ -1,0 +1,8 @@
+{
+  "id": "008-frame-left-default-1",
+  "graded_item": 2,
+  "description": "left level defaults to 1",
+  "file": "src/capture.js",
+  "find": "time, left = 0, right = 0 }",
+  "replace": "time, left = 1, right = 0 }"
+}

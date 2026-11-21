@@ -1,0 +1,8 @@
+{
+  "id": "042-if-ignored",
+  "graded_item": 6,
+  "description": "if conditions are ignored",
+  "file": "src/dialogue.js",
+  "find": "if (entry.if !== undefined && !hasFlag(flags, entry.if)) return false;",
+  "replace": ""
+}

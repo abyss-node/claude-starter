@@ -1,0 +1,8 @@
+{
+  "id": "005-tileat-no-bottom-bound",
+  "graded_item": 2,
+  "description": "tileAt does not stop at the bottom edge",
+  "file": "src/map.js",
+  "find": "y < 0 || y >= map.height ||",
+  "replace": "y < 0 ||"
+}

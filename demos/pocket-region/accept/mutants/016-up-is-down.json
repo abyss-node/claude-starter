@@ -1,0 +1,8 @@
+{
+  "id": "016-up-is-down",
+  "graded_item": 3,
+  "description": "up moves down",
+  "file": "src/movement.js",
+  "find": "up: [0, -1]",
+  "replace": "up: [0, 1]"
+}

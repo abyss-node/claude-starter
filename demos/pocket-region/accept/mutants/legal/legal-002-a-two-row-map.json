@@ -1,0 +1,20 @@
+{
+  "id": "legal-002-a-two-row-map",
+  "graded_item": 17,
+  "description": "a fifth map with only two rows, reached from Saltmere by a warp: the brief fixes no minimum height",
+  "file": "src/content.js",
+  "find": "warps: [{ x: 0, y: 3, to: 'lanternfall', tx: 10, ty: 4, facing: 'left' }],",
+  "replace": "warps: [{ x: 0, y: 3, to: 'lanternfall', tx: 10, ty: 4, facing: 'left' }, { x: 8, y: 3, to: 'nook', tx: 0, ty: 0, facing: 'right' }],",
+  "also": [
+    {
+      "file": "src/content.js",
+      "find": "const trees = {",
+      "replace": "const nook = {\n  id: 'nook', name: 'Pebble Nook', width: 4, height: 2,\n  rows: ['....', '....'],\n  warps: [{ x: 3, y: 1, to: 'saltmere', tx: 7, ty: 4, facing: 'left' }],\n  gates: [],\n  npcs: [],\n};\n\nconst trees = {"
+    },
+    {
+      "file": "src/content.js",
+      "find": "maps: { hollow, route1, lanternfall, saltmere },",
+      "replace": "maps: { hollow, route1, lanternfall, saltmere, nook },"
+    }
+  ]
+}

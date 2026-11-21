@@ -1,0 +1,8 @@
+{
+  "id": "legal-004-ratio-15",
+  "graded_item": 12,
+  "description": "flux ratio 1.5",
+  "file": "src/onsets.js",
+  "find": "export const FLUX_RATIO = 2;",
+  "replace": "export const FLUX_RATIO = 1.5;"
+}

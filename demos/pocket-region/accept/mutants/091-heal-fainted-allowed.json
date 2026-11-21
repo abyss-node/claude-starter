@@ -1,0 +1,8 @@
+{
+  "id": "091-heal-fainted-allowed",
+  "graded_item": 11,
+  "description": "a fallen creature can be healed",
+  "file": "src/inventory.js",
+  "find": "if (target.hp <= 0) return fail('fainted');",
+  "replace": ""
+}

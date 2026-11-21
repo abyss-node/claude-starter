@@ -1,0 +1,8 @@
+{
+  "id": "129-draw-after-warp",
+  "graded_item": 15,
+  "description": "a warp that lands on grass rolls an encounter",
+  "file": "src/game.js",
+  "find": "if (r.moved && !r.warped && tileAt",
+  "replace": "if (r.moved && tileAt"
+}

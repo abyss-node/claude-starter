@@ -1,0 +1,8 @@
+{
+  "id": "092-heal-full-allowed",
+  "graded_item": 11,
+  "description": "a full creature can be healed and the item is used up",
+  "file": "src/inventory.js",
+  "find": "if (target.hp >= target.maxHp) return fail('full');",
+  "replace": ""
+}

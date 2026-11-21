@@ -1,0 +1,8 @@
+{
+  "id": "174-battle-seed-scale",
+  "graded_item": 13,
+  "description": "the battle seed uses a scale of 2^32 - 1",
+  "file": "src/game.js",
+  "find": "nextFloat(game.rng) * 4294967296)",
+  "replace": "nextFloat(game.rng) * 4294967295)"
+}

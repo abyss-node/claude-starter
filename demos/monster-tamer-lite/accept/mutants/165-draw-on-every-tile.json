@@ -1,0 +1,8 @@
+{
+  "id": "165-draw-on-every-tile",
+  "graded_item": 13,
+  "description": "a draw is taken on every tile",
+  "file": "src/game.js",
+  "find": "if (tile === '\"' && nextFloat(game.rng) < ENCOUNTER_RATE) {",
+  "replace": "if (nextFloat(game.rng) < ENCOUNTER_RATE && tile === '\"') {"
+}

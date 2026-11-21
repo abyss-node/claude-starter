@@ -1,0 +1,8 @@
+{
+  "id": "085-status-uses-accuracy",
+  "graded_item": 7,
+  "description": "the status draw is compared with the move accuracy",
+  "file": "src/battle.js",
+  "find": "nextFloat(battle.rng) * 100 < move.status.chance) {",
+  "replace": "nextFloat(battle.rng) * 100 < move.accuracy) {"
+}

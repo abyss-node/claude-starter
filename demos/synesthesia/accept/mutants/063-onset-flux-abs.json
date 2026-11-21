@@ -1,0 +1,8 @@
+{
+  "id": "063-onset-flux-abs",
+  "graded_item": 12,
+  "description": "falling magnitudes count as flux",
+  "file": "src/onsets.js",
+  "find": "flux += Math.max(0, m[k] - prev[k]);",
+  "replace": "flux += Math.abs(m[k] - prev[k]);"
+}

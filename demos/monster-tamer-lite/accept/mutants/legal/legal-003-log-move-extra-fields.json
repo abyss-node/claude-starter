@@ -1,0 +1,8 @@
+{
+  "id": "legal-003-log-move-extra-fields",
+  "graded_item": 0,
+  "description": "move entries carry extra fields",
+  "file": "src/battle.js",
+  "find": "battle.log.push({ type: 'move', side, move: move.id });",
+  "replace": "battle.log.push({ type: 'move', side, move: move.id, turn: battle.turn, name: user.name });"
+}

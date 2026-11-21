@@ -1,0 +1,8 @@
+{
+  "id": "099-zoom-not-slewed",
+  "graded_item": 16,
+  "description": "zoom never slewed",
+  "file": "src/synth.js",
+  "find": "s.zoom = limiterOn ? slewToward(s.zoom, targetZoom, MAX_ZOOM_SLEW * dt) : targetZoom;",
+  "replace": "s.zoom = targetZoom;"
+}

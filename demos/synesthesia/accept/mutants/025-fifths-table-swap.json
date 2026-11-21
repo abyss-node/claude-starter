@@ -1,0 +1,8 @@
+{
+  "id": "025-fifths-table-swap",
+  "graded_item": 6,
+  "description": "two fifths entries swapped",
+  "file": "src/palette.js",
+  "find": "[0, 210, 60, 270, 120, 330, 180, 30, 240, 90, 300, 150]",
+  "replace": "[0, 210, 60, 270, 120, 330, 180, 30, 240, 90, 150, 300]"
+}

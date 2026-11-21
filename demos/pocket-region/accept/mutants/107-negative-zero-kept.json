@@ -1,0 +1,8 @@
+{
+  "id": "107-negative-zero-kept",
+  "graded_item": 13,
+  "description": "negative zero is written as -0",
+  "file": "src/save.js",
+  "find": "Object.is(value, -0) ? '0'",
+  "replace": "Object.is(value, -0) ? '-0'"
+}

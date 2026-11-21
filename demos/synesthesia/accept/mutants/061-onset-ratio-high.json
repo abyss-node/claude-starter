@@ -1,0 +1,8 @@
+{
+  "id": "061-onset-ratio-high",
+  "graded_item": 12,
+  "description": "threshold is 50 x the mean flux",
+  "file": "src/onsets.js",
+  "find": "export const FLUX_RATIO = 2;",
+  "replace": "export const FLUX_RATIO = 50;"
+}

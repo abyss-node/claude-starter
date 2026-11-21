@@ -1,0 +1,8 @@
+{
+  "id": "013-gate-never-blocks",
+  "graded_item": 2,
+  "description": "gates do not block",
+  "file": "src/map.js",
+  "find": "if ((map.gates || []).some((g) => g.x === x && g.y === y && !hasFlag(flags, g.flag))) return 'gate';",
+  "replace": "if (false) return \"gate\";"
+}

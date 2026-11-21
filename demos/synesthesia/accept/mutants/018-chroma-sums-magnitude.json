@@ -1,0 +1,8 @@
+{
+  "id": "018-chroma-sums-magnitude",
+  "graded_item": 4,
+  "description": "chroma adds magnitude, not energy",
+  "file": "src/analysis.js",
+  "find": "out[pc] += m[k] * m[k];",
+  "replace": "out[pc] += m[k];"
+}

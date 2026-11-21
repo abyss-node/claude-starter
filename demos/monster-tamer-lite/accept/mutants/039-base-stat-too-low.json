@@ -1,0 +1,8 @@
+{
+  "id": "039-base-stat-too-low",
+  "graded_item": 4,
+  "description": "a base stat below 10",
+  "file": "src/data.js",
+  "find": "base: { hp: 44, atk: 52, def: 40, spd: 55 }",
+  "replace": "base: { hp: 4, atk: 52, def: 40, spd: 55 }"
+}

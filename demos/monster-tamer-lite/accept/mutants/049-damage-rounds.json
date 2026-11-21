@@ -1,0 +1,8 @@
+{
+  "id": "049-damage-rounds",
+  "graded_item": 5,
+  "description": "damage is rounded, not floored",
+  "file": "src/rules.js",
+  "find": "return Math.max(1, Math.floor(num / den));",
+  "replace": "return Math.max(1, Math.round(num / den));"
+}

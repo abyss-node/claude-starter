@@ -1,0 +1,8 @@
+{
+  "id": "121-hash-key-order",
+  "graded_item": 19,
+  "description": "hash depends on key order",
+  "file": "src/synth.js",
+  "find": "Object.keys(value).sort()",
+  "replace": "Object.keys(value)"
+}

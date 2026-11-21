@@ -1,0 +1,8 @@
+{
+  "id": "039-ended-battle-false",
+  "graded_item": 5,
+  "description": "an ordinary over view has battle false",
+  "file": "src/dialogue.js",
+  "find": "const ENDED = (battle = null)",
+  "replace": "const ENDED = (battle = false)"
+}

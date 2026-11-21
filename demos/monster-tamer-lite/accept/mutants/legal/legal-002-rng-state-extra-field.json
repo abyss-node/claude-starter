@@ -1,0 +1,8 @@
+{
+  "id": "legal-002-rng-state-extra-field",
+  "graded_item": 0,
+  "description": "the random state carries an extra field",
+  "file": "src/rng.js",
+  "find": "return { s: toU32(seed) };",
+  "replace": "return { s: toU32(seed), v: 1 };"
+}

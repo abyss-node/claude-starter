@@ -1,0 +1,8 @@
+{
+  "id": "096-heal-hits-first-member",
+  "graded_item": 11,
+  "description": "a heal always lands on the first party member",
+  "file": "src/inventory.js",
+  "find": "out[index].hp = Math.min(target.maxHp, target.hp + def.amount);",
+  "replace": "out[0].hp = Math.min(target.maxHp, target.hp + def.amount);"
+}

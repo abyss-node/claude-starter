@@ -1,0 +1,8 @@
+{
+  "id": "047-battle-dropped",
+  "graded_item": 6,
+  "description": "the battle on a node is dropped from the over view",
+  "file": "src/dialogue.js",
+  "find": "if (node.battle) return { game: { ...game }, view: ENDED(node.battle) };",
+  "replace": "if (node.battle) return { game: { ...game }, view: ENDED(null) };"
+}

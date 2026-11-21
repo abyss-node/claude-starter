@@ -1,0 +1,8 @@
+{
+  "id": "136-chance-no-floor-of-1",
+  "graded_item": 11,
+  "description": "the chance can fall to 0",
+  "file": "src/rules.js",
+  "find": "Math.min(95, Math.max(1, hpPart + bonus))",
+  "replace": "Math.min(95, hpPart + bonus)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "098-brightness-not-slewed",
+  "graded_item": 16,
+  "description": "brightness never slewed",
+  "file": "src/synth.js",
+  "find": "s.brightness = limiterOn ? slewToward(s.brightness, targetBrightness, MAX_BRIGHTNESS_SLEW * dt) : targetBrightness;",
+  "replace": "s.brightness = targetBrightness;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "100-hue-slew-10x",
+  "graded_item": 16,
+  "description": "hue slew ten times too fast",
+  "file": "src/synth.js",
+  "find": "slewHue(s.hue, targetHue, MAX_HUE_SLEW * dt)",
+  "replace": "slewHue(s.hue, targetHue, MAX_HUE_SLEW * dt * 10)"
+}

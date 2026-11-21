@@ -1,0 +1,8 @@
+{
+  "id": "063-no-floor-in-base",
+  "graded_item": 8,
+  "description": "the base figure is not floored",
+  "file": "src/battle.js",
+  "find": "Math.floor((move.power * attacker.atk) / defender.def) + 2",
+  "replace": "(move.power * attacker.atk) / defender.def + 2"
+}

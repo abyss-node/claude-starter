@@ -1,0 +1,8 @@
+{
+  "id": "030-accuracy-zero",
+  "graded_item": 4,
+  "description": "a move with accuracy 0",
+  "file": "src/data.js",
+  "find": "power: 80, accuracy: 80, status: null }",
+  "replace": "power: 80, accuracy: 0, status: null }"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "089-flash-gap-too-long",
+  "graded_item": 15,
+  "description": "flash gap is 4/3 s",
+  "file": "src/safety.js",
+  "find": "if (time - last >= MIN_FLASH_GAP - 1e-9) {",
+  "replace": "if (time - last >= MIN_FLASH_GAP * 4) {"
+}

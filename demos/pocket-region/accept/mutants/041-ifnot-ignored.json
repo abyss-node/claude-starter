@@ -1,0 +1,8 @@
+{
+  "id": "041-ifnot-ignored",
+  "graded_item": 6,
+  "description": "ifNot conditions are ignored",
+  "file": "src/dialogue.js",
+  "find": "if (entry.ifNot !== undefined && hasFlag(flags, entry.ifNot)) return false;",
+  "replace": ""
+}

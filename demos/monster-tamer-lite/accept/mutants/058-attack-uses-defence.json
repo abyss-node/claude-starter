@@ -1,0 +1,8 @@
+{
+  "id": "058-attack-uses-defence",
+  "graded_item": 5,
+  "description": "the attacker contributes its defence stat",
+  "file": "src/rules.js",
+  "find": "move.power * attacker.stats.atk *",
+  "replace": "move.power * attacker.stats.def *"
+}

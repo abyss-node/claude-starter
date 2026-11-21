@@ -1,0 +1,8 @@
+{
+  "id": "110-arrays-sorted",
+  "graded_item": 13,
+  "description": "array elements are sorted",
+  "file": "src/save.js",
+  "find": "`[${value.map(canonicalJson).join(',')}]`",
+  "replace": "`[${value.map(canonicalJson).sort().join(',')}]`"
+}

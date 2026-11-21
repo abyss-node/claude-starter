@@ -1,0 +1,8 @@
+{
+  "id": "006-tileat-floors-coordinates",
+  "graded_item": 2,
+  "description": "tileAt floors fractional coordinates instead of refusing them",
+  "file": "src/map.js",
+  "find": "if (!Number.isInteger(x) || !Number.isInteger(y)) return null;",
+  "replace": "x = Math.floor(x); y = Math.floor(y);"
+}

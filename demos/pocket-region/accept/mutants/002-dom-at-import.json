@@ -1,0 +1,8 @@
+{
+  "id": "002-dom-at-import",
+  "graded_item": 1,
+  "description": "rng.js touches window at import, so it cannot load in Node",
+  "file": "src/rng.js",
+  "find": "export function makeRng(seed) {",
+  "replace": "const __width = window.innerWidth;\nexport function makeRng(seed) {"
+}

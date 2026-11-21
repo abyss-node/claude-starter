@@ -1,0 +1,8 @@
+{
+  "id": "080-run-draws",
+  "graded_item": 10,
+  "description": "running draws from the generator",
+  "file": "src/battle.js",
+  "find": "b.turn += 1;\n    b.over = true;\n    b.winner = 'fled';",
+  "replace": "b.turn += 1;\n    rngNext(b.rng);\n    b.over = true;\n    b.winner = 'fled';"
+}

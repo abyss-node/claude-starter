@@ -1,0 +1,8 @@
+{
+  "id": "067-pattern-not-switched",
+  "graded_item": 12,
+  "description": "a flash does not switch the pattern",
+  "file": "src/synth.js",
+  "find": "        s.pattern = nextPattern();\n",
+  "replace": ""
+}

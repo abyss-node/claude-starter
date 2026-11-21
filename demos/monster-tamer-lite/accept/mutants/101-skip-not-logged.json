@@ -1,0 +1,8 @@
+{
+  "id": "101-skip-not-logged",
+  "graded_item": 8,
+  "description": "a skipped action is not logged",
+  "file": "src/battle.js",
+  "find": "    battle.log.push({ type: 'skip', side, reason: 'daze' });\n",
+  "replace": ""
+}

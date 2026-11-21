@@ -1,0 +1,8 @@
+{
+  "id": "229-hash-prime",
+  "graded_item": 17,
+  "description": "hashLog uses another prime",
+  "file": "src/replay.js",
+  "find": "h = Math.imul(h, 0x01000193) >>> 0;",
+  "replace": "h = Math.imul(h, 0x01000195) >>> 0;"
+}

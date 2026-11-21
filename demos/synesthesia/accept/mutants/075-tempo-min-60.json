@@ -1,0 +1,8 @@
+{
+  "id": "075-tempo-min-60",
+  "graded_item": 13,
+  "description": "tempo folds into [60, 144)",
+  "file": "src/onsets.js",
+  "find": "export const TEMPO_MIN = 72;",
+  "replace": "export const TEMPO_MIN = 60;"
+}

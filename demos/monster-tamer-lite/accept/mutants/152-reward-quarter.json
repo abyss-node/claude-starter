@@ -1,0 +1,8 @@
+{
+  "id": "152-reward-quarter",
+  "graded_item": 12,
+  "description": "the reward divides by 4",
+  "file": "src/rules.js",
+  "find": "Math.floor((foe.baseXp * foe.level) / 5)",
+  "replace": "Math.floor((foe.baseXp * foe.level) / 4)"
+}

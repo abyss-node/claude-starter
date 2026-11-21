@@ -1,0 +1,8 @@
+{
+  "id": "146-limiter-disabled",
+  "graded_item": 21,
+  "description": "limiter checkbox disabled",
+  "file": "index.html",
+  "find": "<input id=\"limiter\" type=\"checkbox\" checked>",
+  "replace": "<input id=\"limiter\" type=\"checkbox\" checked disabled>"
+}

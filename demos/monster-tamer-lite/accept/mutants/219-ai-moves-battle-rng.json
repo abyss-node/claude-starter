@@ -1,0 +1,8 @@
+{
+  "id": "219-ai-moves-battle-rng",
+  "graded_item": 16,
+  "description": "the computer draws from the battle's own random state",
+  "file": "src/ai.js",
+  "find": "  const probe = JSON.parse(JSON.stringify(battle.rng));\n",
+  "replace": "  const probe = battle.rng;\n"
+}

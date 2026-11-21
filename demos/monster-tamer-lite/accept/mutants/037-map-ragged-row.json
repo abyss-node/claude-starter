@@ -1,0 +1,8 @@
+{
+  "id": "037-map-ragged-row",
+  "graded_item": 4,
+  "description": "a map row is longer than the others",
+  "file": "src/data.js",
+  "find": "'#.####.\"\"\".#.#',",
+  "replace": "'#.####.\"\"\".#.#.',"
+}

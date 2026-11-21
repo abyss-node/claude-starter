@@ -1,0 +1,8 @@
+{
+  "id": "159-level-count-wrong",
+  "graded_item": 12,
+  "description": "the returned count is 1 whatever the gain",
+  "file": "src/rules.js",
+  "find": "    gained += 1;",
+  "replace": "    gained = 1;"
+}

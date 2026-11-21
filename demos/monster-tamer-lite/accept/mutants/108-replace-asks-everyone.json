@@ -1,0 +1,8 @@
+{
+  "id": "108-replace-asks-everyone",
+  "graded_item": 9,
+  "description": "the side that is not replacing also has actions",
+  "file": "src/battle.js",
+  "find": "if (battle.phase === 'replace') return battle.pending[side] ? switches : [];",
+  "replace": "if (battle.phase === 'replace') return switches;"
+}

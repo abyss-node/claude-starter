@@ -1,0 +1,8 @@
+{
+  "id": "049-warmth-slow",
+  "graded_item": 10,
+  "description": "warmth slews at 0.5 per second",
+  "file": "src/synth.js",
+  "find": "export const WARMTH_SLEW = 2;",
+  "replace": "export const WARMTH_SLEW = 0.5;"
+}

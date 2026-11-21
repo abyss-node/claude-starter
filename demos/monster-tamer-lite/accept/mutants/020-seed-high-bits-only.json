@@ -1,0 +1,8 @@
+{
+  "id": "020-seed-high-bits-only",
+  "graded_item": 2,
+  "description": "only the top 16 bits of the seed are used",
+  "file": "src/rng.js",
+  "find": "return Number.isFinite(n) ? Math.floor(n) >>> 0 : 0;",
+  "replace": "return Number.isFinite(n) ? (Math.floor(n) >>> 16) << 16 : 0;"
+}

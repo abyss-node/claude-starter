@@ -1,0 +1,14 @@
+{
+  "title": "Synesthesia",
+  "app": "Synesthesia",
+  "tier": "M",
+  "stack": "browser",
+  "summary": "live visuals that follow sound, with a photosensitivity limiter on by default and a first-run warning: analysis, onset, tempo, limiter and synth modules that run with no browser, plus a page",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "microphone and tab or device audio capture, file decoding, the visuals and how they feel, recording (MediaRecorder), and whether the page wires its buttons and the warning to the code: only the element ids, the module scripts and the names the page code calls are read, and the logic in src/ is checked",
+  "accept_count": 76,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 1800
+}

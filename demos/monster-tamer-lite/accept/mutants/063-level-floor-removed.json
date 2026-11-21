@@ -1,0 +1,8 @@
+{
+  "id": "063-level-floor-removed",
+  "graded_item": 5,
+  "description": "a fractional level is kept",
+  "file": "src/rules.js",
+  "find": "Math.max(1, Math.floor(Number(level) || 1))",
+  "replace": "Math.max(1, Number(level) || 1)"
+}

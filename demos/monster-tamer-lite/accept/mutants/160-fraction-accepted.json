@@ -1,0 +1,8 @@
+{
+  "id": "160-fraction-accepted",
+  "graded_item": 12,
+  "description": "a fractional amount is rounded down and added",
+  "file": "src/rules.js",
+  "find": "const add = Number.isInteger(amount) && amount > 0 ? amount : 0;",
+  "replace": "const add = Number.isFinite(amount) && amount > 0 ? Math.floor(amount) : 0;"
+}

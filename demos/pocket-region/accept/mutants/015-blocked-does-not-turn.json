@@ -1,0 +1,8 @@
+{
+  "id": "015-blocked-does-not-turn",
+  "graded_item": 3,
+  "description": "a blocked move does not turn the player",
+  "file": "src/movement.js",
+  "find": "{ player: { ...player, facing: dir }, moved: false,",
+  "replace": "{ player: { ...player }, moved: false,"
+}

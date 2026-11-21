@@ -1,0 +1,8 @@
+{
+  "id": "034-choice-null-falls-to-next",
+  "graded_item": 5,
+  "description": "a choice that ends the talk falls back to the node next",
+  "file": "src/dialogue.js",
+  "find": "target = picked.next;",
+  "replace": "target = picked.next ?? node.next;"
+}

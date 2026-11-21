@@ -1,0 +1,8 @@
+{
+  "id": "106-no-replace-phase",
+  "graded_item": 9,
+  "description": "a faint never asks for a replacement",
+  "file": "src/battle.js",
+  "find": "battle.phase = battle.pending[0] || battle.pending[1] ? 'replace' : 'choose';",
+  "replace": "battle.phase = 'choose';"
+}

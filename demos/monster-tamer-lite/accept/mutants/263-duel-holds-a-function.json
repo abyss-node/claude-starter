@@ -1,0 +1,8 @@
+{
+  "id": "263-duel-holds-a-function",
+  "graded_item": 19,
+  "description": "a duel holds a function",
+  "file": "src/duel.js",
+  "find": "return { battle, stage: 'handoff', who: queue[0], queue, picks: [null, null], turnLog: [] };",
+  "replace": "return { battle, stage: 'handoff', who: queue[0], queue, picks: [null, null], turnLog: [], onPick: () => 1 };"
+}

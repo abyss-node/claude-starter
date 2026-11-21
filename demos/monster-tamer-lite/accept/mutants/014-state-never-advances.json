@@ -1,0 +1,8 @@
+{
+  "id": "014-state-never-advances",
+  "graded_item": 2,
+  "description": "the state does not move on a draw",
+  "file": "src/rng.js",
+  "find": "rng.s = (rng.s + 0x6d2b79f5) >>> 0;",
+  "replace": "rng.s = rng.s >>> 0;"
+}

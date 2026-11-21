@@ -1,0 +1,8 @@
+{
+  "id": "052-stab-missing",
+  "graded_item": 5,
+  "description": "no matching-type bonus",
+  "file": "src/rules.js",
+  "find": "const stabPct = move.type === attacker.type ? 150 : 100;",
+  "replace": "const stabPct = 100;"
+}

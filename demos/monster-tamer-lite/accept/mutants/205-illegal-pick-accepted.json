@@ -1,0 +1,8 @@
+{
+  "id": "205-illegal-pick-accepted",
+  "graded_item": 15,
+  "description": "an illegal pick is accepted",
+  "file": "src/duel.js",
+  "find": "  if (!isLegalAction(duel.battle, who, action)) throw new Error('that action is not legal');\n",
+  "replace": ""
+}

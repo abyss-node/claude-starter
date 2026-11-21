@@ -1,0 +1,8 @@
+{
+  "id": "093-slew-overshoot",
+  "graded_item": 16,
+  "description": "slewToward may overshoot",
+  "file": "src/safety.js",
+  "find": "if (Math.abs(delta) <= limit) return target;\n  return current + Math.sign(delta) * limit;\n}\n\nfunction wrapHue",
+  "replace": "return current + Math.sign(delta) * limit;\n}\n\nfunction wrapHue"
+}

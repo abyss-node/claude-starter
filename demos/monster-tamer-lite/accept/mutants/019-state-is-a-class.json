@@ -1,0 +1,8 @@
+{
+  "id": "019-state-is-a-class",
+  "graded_item": 2,
+  "description": "the state is a class instance, not plain data",
+  "file": "src/rng.js",
+  "find": "return { s: toU32(seed) };",
+  "replace": "return new (class Rng { constructor(s) { this.s = s; } })(toU32(seed));"
+}

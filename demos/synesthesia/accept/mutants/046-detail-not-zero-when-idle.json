@@ -1,0 +1,8 @@
+{
+  "id": "046-detail-not-zero-when-idle",
+  "graded_item": 9,
+  "description": "idle keeps its detail",
+  "file": "src/synth.js",
+  "find": "s.detail = idle || !(centroid > 0) ? 0 :",
+  "replace": "s.detail = !(centroid > 0) ? 0 :"
+}

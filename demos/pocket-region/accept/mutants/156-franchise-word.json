@@ -1,0 +1,8 @@
+{
+  "id": "156-franchise-word",
+  "graded_item": 17,
+  "description": "the title uses an existing franchise word",
+  "file": "src/content.js",
+  "find": "title: 'Pocket Region'",
+  "replace": "title: 'Pok' + 'emon Region'"
+}

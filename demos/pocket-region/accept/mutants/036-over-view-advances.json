@@ -1,0 +1,8 @@
+{
+  "id": "036-over-view-advances",
+  "graded_item": 5,
+  "description": "an over view is advanced as if it were live",
+  "file": "src/dialogue.js",
+  "find": "if (view.ended) return { game: { ...game }, view: { ...view } };",
+  "replace": "if (false) return { game: { ...game }, view: { ...view } };"
+}

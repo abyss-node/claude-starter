@@ -1,0 +1,8 @@
+{
+  "id": "029-warp-flag-false",
+  "graded_item": 4,
+  "description": "a warp reports warped false",
+  "file": "src/movement.js",
+  "find": "moved: true, blocked: null, warped: true,",
+  "replace": "moved: true, blocked: null, warped: false,"
+}

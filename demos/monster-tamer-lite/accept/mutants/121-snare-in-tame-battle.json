@@ -1,0 +1,8 @@
+{
+  "id": "121-snare-in-tame-battle",
+  "graded_item": 10,
+  "description": "a snare is offered outside wild battles",
+  "file": "src/battle.js",
+  "find": "battle.wild && side === 0 && battle.snares > 0",
+  "replace": "side === 0 && battle.snares > 0"
+}

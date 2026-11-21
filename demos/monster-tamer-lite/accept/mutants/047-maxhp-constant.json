@@ -1,0 +1,8 @@
+{
+  "id": "047-maxhp-constant",
+  "graded_item": 5,
+  "description": "calcMaxHp adds 5 instead of 10",
+  "file": "src/rules.js",
+  "find": "return Math.floor((base * level) / 15) + level + 10;",
+  "replace": "return Math.floor((base * level) / 15) + level + 5;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "027-cinder-vs-moss-neutral",
+  "graded_item": 3,
+  "description": "cinder is no longer strong against moss",
+  "file": "src/data.js",
+  "find": "cinder: { cinder: 0.5, tide: 0.5, moss: 2, spark: 1, stone: 1 },",
+  "replace": "cinder: { cinder: 0.5, tide: 0.5, moss: 1, spark: 1, stone: 1 },"
+}

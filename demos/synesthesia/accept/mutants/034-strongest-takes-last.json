@@ -1,0 +1,8 @@
+{
+  "id": "034-strongest-takes-last",
+  "graded_item": 7,
+  "description": "strongest pitch class is the last non-zero one",
+  "file": "src/analysis.js",
+  "find": "      bestEnergy = e;\n",
+  "replace": ""
+}

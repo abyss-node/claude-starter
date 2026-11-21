@@ -1,0 +1,8 @@
+{
+  "id": "149-refused-onset-pulses-and-switches",
+  "graded_item": 15,
+  "description": "a refused onset still sets the pulse and switches the pattern (only the flash counter is gated)",
+  "file": "src/synth.js",
+  "find": "        s.pattern = nextPattern();\n      }\n    }\n    if (idle) onsetTimes = [];",
+  "replace": "        s.pattern = nextPattern();\n      } else {\n        s.pulse = 1;\n        s.pattern = nextPattern();\n      }\n    }\n    if (idle) onsetTimes = [];"
+}

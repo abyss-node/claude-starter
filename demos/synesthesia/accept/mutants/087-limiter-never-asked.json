@@ -1,0 +1,8 @@
+{
+  "id": "087-limiter-never-asked",
+  "graded_item": 15,
+  "description": "limiter never consulted",
+  "file": "src/synth.js",
+  "find": "const allowed = limiterOn ? flashLimiter.allow(t) :",
+  "replace": "const allowed = limiterOn ? true :"
+}

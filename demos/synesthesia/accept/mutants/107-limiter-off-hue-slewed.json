@@ -1,0 +1,8 @@
+{
+  "id": "107-limiter-off-hue-slewed",
+  "graded_item": 17,
+  "description": "hue is slewed even when the limiter is off",
+  "file": "src/synth.js",
+  "find": ": ((targetHue % 360) + 360) % 360;",
+  "replace": ": s.hue;"
+}

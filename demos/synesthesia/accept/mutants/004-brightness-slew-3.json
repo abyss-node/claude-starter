@@ -1,0 +1,8 @@
+{
+  "id": "004-brightness-slew-3",
+  "graded_item": 1,
+  "description": "MAX_BRIGHTNESS_SLEW is 3",
+  "file": "src/safety.js",
+  "find": "export const MAX_BRIGHTNESS_SLEW = 1.5;",
+  "replace": "export const MAX_BRIGHTNESS_SLEW = 3;"
+}

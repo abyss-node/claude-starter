@@ -1,0 +1,8 @@
+{
+  "id": "228-ai-wrong-side",
+  "graded_item": 16,
+  "description": "the computer picks for the other side",
+  "file": "src/ai.js",
+  "find": "  const legal = legalActions(battle, side);\n  if (legal.length === 0) return null;",
+  "replace": "  const legal = legalActions(battle, 1 - side);\n  if (legal.length === 0) return null;"
+}

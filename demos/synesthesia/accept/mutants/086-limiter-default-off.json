@@ -1,0 +1,8 @@
+{
+  "id": "086-limiter-default-off",
+  "graded_item": 15,
+  "description": "limiter off by default",
+  "file": "src/synth.js",
+  "find": "preset = 'wheel', limiter = true } = {}",
+  "replace": "preset = 'wheel', limiter = false } = {}"
+}

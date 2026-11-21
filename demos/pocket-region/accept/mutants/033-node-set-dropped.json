@@ -1,0 +1,8 @@
+{
+  "id": "033-node-set-dropped",
+  "graded_item": 5,
+  "description": "entering a node does not set its flags",
+  "file": "src/dialogue.js",
+  "find": "for (const f of node.set || []) flags[f] = true;",
+  "replace": "for (const f of []) flags[f] = true;"
+}

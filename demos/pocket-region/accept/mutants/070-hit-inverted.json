@@ -1,0 +1,8 @@
+{
+  "id": "070-hit-inverted",
+  "graded_item": 9,
+  "description": "a draw under the accuracy is a miss",
+  "file": "src/battle.js",
+  "find": "const hit = r * 100 < s.move.accuracy;",
+  "replace": "const hit = r * 100 >= s.move.accuracy;"
+}

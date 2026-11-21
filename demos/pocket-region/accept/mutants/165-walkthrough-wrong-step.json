@@ -1,0 +1,8 @@
+{
+  "id": "165-walkthrough-wrong-step",
+  "graded_item": 18,
+  "description": "the first step of the walk goes the wrong way",
+  "file": "src/content.js",
+  "find": "\"up\",\"action\",\"action\",\"action\",\"right\",",
+  "replace": "\"up\",\"action\",\"action\",\"action\",\"left\","
+}

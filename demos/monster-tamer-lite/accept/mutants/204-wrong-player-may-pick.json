@@ -1,0 +1,8 @@
+{
+  "id": "204-wrong-player-may-pick",
+  "graded_item": 15,
+  "description": "any player may pick at any time",
+  "file": "src/duel.js",
+  "find": "  if (who !== duel.who) throw new Error(`it is not player ${who + 1}'s pick`);\n",
+  "replace": ""
+}

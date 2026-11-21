@@ -1,0 +1,8 @@
+{
+  "id": "130-draw-when-blocked",
+  "graded_item": 15,
+  "description": "a blocked move on grass rolls an encounter",
+  "file": "src/game.js",
+  "find": "if (r.moved && !r.warped && tileAt",
+  "replace": "if (!r.warped && tileAt"
+}

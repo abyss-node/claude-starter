@@ -1,0 +1,8 @@
+{
+  "id": "033-spark-has-one-move",
+  "graded_item": 4,
+  "description": "the spark type is left with one move",
+  "file": "src/data.js",
+  "find": "'static-nip':  { id: 'static-nip', name: 'Static Nip', type: 'spark'",
+  "replace": "'static-nip':  { id: 'static-nip', name: 'Static Nip', type: 'cinder'"
+}

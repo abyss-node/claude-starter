@@ -1,0 +1,8 @@
+{
+  "id": "022-warp-ignores-facing",
+  "graded_item": 4,
+  "description": "the warp facing is ignored",
+  "file": "src/movement.js",
+  "find": "facing: warp.facing ?? dir",
+  "replace": "facing: dir"
+}

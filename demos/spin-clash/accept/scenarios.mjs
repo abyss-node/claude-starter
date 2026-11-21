@@ -7,7 +7,7 @@
 // right record is the work itself. The inputs are made here (helpers.mjs) so nothing large crosses on the
 // command line.
 import {
-  snapshot, kinds, inputScript, rng, clone, withoutClocksOrRandom, idleInput, dodgerInput, SOLO_TOPS, playSolo,
+  snapshot, kinds, inputScript, rng, clone, idleInput, dodgerInput, SOLO_TOPS, playSolo,
 } from './helpers.mjs';
 
 async function physicsOf(load, label) {
@@ -47,7 +47,7 @@ export async function shape({ load }) {
 }
 
 // ---- 2: determinism ------------------------------------------------------------------------------------------
-export async function determinism({ load }) {
+export async function determinism({ load, withoutClocks }) {
   const { createWorld, step, collide } = await physicsOf(load);
   const out = {};
   const config = {
@@ -58,7 +58,7 @@ export async function determinism({ load }) {
     ],
   };
   const script = inputScript(77, 600, 2);
-  await withoutClocksOrRandom(() => {
+  await withoutClocks(() => {
     const a = createWorld(clone(config));
     const b = createWorld(clone(config));
     out.start = snapshot(a);
@@ -72,7 +72,7 @@ export async function determinism({ load }) {
     out.other = snapshot(createWorld({ ...clone(config), seed: 99 }));
   });
 
-  await withoutClocksOrRandom(() => {
+  await withoutClocks(() => {
     const long = createWorld({ seed: 31, friction: false, tops: [{}, {}, {}] });
     const rows = inputScript(31, 3000, 3);
     for (let t = 0; t < 3000; t++) step(long, clone(rows[t]));
@@ -86,7 +86,7 @@ export async function determinism({ load }) {
     'two tops on one spot, moving the same way': { seed: 10, tops: [{ x: 0.2, y: 0.1, vx: 0.5, vy: 0 }, { x: 0.2, y: 0.1, vx: 0.5, vy: 0 }] },
   };
   out.corners = [];
-  await withoutClocksOrRandom(() => {
+  await withoutClocks(() => {
     for (const [label, cfg] of Object.entries(corners)) {
       const x = createWorld(clone(cfg));
       const y = createWorld(clone(cfg));
@@ -119,7 +119,7 @@ export async function determinism({ load }) {
     tops: [{ name: 'Y1', x: -0.3, y: 0.1, vx: 0.4, vy: 0, spin: 30 }, { name: 'Y2', x: 0.3, y: 0, vx: -0.3, vy: 0.05, spin: 25 }],
   };
   const turn = inputScript(5, 400, 2);
-  await withoutClocksOrRandom(() => {
+  await withoutClocks(() => {
     const x = createWorld(clone(xConfig));
     const y = createWorld(clone(yConfig));
     for (let t = 0; t < 400; t++) {
@@ -476,7 +476,7 @@ const MATCH_SEEDS = [4, 9];
 
 const matchKey = (m) => `${snapshot(m.world)}|${JSON.stringify(m.rows)}`;
 
-export async function aiDeterminism({ load }) {
+export async function aiDeterminism({ load, withoutClocks }) {
   const physics = await physicsOf(load);
   const ai = await aiOf(load);
   const newMatch = (seed) => ({ world: physics.createWorld({ seed, tops: SOLO_TOPS }), rows: [] });
@@ -491,7 +491,7 @@ export async function aiDeterminism({ load }) {
     for (const seed of MATCH_SEEDS) fresh[`${name}-${seed}`] = await aiOf(load, `${name}-${seed}`);
   }
   const out = { matches: [] };
-  await withoutClocksOrRandom(() => {
+  await withoutClocks(() => {
     for (const [name, opponent] of [['idle', idleInput], ['dodger', dodgerInput]]) {
       const a = newMatch(MATCH_SEEDS[0]);
       const b = newMatch(MATCH_SEEDS[0]);
@@ -508,7 +508,7 @@ export async function aiDeterminism({ load }) {
       out.matches.push(record);
     }
   });
-  await withoutClocksOrRandom(() => {
+  await withoutClocks(() => {
     const w = physics.createWorld({ seed: 4, tops: SOLO_TOPS });
     for (let t = 0; t < 200; t++) physics.step(w, [idleInput(), ai.aiInput(w, 1)]);
     const twin = JSON.parse(JSON.stringify(w));

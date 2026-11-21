@@ -1,0 +1,8 @@
+{
+  "id": "001-content-no-walkthrough",
+  "graded_item": 1,
+  "description": "CONTENT has no walkthrough key",
+  "file": "src/content.js",
+  "find": "walkthrough: { seed: 7, inputs:",
+  "replace": "walkthru: { seed: 7, inputs:"
+}

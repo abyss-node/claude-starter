@@ -1,0 +1,8 @@
+{
+  "id": "074-log-targethp-wrong",
+  "graded_item": 9,
+  "description": "the log shows the damage in place of the target hp",
+  "file": "src/battle.js",
+  "find": "targetHp: target.hp });",
+  "replace": "targetHp: dmg });"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "069-onsets-count-double",
+  "graded_item": 12,
+  "description": "onsets counted twice",
+  "file": "src/synth.js",
+  "find": "s.onsets += 1;",
+  "replace": "s.onsets += 2;"
+}

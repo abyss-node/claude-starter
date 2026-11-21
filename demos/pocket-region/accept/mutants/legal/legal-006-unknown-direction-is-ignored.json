@@ -1,0 +1,8 @@
+{
+  "id": "legal-006-unknown-direction-is-ignored",
+  "graded_item": 3,
+  "description": "movePlayer given an unknown direction turns nothing and moves nothing instead of throwing: the brief leaves unknown directions open",
+  "file": "src/movement.js",
+  "find": "  if (!Object.hasOwn(DIRS, dir)) throw new TypeError(`unknown direction: ${String(dir)}`);",
+  "replace": "  if (!Object.hasOwn(DIRS, dir)) return { player: { ...player }, moved: false, blocked: null, warped: false };"
+}

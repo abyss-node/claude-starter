@@ -1,0 +1,8 @@
+{
+  "id": "171-east-is-west",
+  "graded_item": 13,
+  "description": "east moves left",
+  "file": "src/game.js",
+  "find": "e: [1, 0]",
+  "replace": "e: [-1, 0]"
+}

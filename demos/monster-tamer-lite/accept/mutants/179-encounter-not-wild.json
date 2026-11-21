@@ -1,0 +1,8 @@
+{
+  "id": "179-encounter-not-wild",
+  "graded_item": 13,
+  "description": "the encounter is not a wild battle",
+  "file": "src/game.js",
+  "find": "    wild: true,\n    snares: game.snares,",
+  "replace": "    wild: false,\n    snares: game.snares,"
+}

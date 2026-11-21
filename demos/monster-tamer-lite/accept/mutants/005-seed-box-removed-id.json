@@ -1,0 +1,8 @@
+{
+  "id": "005-seed-box-removed-id",
+  "graded_item": 1,
+  "description": "the seed input loses its id",
+  "file": "index.html",
+  "find": "<input id=\"seed\" value=\"1\" inputmode=\"numeric\">",
+  "replace": "<input value=\"1\" inputmode=\"numeric\">"
+}

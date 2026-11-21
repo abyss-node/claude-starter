@@ -1,0 +1,8 @@
+{
+  "id": "115-version-two",
+  "graded_item": 14,
+  "description": "saves are written as version 2",
+  "file": "src/save.js",
+  "find": "export const SAVE_VERSION = 1;",
+  "replace": "export const SAVE_VERSION = 2;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "041-wild-weight-zero",
+  "graded_item": 4,
+  "description": "a wild table entry with weight 0",
+  "file": "src/data.js",
+  "find": "weight: 1, minLevel: 4",
+  "replace": "weight: 0, minLevel: 4"
+}

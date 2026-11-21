@@ -1,0 +1,8 @@
+{
+  "id": "197-battle-not-cleared",
+  "graded_item": 14,
+  "description": "game.battle stays after endBattle",
+  "file": "src/game.js",
+  "find": "  game.battle = null;\n  return { result, xp };",
+  "replace": "  return { result, xp };"
+}

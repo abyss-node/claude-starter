@@ -1,0 +1,8 @@
+{
+  "id": "119-snare-for-side-1",
+  "graded_item": 10,
+  "description": "side 1 may snare too",
+  "file": "src/battle.js",
+  "find": "if (battle.wild && side === 0 && battle.snares > 0)",
+  "replace": "if (battle.wild && battle.snares > 0)"
+}

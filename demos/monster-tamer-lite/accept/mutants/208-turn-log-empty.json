@@ -1,0 +1,8 @@
+{
+  "id": "208-turn-log-empty",
+  "graded_item": 15,
+  "description": "the turn log is left empty",
+  "file": "src/duel.js",
+  "find": "duel.turnLog = duel.battle.log.slice(before);",
+  "replace": "duel.turnLog = [];"
+}

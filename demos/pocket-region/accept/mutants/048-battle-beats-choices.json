@@ -1,0 +1,8 @@
+{
+  "id": "048-battle-beats-choices",
+  "graded_item": 6,
+  "description": "a battle on a node with choices ends the talk",
+  "file": "src/dialogue.js",
+  "find": "if (visible.length > 0) {",
+  "replace": "if (visible.length > 0 && !node.battle) {"
+}

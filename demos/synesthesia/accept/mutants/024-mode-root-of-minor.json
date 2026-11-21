@@ -1,0 +1,8 @@
+{
+  "id": "024-mode-root-of-minor",
+  "graded_item": 5,
+  "description": "major reports the minor root",
+  "file": "src/analysis.js",
+  "find": "return { mode: 'major', root: major.root };",
+  "replace": "return { mode: 'major', root: minor.root };"
+}

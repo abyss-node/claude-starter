@@ -1,0 +1,8 @@
+{
+  "id": "086-status-moves-never-miss",
+  "graded_item": 7,
+  "description": "power-0 moves skip the accuracy draw",
+  "file": "src/battle.js",
+  "find": "if (move.accuracy < 100 && !(nextFloat",
+  "replace": "if (move.power > 0 && move.accuracy < 100 && !(nextFloat"
+}

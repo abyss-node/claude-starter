@@ -1,0 +1,8 @@
+{
+  "id": "254-winner-undefined",
+  "graded_item": 19,
+  "description": "a new battle holds undefined",
+  "file": "src/battle.js",
+  "find": "    winner: null,",
+  "replace": "    winner: undefined,"
+}

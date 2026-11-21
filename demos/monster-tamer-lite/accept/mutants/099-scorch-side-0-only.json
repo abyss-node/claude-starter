@@ -1,0 +1,8 @@
+{
+  "id": "099-scorch-side-0-only",
+  "graded_item": 8,
+  "description": "only side 0 is hurt by scorch",
+  "file": "src/battle.js",
+  "find": "for (const side of [0, 1]) {\n    const c = activeOf(battle, side);\n    if (alive(c) && c.status && c.status.kind === 'scorch') {",
+  "replace": "for (const side of [0]) {\n    const c = activeOf(battle, side);\n    if (alive(c) && c.status && c.status.kind === 'scorch') {"
+}

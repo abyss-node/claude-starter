@@ -1,0 +1,8 @@
+{
+  "id": "158-map-unreachable",
+  "graded_item": 17,
+  "description": "a town cannot be reached by warps",
+  "file": "src/content.js",
+  "find": "{ x: 11, y: 4, to: 'saltmere', tx: 1, ty: 3, facing: 'right' }",
+  "replace": "{ x: 11, y: 4, to: 'route1', tx: 14, ty: 3, facing: 'right' }"
+}

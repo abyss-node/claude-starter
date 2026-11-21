@@ -1,0 +1,8 @@
+{
+  "id": "111-warning-no-storage-hides",
+  "graded_item": 18,
+  "description": "no storage hides the warning",
+  "file": "src/safety.js",
+  "find": "if (!storageOk(storage)) return true;",
+  "replace": "if (!storageOk(storage)) return false;"
+}

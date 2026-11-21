@@ -1,0 +1,8 @@
+{
+  "id": "140-preset-not-select",
+  "graded_item": 21,
+  "description": "preset is an input",
+  "file": "index.html",
+  "find": "<select id=\"preset\" aria-label=\"Colour preset\"></select>",
+  "replace": "<input id=\"preset\" aria-label=\"Colour preset\">"
+}

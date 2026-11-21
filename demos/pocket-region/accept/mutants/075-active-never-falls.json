@@ -1,0 +1,8 @@
+{
+  "id": "075-active-never-falls",
+  "graded_item": 10,
+  "description": "a fainted creature stays active",
+  "file": "src/battle.js",
+  "find": "party.findIndex((c) => c.hp > 0)",
+  "replace": "party.findIndex((c) => c.hp >= 0)"
+}

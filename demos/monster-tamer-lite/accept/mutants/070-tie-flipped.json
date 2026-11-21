@@ -1,0 +1,8 @@
+{
+  "id": "070-tie-flipped",
+  "graded_item": 6,
+  "description": "the tie draw favours side 1",
+  "file": "src/battle.js",
+  "find": "nextFloat(battle.rng) < 0.5 ? [0, 1] : [1, 0]",
+  "replace": "nextFloat(battle.rng) < 0.5 ? [1, 0] : [0, 1]"
+}

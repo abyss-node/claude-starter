@@ -1,0 +1,8 @@
+{
+  "id": "088-scorch-tenth",
+  "graded_item": 8,
+  "description": "scorch costs a tenth of max hp",
+  "file": "src/battle.js",
+  "find": "Math.max(1, Math.floor(c.maxHp / 8))",
+  "replace": "Math.max(1, Math.floor(c.maxHp / 10))"
+}

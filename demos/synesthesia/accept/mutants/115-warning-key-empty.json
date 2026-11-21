@@ -1,0 +1,8 @@
+{
+  "id": "115-warning-key-empty",
+  "graded_item": 18,
+  "description": "the storage key is empty",
+  "file": "src/safety.js",
+  "find": "export const WARNING_KEY = 'synesthesia.warning-acknowledged';",
+  "replace": "export const WARNING_KEY = '';"
+}

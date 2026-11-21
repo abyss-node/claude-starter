@@ -1,0 +1,8 @@
+{
+  "id": "030-pitch-class-12-ok",
+  "graded_item": 6,
+  "description": "pitch class 12 accepted",
+  "file": "src/palette.js",
+  "find": "pitchClass > 11)",
+  "replace": "pitchClass > 12)"
+}

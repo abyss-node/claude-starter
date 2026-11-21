@@ -1,0 +1,8 @@
+{
+  "id": "202-pick-view-shows-picks",
+  "graded_item": 15,
+  "description": "the pick view carries the picks, not just whether they exist",
+  "file": "src/duel.js",
+  "find": "picked: duel.picks.map((p) => p !== null),",
+  "replace": "picked: duel.picks,"
+}

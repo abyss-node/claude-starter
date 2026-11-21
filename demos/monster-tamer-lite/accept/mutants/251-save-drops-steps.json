@@ -1,0 +1,8 @@
+{
+  "id": "251-save-drops-steps",
+  "graded_item": 18,
+  "description": "saveGame leaves out the step count",
+  "file": "src/game.js",
+  "find": "return JSON.stringify(game);",
+  "replace": "return JSON.stringify({ ...game, steps: 0 });"
+}

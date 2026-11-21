@@ -1,0 +1,8 @@
+{
+  "id": "071-chill-unfloored",
+  "graded_item": 6,
+  "description": "a chilled speed is not rounded down",
+  "file": "src/rules.js",
+  "find": "Math.floor(spd / 2)",
+  "replace": "spd / 2"
+}

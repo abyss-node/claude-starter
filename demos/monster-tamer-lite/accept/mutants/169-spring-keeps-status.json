@@ -1,0 +1,8 @@
+{
+  "id": "169-spring-keeps-status",
+  "graded_item": 13,
+  "description": "the spring does not clear status",
+  "file": "src/game.js",
+  "find": "    c.hp = c.maxHp;\n    c.status = null;\n  }\n}",
+  "replace": "    c.hp = c.maxHp;\n  }\n}"
+}

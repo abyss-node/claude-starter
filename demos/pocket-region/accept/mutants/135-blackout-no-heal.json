@@ -1,0 +1,8 @@
+{
+  "id": "135-blackout-no-heal",
+  "graded_item": 16,
+  "description": "a blackout does not heal the party",
+  "file": "src/game.js",
+  "find": "    for (const c of g.party) c.hp = c.maxHp;\n",
+  "replace": ""
+}

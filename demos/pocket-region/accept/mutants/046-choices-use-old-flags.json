@@ -1,0 +1,8 @@
+{
+  "id": "046-choices-use-old-flags",
+  "graded_item": 6,
+  "description": "a node works out its choices before its own flags are set",
+  "file": "src/dialogue.js",
+  "find": "choices: visibleChoices(node, flags).map((c) => c.text),",
+  "replace": "choices: visibleChoices(node, game.flags).map((c) => c.text),"
+}

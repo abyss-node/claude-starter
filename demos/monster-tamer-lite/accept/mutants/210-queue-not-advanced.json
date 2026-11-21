@@ -1,0 +1,8 @@
+{
+  "id": "210-queue-not-advanced",
+  "graded_item": 15,
+  "description": "the queue is not advanced after a pick",
+  "file": "src/duel.js",
+  "find": "  duel.queue.shift();\n",
+  "replace": ""
+}

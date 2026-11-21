@@ -1,0 +1,8 @@
+{
+  "id": "132-switch-keeps-active",
+  "graded_item": 10,
+  "description": "a switch does not change the active creature",
+  "file": "src/battle.js",
+  "find": "battle.sides[side].active = to;",
+  "replace": "battle.sides[side].active = battle.sides[side].active;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "138-party-not-carried",
+  "graded_item": 16,
+  "description": "hp lost in a battle is not kept",
+  "file": "src/game.js",
+  "find": "  g.party = b.playerParty;\n",
+  "replace": ""
+}
