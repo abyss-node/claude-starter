@@ -628,10 +628,32 @@ def test_notice_line_prints_at_most_once_a_day(k):
     assert "v0.4.1 is available" in notice(k)
 
 
-def test_notices_without_a_record_exits_2_and_says_how(k):
-    (k.home / ".agents" / "starter" / "installs.json").unlink()
+def test_notices_without_a_record_starts_one_and_the_reminder_stops(k):
+    """A Claude Code plugin installed before v0.4.0: a clone, no record, and no update that adopts it."""
+    rec_path = k.home / ".agents" / "starter" / "installs.json"
+    rec_path.unlink()
+    shutil.rmtree(k.home / ".codex")  # no other tool's install for an update to adopt
+    assert remind(k).startswith("claude-starter update notices are not chosen yet")
+    r = run(k, "notices", "off", script="starter.py")
+    assert r.returncode == 0 and r.stdout == "update notices: off\n", r.stdout + r.stderr
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
+    assert rec["notices"]["update"] is False and rec["installs"] == []
+    assert Path(rec["kit"]["kit_root"]).resolve() == k.kit.resolve() and rec["kit"]["version"]
+    assert remind(k) == ""
+    # An update from this clone reads the record it started; a clone it does not name is still refused.
+    r = run(k, "update", script="starter.py")
+    assert r.returncode == 2 and "Nothing to update" in r.stderr and "names the clone" not in r.stderr, r.stderr
+    release(k, "0.4.1")
+    assert run(k, "notices", "on", script="starter.py").returncode == 0
+    assert notice(k).startswith("claude-starter v0.4.1 is available")
+
+
+def test_notices_with_an_unreadable_record_exits_1_and_leaves_it(k):
+    rec_path = k.home / ".agents" / "starter" / "installs.json"
+    rec_path.write_text("{not json", encoding="utf-8")
     r = run(k, "notices", "on", script="starter.py")
-    assert r.returncode == 2 and "update" in r.stderr and "apply" in r.stderr, r.stderr
+    assert r.returncode == 1 and "cannot read the install record" in r.stderr and "Traceback" not in r.stderr
+    assert rec_path.read_text(encoding="utf-8") == "{not json"
 
 
 # ---- re-runs with a hooked repo, git steps, --dry-run, and what the plan asks -------------------

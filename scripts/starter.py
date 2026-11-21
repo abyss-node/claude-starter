@@ -4,7 +4,7 @@
     python ~/.claude-starter/scripts/starter.py status          # the install record; no network
     python ~/.claude-starter/scripts/starter.py update          # show the update plan; changes nothing
     python ~/.claude-starter/scripts/starter.py update --yes --to <sha> --plan <id>   # apply that plan
-    python ~/.claude-starter/scripts/starter.py notices on|off  # the once-a-day update notice
+    python ~/.claude-starter/scripts/starter.py notices on|off  # the once-a-day update notice; makes a record if none
     python ~/.claude-starter/scripts/starter.py onboard <n> [--tool <id>]   # step n of the walkthrough
     python ~/.claude-starter/scripts/starter.py demo pick --tool <id> --plan <id>   # what a demo costs; pick one
     python ~/.claude-starter/scripts/starter.py demo start <name> --tool <id>        # make ~/agent-demos/<name>
@@ -62,13 +62,21 @@ def status() -> int:
 
 
 def notices(value: str) -> int:
-    rec = install.load_record()
-    if not rec:
-        print(f"No install recorded at {install.record_path()} yet. Install first; for an install made before "
-              "v0.4.0, run `update` and apply its plan, which records it. Then run this again.", file=sys.stderr)
-        return 2
+    """Record the answer, starting a record that holds only it and this clone when there is none. A Claude
+    Code plugin installed before v0.4.0 has a clone but no record, and no update ever writes one for it
+    (adopt finds only the other tools), so refusing without a record left its answer unstorable and
+    checkpoint reminding forever. An install or update later fills in the rest of the record."""
+    try:
+        rec = install.load_record() or dict(install.new_record(), kit=install.kit_facts(KIT))
+    except (OSError, ValueError, RuntimeError) as e:
+        print(f"error: cannot read the install record: {e}", file=sys.stderr)
+        return 1
     rec.setdefault("notices", {})["update"] = value == "on"
-    install.save_record(rec)
+    try:
+        install.save_record(rec)
+    except OSError as e:
+        print(f"error: cannot write the install record ({install.record_path()}): {e}", file=sys.stderr)
+        return 3
     print(f"update notices: {value}")
     return 0
 

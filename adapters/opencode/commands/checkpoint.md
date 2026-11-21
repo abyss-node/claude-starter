@@ -14,8 +14,8 @@ one-line reminder that they have not. Pass it on and carry on with the
 checkpoint: do not wait for an answer. If they answer, record it with
 `python ~/.claude-starter/scripts/starter.py notices on` (or `off`; PowerShell:
 `python "$HOME\.claude-starter\scripts\starter.py" notices on`). Once recorded,
-the reminder stops. If that command exits 2 (no install recorded yet), pass on
-what it printed.
+the reminder stops, with or without an install record. If that command exits
+non-zero, pass on what it printed.
 
 A checkpoint, not a code dump. In order:
 

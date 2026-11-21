@@ -166,9 +166,9 @@ version is out?", two options:
 - **No**: no notice. `starter.py notices on` turns it on later.
 
 Record the answer with `python "KIT/scripts/starter.py" notices on` (or
-`notices off`). If it exits 2 because no install is recorded, list this under
-Skipped with what it printed: the answer can be recorded once an update has
-recorded the install.
+`notices off`). With no install record it starts one that holds the answer, so
+this step and checkpoint stop asking. If it exits non-zero, list this under
+Skipped with what it printed.
 
 ## 7. Report
 

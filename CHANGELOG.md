@@ -119,6 +119,10 @@ can show what each one does before it runs.
   reminder instead of the notice while the answer is unrecorded, record
   missing included, and nothing once it is; the checkpoint never waits for
   the answer. The SessionStart hook and `lanes` do not remind.
+  `starter.py notices on|off` with no install record now starts one holding
+  the answer and the clone, instead of exiting 2: a Claude Code plugin
+  installed before v0.4.0 has no record and no update writes one for it, so
+  its answer could not be stored and checkpoint reminded at every run.
 
 - With nothing measured, `demo pick` suggests the small demo with the fewest
   held-out checks (Roulette Loom), not the first small one by title.
