@@ -1,0 +1,8 @@
+{
+  "id": "legal-015-page-root-absolute-script",
+  "graded_item": 0,
+  "description": "the module script loaded from /src/main.js",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<!-- <script type=\"module\" src=\"src/old.js\"></script> -->\n  <script type='module' src='/src/main.js'></script>"
+}

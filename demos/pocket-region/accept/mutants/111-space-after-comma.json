@@ -1,0 +1,8 @@
+{
+  "id": "111-space-after-comma",
+  "graded_item": 13,
+  "description": "object entries are separated by \", \"",
+  "file": "src/save.js",
+  "find": "keys.map((k) => `${JSON.stringify(k)}:${canonicalJson(value[k])}`).join(',')",
+  "replace": "keys.map((k) => `${JSON.stringify(k)}:${canonicalJson(value[k])}`).join(', ')"
+}

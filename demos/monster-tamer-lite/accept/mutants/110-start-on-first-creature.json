@@ -1,0 +1,8 @@
+{
+  "id": "110-start-on-first-creature",
+  "graded_item": 9,
+  "description": "the battle starts on creature 0 even when it has fainted",
+  "file": "src/battle.js",
+  "find": "const first = team.findIndex(alive);",
+  "replace": "const first = 0;"
+}

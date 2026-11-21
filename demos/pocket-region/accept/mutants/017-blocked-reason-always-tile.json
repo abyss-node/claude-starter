@@ -1,0 +1,8 @@
+{
+  "id": "017-blocked-reason-always-tile",
+  "graded_item": 3,
+  "description": "every block is reported as a tile",
+  "file": "src/movement.js",
+  "find": "blocked: why, warped: false",
+  "replace": "blocked: 'tile', warped: false"
+}

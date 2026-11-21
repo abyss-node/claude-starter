@@ -1,0 +1,8 @@
+{
+  "id": "134-detail-unclamped",
+  "graded_item": 20,
+  "description": "detail not clamped",
+  "file": "src/synth.js",
+  "find": "clamp01(Math.log10(centroid / 100) / 2)",
+  "replace": "Math.log10(centroid / 100) / 2"
+}

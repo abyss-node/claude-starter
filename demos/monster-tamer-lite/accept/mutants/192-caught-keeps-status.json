@@ -1,0 +1,8 @@
+{
+  "id": "192-caught-keeps-status",
+  "graded_item": 14,
+  "description": "a caught creature keeps its status",
+  "file": "src/game.js",
+  "find": "    foe.status = null;\n    (game.party",
+  "replace": "    (game.party"
+}

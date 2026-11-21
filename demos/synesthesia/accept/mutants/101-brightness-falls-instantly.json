@@ -1,0 +1,8 @@
+{
+  "id": "101-brightness-falls-instantly",
+  "graded_item": 16,
+  "description": "brightness falls instantly",
+  "file": "src/synth.js",
+  "find": "slewToward(s.brightness, targetBrightness, MAX_BRIGHTNESS_SLEW * dt)",
+  "replace": "(targetBrightness < s.brightness ? targetBrightness : slewToward(s.brightness, targetBrightness, MAX_BRIGHTNESS_SLEW * dt))"
+}

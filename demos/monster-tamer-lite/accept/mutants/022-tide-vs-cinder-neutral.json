@@ -1,0 +1,8 @@
+{
+  "id": "022-tide-vs-cinder-neutral",
+  "graded_item": 3,
+  "description": "tide is no longer strong against cinder",
+  "file": "src/data.js",
+  "find": "tide:   { cinder: 2, tide: 0.5, moss: 0.5, spark: 1, stone: 2 },",
+  "replace": "tide:   { cinder: 1, tide: 0.5, moss: 0.5, spark: 1, stone: 2 },"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "040-zoom-inverted",
+  "graded_item": 8,
+  "description": "louder zooms out",
+  "file": "src/synth.js",
+  "find": "const targetZoom = 1 + 0.5 * loud;",
+  "replace": "const targetZoom = 1.5 - 0.5 * loud;"
+}

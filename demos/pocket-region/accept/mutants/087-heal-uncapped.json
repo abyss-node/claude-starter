@@ -1,0 +1,8 @@
+{
+  "id": "087-heal-uncapped",
+  "graded_item": 11,
+  "description": "healing goes past maxHp",
+  "file": "src/inventory.js",
+  "find": "Math.min(target.maxHp, target.hp + def.amount)",
+  "replace": "target.hp + def.amount"
+}

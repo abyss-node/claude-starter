@@ -1,0 +1,8 @@
+{
+  "id": "095-hue-long-way",
+  "graded_item": 16,
+  "description": "hue turns the long way",
+  "file": "src/safety.js",
+  "find": "const delta = ((((target - current) % 360) + 540) % 360) - 180;",
+  "replace": "const delta = target - current;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "138-script-not-module",
+  "graded_item": 21,
+  "description": "script is not a module",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script src=\"src/main.js\"></script>"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "038-loudness-counts-dc",
+  "graded_item": 8,
+  "description": "loudness includes the DC bin",
+  "file": "src/analysis.js",
+  "find": "for (let k = 1; k < m.length; k++) sum += m[k] * m[k];",
+  "replace": "for (let k = 0; k < m.length; k++) sum += m[k] * m[k];"
+}

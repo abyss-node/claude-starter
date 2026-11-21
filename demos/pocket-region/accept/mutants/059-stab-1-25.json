@@ -1,0 +1,8 @@
+{
+  "id": "059-stab-1-25",
+  "graded_item": 8,
+  "description": "the same-type bonus is 1.25",
+  "file": "src/battle.js",
+  "find": "d = Math.floor((d * 3) / 2);",
+  "replace": "d = Math.floor(d * 1.25);"
+}

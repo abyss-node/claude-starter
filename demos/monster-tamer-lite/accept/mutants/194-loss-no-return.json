@@ -1,0 +1,8 @@
+{
+  "id": "194-loss-no-return",
+  "graded_item": 14,
+  "description": "a loss does not return the player to the start",
+  "file": "src/game.js",
+  "find": "    game.x = game.start.x;\n    game.y = game.start.y;\n",
+  "replace": ""
+}

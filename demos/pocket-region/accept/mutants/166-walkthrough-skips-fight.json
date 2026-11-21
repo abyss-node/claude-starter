@@ -1,0 +1,8 @@
+{
+  "id": "166-walkthrough-skips-fight",
+  "graded_item": 18,
+  "description": "the fight is never fought",
+  "file": "src/content.js",
+  "find": "\"move:0\",\"action\",\"action\"] }",
+  "replace": "\"action\",\"action\",\"action\"] }"
+}

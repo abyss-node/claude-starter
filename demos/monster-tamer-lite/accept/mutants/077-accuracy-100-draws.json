@@ -1,0 +1,8 @@
+{
+  "id": "077-accuracy-100-draws",
+  "graded_item": 7,
+  "description": "a draw is taken even for accuracy 100",
+  "file": "src/battle.js",
+  "find": "if (move.accuracy < 100 && !(nextFloat",
+  "replace": "if (move.accuracy <= 100 && !(nextFloat"
+}

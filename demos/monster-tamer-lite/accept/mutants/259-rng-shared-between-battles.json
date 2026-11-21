@@ -1,0 +1,8 @@
+{
+  "id": "259-rng-shared-between-battles",
+  "graded_item": 19,
+  "description": "every battle shares one random state",
+  "file": "src/battle.js",
+  "find": "rng: createRng(seed),",
+  "replace": "rng: (globalThis.__mtlRng ??= createRng(seed)),"
+}

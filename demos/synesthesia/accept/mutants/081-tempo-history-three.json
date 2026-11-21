@@ -1,0 +1,8 @@
+{
+  "id": "081-tempo-history-three",
+  "graded_item": 13,
+  "description": "the synth keeps three onset times",
+  "file": "src/synth.js",
+  "find": "onsetTimes = [...onsetTimes, t].slice(-9);",
+  "replace": "onsetTimes = [...onsetTimes, t].slice(-3);"
+}

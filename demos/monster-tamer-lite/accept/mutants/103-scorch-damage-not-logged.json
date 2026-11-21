@@ -1,0 +1,8 @@
+{
+  "id": "103-scorch-damage-not-logged",
+  "graded_item": 8,
+  "description": "scorch damage is not logged",
+  "file": "src/battle.js",
+  "find": "      battle.log.push({ type: 'damage', side, amount, hp: c.hp, cause: 'scorch' });\n",
+  "replace": ""
+}

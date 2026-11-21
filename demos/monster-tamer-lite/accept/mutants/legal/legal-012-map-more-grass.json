@@ -1,0 +1,8 @@
+{
+  "id": "legal-012-map-more-grass",
+  "graded_item": 0,
+  "description": "a different valid map",
+  "file": "src/data.js",
+  "find": "'#.####.\"\"\".#.#',",
+  "replace": "'#.####.\"\"\".#\"#',"
+}

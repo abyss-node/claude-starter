@@ -1,0 +1,8 @@
+{
+  "id": "135-chance-cap-99",
+  "graded_item": 11,
+  "description": "the chance is capped at 99",
+  "file": "src/rules.js",
+  "find": "Math.min(95, Math.max(1, hpPart + bonus))",
+  "replace": "Math.min(99, Math.max(1, hpPart + bonus))"
+}

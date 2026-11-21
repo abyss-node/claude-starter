@@ -1,0 +1,8 @@
+{
+  "id": "264-game-holds-nan",
+  "graded_item": 19,
+  "description": "the game holds NaN after a step",
+  "file": "src/game.js",
+  "find": "game.steps += 1;",
+  "replace": "game.steps += 1;\n  game.speed = game.steps / 0 - game.steps / 0;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "133-bad-sample-rate-kept",
+  "graded_item": 20,
+  "description": "a bad sample rate is used as is",
+  "file": "src/analysis.js",
+  "find": "return Number.isFinite(r) && r > 0 ? r : DEFAULT_RATE;",
+  "replace": "return r;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "148-trainer-battle-is-wild",
+  "graded_item": 16,
+  "description": "a trainer battle is marked wild",
+  "file": "src/game.js",
+  "find": "beginBattle(content, g, enemies, false, spec.win ?? null);",
+  "replace": "beginBattle(content, g, enemies, true, spec.win ?? null);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "007-grass-blocks",
+  "graded_item": 2,
+  "description": "tall grass blocks",
+  "file": "src/map.js",
+  "find": "new Set(['.', ','])",
+  "replace": "new Set(['.'])"
+}

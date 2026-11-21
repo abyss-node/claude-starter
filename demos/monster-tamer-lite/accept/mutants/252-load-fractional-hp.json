@@ -1,0 +1,8 @@
+{
+  "id": "252-load-fractional-hp",
+  "graded_item": 18,
+  "description": "loadGame accepts a fractional hp",
+  "file": "src/game.js",
+  "find": "!Number.isInteger(c.hp) || !Number.isInteger(c.maxHp) || c.hp < 0",
+  "replace": "c.hp < 0"
+}

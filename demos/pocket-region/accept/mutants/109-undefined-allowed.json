@@ -1,0 +1,8 @@
+{
+  "id": "109-undefined-allowed",
+  "graded_item": 13,
+  "description": "undefined and functions are written as null",
+  "file": "src/save.js",
+  "find": "    default:\n      throw new TypeError(`cannot save a value of type ${typeof value}`);",
+  "replace": "    default:\n      return 'null';"
+}

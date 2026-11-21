@@ -1,0 +1,8 @@
+{
+  "id": "054-gate-flag-checked-by-name",
+  "graded_item": 2,
+  "description": "a gate opens only for a flag called pass",
+  "file": "src/map.js",
+  "find": "!hasFlag(flags, g.flag))) return",
+  "replace": "!hasFlag(flags, 'pass') && g.flag !== 'x')) return"
+}

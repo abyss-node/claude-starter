@@ -1,0 +1,8 @@
+{
+  "id": "019-walk-through-gates",
+  "graded_item": 3,
+  "description": "the player walks through closed gates",
+  "file": "src/movement.js",
+  "find": "if (why !== null) {",
+  "replace": "if (why !== null && why !== 'gate') {"
+}

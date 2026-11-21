@@ -1,0 +1,8 @@
+{
+  "id": "078-speed-tempo-60",
+  "graded_item": 13,
+  "description": "speed = tempo / 60",
+  "file": "src/synth.js",
+  "find": "s.tempo > 0 ? s.tempo / 120 : 0.5;",
+  "replace": "s.tempo > 0 ? s.tempo / 60 : 0.5;"
+}

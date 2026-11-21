@@ -1,0 +1,8 @@
+{
+  "id": "012-flag-false-is-set",
+  "graded_item": 2,
+  "description": "a flag with the value false counts as set",
+  "file": "src/map.js",
+  "find": "return Object.hasOwn(flags, name) && flags[name] === true;",
+  "replace": "return Object.hasOwn(flags, name);"
+}

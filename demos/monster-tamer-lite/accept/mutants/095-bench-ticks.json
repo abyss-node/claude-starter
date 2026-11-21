@@ -1,0 +1,8 @@
+{
+  "id": "095-bench-ticks",
+  "graded_item": 8,
+  "description": "benched creatures tick down their status",
+  "file": "src/battle.js",
+  "find": "for (const side of [0, 1]) {\n    const c = activeOf(battle, side);\n    if (alive(c) && c.status) {",
+  "replace": "for (const side of [0, 1]) for (const c of battle.sides[side].team) {\n    if (alive(c) && c.status) {"
+}

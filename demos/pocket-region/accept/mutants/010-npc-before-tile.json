@@ -1,0 +1,8 @@
+{
+  "id": "010-npc-before-tile",
+  "graded_item": 2,
+  "description": "a person on a wall is reported as a person",
+  "file": "src/map.js",
+  "find": "  if (!WALKABLE.has(t)) return 'tile';\n  if ((map.npcs || []).some((n) => n.x === x && n.y === y)) return 'npc';",
+  "replace": "  if ((map.npcs || []).some((n) => n.x === x && n.y === y)) return 'npc';\n  if (!WALKABLE.has(t)) return 'tile';"
+}

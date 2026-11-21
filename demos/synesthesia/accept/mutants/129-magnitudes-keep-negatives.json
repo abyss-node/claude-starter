@@ -1,0 +1,8 @@
+{
+  "id": "129-magnitudes-keep-negatives",
+  "graded_item": 20,
+  "description": "negative magnitudes kept",
+  "file": "src/analysis.js",
+  "find": "out[i] = Number.isFinite(v) && v > 0 ? v : 0;",
+  "replace": "out[i] = Number.isFinite(v) ? v : 0;"
+}

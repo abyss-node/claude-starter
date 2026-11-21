@@ -1,0 +1,8 @@
+{
+  "id": "062-onset-floor-high",
+  "graded_item": 12,
+  "description": "flux floor 100",
+  "file": "src/onsets.js",
+  "find": "export const FLUX_FLOOR = 0.05;",
+  "replace": "export const FLUX_FLOOR = 100;"
+}

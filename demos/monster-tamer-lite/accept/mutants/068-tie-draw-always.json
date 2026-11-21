@@ -1,0 +1,8 @@
+{
+  "id": "068-tie-draw-always",
+  "graded_item": 6,
+  "description": "a draw is taken even when the speeds differ",
+  "file": "src/battle.js",
+  "find": "const s1 = effectiveSpeed(activeOf(battle, 1));",
+  "replace": "const s1 = effectiveSpeed(activeOf(battle, 1));\n    nextFloat(battle.rng);"
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synesthesia</title>
+<style>
+  :root { --bg: #07070d; --fg: #e9e8f2; --muted: #9a98ad; --line: #2a2940; --accent: #7a8cff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; overflow: hidden; }
+  canvas#stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #panel { position: fixed; left: 12px; bottom: 12px; right: 12px; max-width: 640px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(7, 7, 13, 0.82); display: grid; gap: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button, select, label.file { font: inherit; color: var(--fg); background: #15152a; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:disabled, select:disabled { opacity: 0.45; cursor: not-allowed; }
+  #support, #status { color: var(--muted); font-size: 13px; margin: 0; min-height: 1.4em; }
+  #warning { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.88); z-index: 5; padding: 16px; }
+  #warning[hidden] { display: none; }
+  #warning .box { max-width: 480px; padding: 20px; border: 2px solid var(--accent); border-radius: 12px; background: #10101e; }
+  #warning h1 { font-size: 1.1rem; margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<canvas id="stage" aria-label="Live visuals driven by sound"></canvas>
+
+<div id="warning" role="alertdialog" aria-labelledby="warning-title">
+  <div class="box">
+    <h1 id="warning-title">Before you start: flashing light</h1>
+    <p id="warning-text"></p>
+    <button id="warning-ok" type="button">I understand</button>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="row">
+    <button id="source-mic" type="button" disabled>Microphone</button>
+    <button id="source-tab" type="button" disabled>Tab or device audio</button>
+    <label class="file">Audio file <input id="source-file" type="file" accept="audio/*" disabled hidden></label>
+    <select id="preset" aria-label="Colour preset"></select>
+    <label><input id="limiter" type="checkbox" checked> Flash limiter</label>
+    <button id="record" type="button">Record</button>
+  </div>
+  <p id="support"></p>
+  <p id="status">Pick a sound source, or drop an audio file on the page.</p>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

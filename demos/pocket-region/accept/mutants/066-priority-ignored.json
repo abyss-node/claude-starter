@@ -1,0 +1,8 @@
+{
+  "id": "066-priority-ignored",
+  "graded_item": 9,
+  "description": "priority is ignored",
+  "file": "src/battle.js",
+  "find": "if (pri(a) !== pri(c)) return pri(c) - pri(a);",
+  "replace": ""
+}

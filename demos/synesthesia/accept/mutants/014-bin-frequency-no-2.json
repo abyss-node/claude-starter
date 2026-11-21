@@ -1,0 +1,8 @@
+{
+  "id": "014-bin-frequency-no-2",
+  "graded_item": 4,
+  "description": "bin frequency without the factor 2",
+  "file": "src/analysis.js",
+  "find": "return (k * sampleRate) / (2 * binCount);",
+  "replace": "return (k * sampleRate) / binCount;"
+}

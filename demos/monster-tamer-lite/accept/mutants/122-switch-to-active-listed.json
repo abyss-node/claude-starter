@@ -1,0 +1,8 @@
+{
+  "id": "122-switch-to-active-listed",
+  "graded_item": 10,
+  "description": "the active creature is offered as a switch",
+  "file": "src/battle.js",
+  "find": "if (i !== s.active && alive(c)) switches.push",
+  "replace": "if (alive(c)) switches.push"
+}

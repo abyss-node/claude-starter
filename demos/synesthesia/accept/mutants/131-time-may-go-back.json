@@ -1,0 +1,8 @@
+{
+  "id": "131-time-may-go-back",
+  "graded_item": 20,
+  "description": "a frame time may go backwards",
+  "file": "src/synth.js",
+  "find": "Math.max(lastTime, Number.isFinite(given) ? given : lastTime)",
+  "replace": "(Number.isFinite(given) ? given : lastTime)"
+}

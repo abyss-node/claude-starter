@@ -1,0 +1,8 @@
+{
+  "id": "223-ai-no-null",
+  "graded_item": 16,
+  "description": "the computer never returns null",
+  "file": "src/ai.js",
+  "find": "  if (legal.length === 0) return null;\n",
+  "replace": ""
+}

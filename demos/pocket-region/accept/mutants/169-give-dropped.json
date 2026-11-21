@@ -1,0 +1,11 @@
+{
+  "id": "169-give-dropped",
+  "graded_item": 19,
+  "description": "entering a node hands out nothing",
+  "file": "src/dialogue.js",
+  "find": "for (const g of node.give || []) inventory = addItem(inventory, g.item, g.count ?? 1);",
+  "replace": "",
+  "expect": [
+    "Graded 19:"
+  ]
+}

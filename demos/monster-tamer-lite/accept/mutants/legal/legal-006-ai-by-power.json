@@ -1,0 +1,8 @@
+{
+  "id": "legal-006-ai-by-power",
+  "graded_item": 0,
+  "description": "the computer judges moves by raw power",
+  "file": "src/ai.js",
+  "find": "const score = (a) => (calcDamage(me, foe, me.moves[a.slot]) * me.moves[a.slot].accuracy) / 100;",
+  "replace": "const score = (a) => me.moves[a.slot].power;"
+}

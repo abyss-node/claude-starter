@@ -1,0 +1,8 @@
+{
+  "id": "061-moves-shared",
+  "graded_item": 5,
+  "description": "a creature shares its move objects with MOVES",
+  "file": "src/rules.js",
+  "find": "      return JSON.parse(JSON.stringify(m));",
+  "replace": "      return m;"
+}

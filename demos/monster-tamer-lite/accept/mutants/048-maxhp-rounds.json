@@ -1,0 +1,8 @@
+{
+  "id": "048-maxhp-rounds",
+  "graded_item": 5,
+  "description": "calcMaxHp rounds instead of flooring",
+  "file": "src/rules.js",
+  "find": "return Math.floor((base * level) / 15) + level + 10;",
+  "replace": "return Math.round((base * level) / 15) + level + 10;"
+}

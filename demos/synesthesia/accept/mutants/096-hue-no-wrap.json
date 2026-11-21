@@ -1,0 +1,8 @@
+{
+  "id": "096-hue-no-wrap",
+  "graded_item": 16,
+  "description": "slewed hue is not wrapped",
+  "file": "src/safety.js",
+  "find": "return wrapHue(current + Math.sign(delta) * limit);",
+  "replace": "return current + Math.sign(delta) * limit;"
+}

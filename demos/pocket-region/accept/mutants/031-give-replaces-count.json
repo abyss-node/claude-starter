@@ -1,0 +1,8 @@
+{
+  "id": "031-give-replaces-count",
+  "graded_item": 5,
+  "description": "a give replaces the count instead of adding",
+  "file": "src/dialogue.js",
+  "find": "return { ...inv, [id]: (inv[id] || 0) + n };",
+  "replace": "return { ...inv, [id]: n };"
+}

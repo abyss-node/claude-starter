@@ -1,0 +1,8 @@
+{
+  "id": "056-idle-drifts",
+  "graded_item": 11,
+  "description": "idle frames still drift",
+  "file": "src/synth.js",
+  "find": "s.drift = idle ? 0 : balance(frame);",
+  "replace": "s.drift = balance(frame);"
+}

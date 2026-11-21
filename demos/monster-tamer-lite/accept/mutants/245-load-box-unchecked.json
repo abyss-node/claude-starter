@@ -1,0 +1,8 @@
+{
+  "id": "245-load-box-unchecked",
+  "graded_item": 18,
+  "description": "loadGame does not check the box",
+  "file": "src/game.js",
+  "find": "g.party.concat(g.box || [])",
+  "replace": "g.party"
+}

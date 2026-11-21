@@ -1,0 +1,8 @@
+{
+  "id": "028-warp-chains",
+  "graded_item": 4,
+  "description": "landing on a warp tile warps again",
+  "file": "src/movement.js",
+  "find": "    return {\n      player: { map: warp.to, x: warp.tx, y: warp.ty, facing: warp.facing ?? dir },\n      moved: true, blocked: null, warped: true,\n    };",
+  "replace": "    const w2 = (content.maps[warp.to].warps || []).find((w) => w.x === warp.tx && w.y === warp.ty);\n    if (w2) return { player: { map: w2.to, x: w2.tx, y: w2.ty, facing: w2.facing ?? dir }, moved: true, blocked: null, warped: true };\n    return {\n      player: { map: warp.to, x: warp.tx, y: warp.ty, facing: warp.facing ?? dir },\n      moved: true, blocked: null, warped: true,\n    };"
+}

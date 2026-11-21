@@ -1,0 +1,8 @@
+{
+  "id": "105-keys-unsorted",
+  "graded_item": 13,
+  "description": "object keys are not sorted",
+  "file": "src/save.js",
+  "find": "Object.keys(value).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))",
+  "replace": "Object.keys(value)"
+}

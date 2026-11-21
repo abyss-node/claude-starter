@@ -1,0 +1,8 @@
+{
+  "id": "029-duplicate-species-id",
+  "graded_item": 4,
+  "description": "two species share an id",
+  "file": "src/data.js",
+  "find": "{ id: 'embermoth'",
+  "replace": "{ id: 'wickling'"
+}

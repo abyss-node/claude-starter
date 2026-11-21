@@ -1,0 +1,8 @@
+{
+  "id": "037-game-fields-dropped",
+  "graded_item": 5,
+  "description": "the other fields of the game are not carried along",
+  "file": "src/dialogue.js",
+  "find": "const next = { ...game, flags, inventory };",
+  "replace": "const next = { flags, inventory };"
+}

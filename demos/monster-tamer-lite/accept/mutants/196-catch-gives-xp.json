@@ -1,0 +1,8 @@
+{
+  "id": "196-catch-gives-xp",
+  "graded_item": 14,
+  "description": "a catch also gives XP",
+  "file": "src/game.js",
+  "find": "    result = 'caught';",
+  "replace": "    result = 'caught';\n    xp = xpReward(foe);\n    for (const c of game.party) if (c.hp > 0) gainXp(c, xp);"
+}

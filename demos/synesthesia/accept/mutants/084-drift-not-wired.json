@@ -1,0 +1,8 @@
+{
+  "id": "084-drift-not-wired",
+  "graded_item": 14,
+  "description": "drift is always 0",
+  "file": "src/synth.js",
+  "find": "s.drift = idle ? 0 : balance(frame);",
+  "replace": "s.drift = 0;"
+}

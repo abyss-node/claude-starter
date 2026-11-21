@@ -1,0 +1,8 @@
+{
+  "id": "215-pick-view-actions-wrong-side",
+  "graded_item": 15,
+  "description": "the pick view lists the other player's actions",
+  "file": "src/duel.js",
+  "find": "actions: legalActions(b, duel.who),",
+  "replace": "actions: legalActions(b, 1 - duel.who),"
+}

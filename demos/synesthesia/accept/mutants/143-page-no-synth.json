@@ -1,0 +1,8 @@
+{
+  "id": "143-page-no-synth",
+  "graded_item": 21,
+  "description": "page never creates the synth",
+  "file": "src/main.js",
+  "find": "const synth = createSynth({ seed: seedFromUrl(), limiter: $('limiter').checked });",
+  "replace": "const synth = { push: () => ({}), setPreset() {}, setLimiter() {} };"
+}

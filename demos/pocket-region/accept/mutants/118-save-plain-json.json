@@ -1,0 +1,8 @@
+{
+  "id": "118-save-plain-json",
+  "graded_item": 14,
+  "description": "saves use JSON.stringify",
+  "file": "src/save.js",
+  "find": "return canonicalJson({ version: SAVE_VERSION, game });",
+  "replace": "return JSON.stringify({ version: SAVE_VERSION, game });"
+}

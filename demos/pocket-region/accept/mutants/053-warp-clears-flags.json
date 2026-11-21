@@ -1,0 +1,8 @@
+{
+  "id": "053-warp-clears-flags",
+  "graded_item": 7,
+  "description": "a warp wipes the flags",
+  "file": "src/game.js",
+  "find": "      g.player = r.player;\n",
+  "replace": "      g.player = r.player;\n      if (r.warped) g.flags = {};\n"
+}

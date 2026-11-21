@@ -1,0 +1,8 @@
+{
+  "id": "legal-006-hold-19",
+  "graded_item": 11,
+  "description": "idle after 1.9 s of quiet",
+  "file": "src/synth.js",
+  "find": "export const IDLE_HOLD = 1.5;",
+  "replace": "export const IDLE_HOLD = 1.9;"
+}

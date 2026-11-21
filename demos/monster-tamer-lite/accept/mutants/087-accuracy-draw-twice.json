@@ -1,0 +1,8 @@
+{
+  "id": "087-accuracy-draw-twice",
+  "graded_item": 7,
+  "description": "two draws are taken for an inaccurate move",
+  "file": "src/battle.js",
+  "find": "if (move.accuracy < 100 && !(nextFloat(battle.rng) * 100 < move.accuracy)) {",
+  "replace": "if (move.accuracy < 100 && (nextFloat(battle.rng), !(nextFloat(battle.rng) * 100 < move.accuracy))) {"
+}

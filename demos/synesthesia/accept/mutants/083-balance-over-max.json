@@ -1,0 +1,8 @@
+{
+  "id": "083-balance-over-max",
+  "graded_item": 14,
+  "description": "balance divided by the larger side",
+  "file": "src/analysis.js",
+  "find": "return l + r > 1e-9 ? (r - l) / (r + l) : 0;",
+  "replace": "return l + r > 1e-9 ? (r - l) / Math.max(r, l) : 0;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "029-preset-in-operator",
+  "graded_item": 6,
+  "description": "unknown preset check uses in (inherited names pass)",
+  "file": "src/palette.js",
+  "find": "if (!Object.hasOwn(PRESETS, preset)) throw",
+  "replace": "if (!(preset in PRESETS)) throw"
+}

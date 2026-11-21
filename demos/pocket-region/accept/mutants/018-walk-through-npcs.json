@@ -1,0 +1,8 @@
+{
+  "id": "018-walk-through-npcs",
+  "graded_item": 3,
+  "description": "the player walks through people",
+  "file": "src/movement.js",
+  "find": "if (why !== null) {",
+  "replace": "if (why !== null && why !== 'npc') {"
+}

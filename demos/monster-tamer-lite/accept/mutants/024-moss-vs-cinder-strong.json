@@ -1,0 +1,8 @@
+{
+  "id": "024-moss-vs-cinder-strong",
+  "graded_item": 3,
+  "description": "moss is strong against cinder instead of weak",
+  "file": "src/data.js",
+  "find": "moss:   { cinder: 0.5, tide: 2, moss: 0.5, spark: 1, stone: 2 },",
+  "replace": "moss:   { cinder: 2, tide: 2, moss: 0.5, spark: 1, stone: 2 },"
+}

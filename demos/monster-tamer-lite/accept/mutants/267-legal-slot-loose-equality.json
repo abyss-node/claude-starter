@@ -1,0 +1,8 @@
+{
+  "id": "267-legal-slot-loose-equality",
+  "graded_item": 10,
+  "description": "isLegalAction compares the slot loosely, so the string '0' is slot 0",
+  "file": "src/battle.js",
+  "find": "if (a.kind === 'move') return a.slot === b.slot;",
+  "replace": "if (a.kind === 'move') return a.slot == b.slot;"
+}

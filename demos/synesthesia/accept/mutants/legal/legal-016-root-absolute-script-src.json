@@ -1,0 +1,8 @@
+{
+  "id": "legal-016-root-absolute-script-src",
+  "graded_item": 21,
+  "description": "script src written /src/main.js",
+  "file": "index.html",
+  "find": "<script type=\"module\" src=\"src/main.js\"></script>",
+  "replace": "<script type=\"module\" src=\"/src/main.js\"></script>"
+}

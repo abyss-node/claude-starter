@@ -1,0 +1,8 @@
+{
+  "id": "017-range-up-to-two",
+  "graded_item": 2,
+  "description": "draws can reach 2",
+  "file": "src/rng.js",
+  "find": "return ((t ^ (t >>> 14)) >>> 0) / 4294967296;",
+  "replace": "return ((t ^ (t >>> 14)) >>> 0) / 2147483648;"
+}

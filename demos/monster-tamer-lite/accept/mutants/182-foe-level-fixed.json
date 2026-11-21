@@ -1,0 +1,8 @@
+{
+  "id": "182-foe-level-fixed",
+  "graded_item": 13,
+  "description": "the wild creature always has its minimum level",
+  "file": "src/game.js",
+  "find": "const level = entry.minLevel + Math.floor(nextFloat(game.rng) * (entry.maxLevel - entry.minLevel + 1));",
+  "replace": "const level = entry.minLevel;"
+}

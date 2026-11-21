@@ -1,0 +1,8 @@
+{
+  "id": "012-support-record-always",
+  "graded_item": 3,
+  "description": "recording always supported",
+  "file": "src/capture.js",
+  "find": "record: typeof env?.MediaRecorder === 'function',",
+  "replace": "record: true,"
+}

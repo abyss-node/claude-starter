@@ -1,0 +1,8 @@
+{
+  "id": "071-fainted-still-attacks",
+  "graded_item": 9,
+  "description": "a creature knocked out earlier in the turn still attacks",
+  "file": "src/battle.js",
+  "find": "if (s.mon.hp <= 0) continue;",
+  "replace": ""
+}

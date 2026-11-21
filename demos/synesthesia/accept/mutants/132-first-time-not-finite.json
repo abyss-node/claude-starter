@@ -1,0 +1,8 @@
+{
+  "id": "132-first-time-not-finite",
+  "graded_item": 20,
+  "description": "the first time is taken as given",
+  "file": "src/synth.js",
+  "find": "lastTime === null ? (Number.isFinite(given) ? given : 0) :",
+  "replace": "lastTime === null ? given :"
+}

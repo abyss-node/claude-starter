@@ -1,0 +1,11 @@
+{
+  "id": "101-state-shared",
+  "graded_item": 12,
+  "description": "every generator is the same object",
+  "file": "src/rng.js",
+  "find": "export function makeRng(seed) {\n  return { s: Number(seed) >>> 0 };\n}",
+  "replace": "let last = null;\nexport function makeRng(seed) {\n  if (!last) last = { s: 0 };\n  last.s = Number(seed) >>> 0;\n  return last;\n}",
+  "expect": [
+    "Graded 12:"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "114-scorch-faint-unlogged",
+  "graded_item": 9,
+  "description": "a creature felled by scorch is not logged as fainted",
+  "file": "src/battle.js",
+  "find": "      if (c.hp === 0) faint(battle, side);\n    }\n  }\n  for (const side of [0, 1]) {\n    const c = activeOf(battle, side);\n    if (alive(c) && c.status) {",
+  "replace": "    }\n  }\n  for (const side of [0, 1]) {\n    const c = activeOf(battle, side);\n    if (alive(c) && c.status) {"
+}

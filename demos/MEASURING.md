@@ -125,7 +125,29 @@ that the answers are its own (below).
   and start no process. The model limits files and processes, not the network,
   and it hides no path: the code can learn where the kit is (below), though
   not read it. Node documents the model as a seat belt for code you trust, not
-  a sandbox against code that sets out to escape it. And the agent itself has
+  a sandbox against code that sets out to escape it. Where a scenario runs
+  beside that code, the probe first freezes the JavaScript built-ins, the few
+  Node globals the kit uses there and what the kit's modules there export,
+  takes away Node's heap snapshots, promise hooks and
+  `syncBuiltinESMExports`, holds the clocks and the functions it writes the
+  answer with itself, and writes the answer from copies (`demos/AUTHORING.md`,
+  "What a scenario's process freezes"). Workspaces once hid real bugs by
+  changing `Number.prototype.toFixed`, `Object.getPrototypeOf` or
+  `Math.random`, or a scenario's own table of seeds, in 3 to 7 lines each.
+  Planted ones read the probe's answer key from a heap snapshot, rewrote the
+  probe's answer line through `node:fs`'s `writeSync`, and rewrote a
+  scenario's record through a typed array of their own class, and each had
+  the checks believe an answer the code had not given. Each of those is closed
+  now, and a test in `demos/tests` holds it closed. What the code still
+  controls there is its own values, whose getters or Proxy traps run as the
+  scenario reads them, and the answers themselves: code that can tell which
+  scenario runs can lie only there, and a check that trusts a value the code
+  reports (monster-tamer-lite's Graded 11 and its draw) believes the lie.
+  No other way is known for it to change what a check
+  sees, but the last two were found after this text said none was left: read
+  it as what has been tried, not as proof. The freeze leaves `process`,
+  `console` and the timers alone, and holds only within the permission model
+  above. And the agent itself has
   a shell, as you: it can edit and commit the kit's clone, or fake a grade, so
   a local grade is feedback, not proof, and only CI's re-grade admits a run.
   CI runs the workspace's code too, under the same permission model. Look in

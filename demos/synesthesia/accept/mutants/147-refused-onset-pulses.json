@@ -1,0 +1,8 @@
+{
+  "id": "147-refused-onset-pulses",
+  "graded_item": 15,
+  "description": "a refused onset still sets the pulse to 1 (the flash is visible, only the counter is capped)",
+  "file": "src/synth.js",
+  "find": "        s.pattern = nextPattern();\n      }\n    }\n    if (idle) onsetTimes = [];",
+  "replace": "        s.pattern = nextPattern();\n      } else {\n        s.pulse = 1;\n      }\n    }\n    if (idle) onsetTimes = [];"
+}

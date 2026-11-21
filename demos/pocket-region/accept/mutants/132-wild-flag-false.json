@@ -1,0 +1,8 @@
+{
+  "id": "132-wild-flag-false",
+  "graded_item": 15,
+  "description": "wild battles are not marked wild",
+  "file": "src/game.js",
+  "find": "beginBattle(content, g, [makeCreature(content, pick.species, lv)], true, null);",
+  "replace": "beginBattle(content, g, [makeCreature(content, pick.species, lv)], false, null);"
+}

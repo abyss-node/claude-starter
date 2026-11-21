@@ -1,0 +1,8 @@
+{
+  "id": "077-tempo-six-onsets",
+  "graded_item": 13,
+  "description": "tempo needs six onsets",
+  "file": "src/onsets.js",
+  "find": "if (ts.length < 4) return 0;",
+  "replace": "if (ts.length < 6) return 0;"
+}

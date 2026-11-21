@@ -1,0 +1,8 @@
+{
+  "id": "112-warning-saves-wrong-value",
+  "graded_item": 18,
+  "description": "acknowledge saves another value",
+  "file": "src/safety.js",
+  "find": "storage.setItem(WARNING_KEY, 'yes');",
+  "replace": "storage.setItem(WARNING_KEY, 'seen');"
+}

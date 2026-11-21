@@ -1,0 +1,8 @@
+{
+  "id": "124-hash-constant",
+  "graded_item": 19,
+  "description": "hash is constant",
+  "file": "src/synth.js",
+  "find": "return h.toString(16).padStart(8, '0');",
+  "replace": "return '00000000';"
+}

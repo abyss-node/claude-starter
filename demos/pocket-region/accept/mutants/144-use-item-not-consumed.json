@@ -1,0 +1,8 @@
+{
+  "id": "144-use-item-not-consumed",
+  "graded_item": 16,
+  "description": "a used item stays in the bag",
+  "file": "src/game.js",
+  "find": "if (r.ok) { g.inventory = r.inventory; g.party = r.party; }",
+  "replace": "if (r.ok) { g.party = r.party; }"
+}

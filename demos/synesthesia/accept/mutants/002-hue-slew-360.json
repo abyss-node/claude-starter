@@ -1,0 +1,8 @@
+{
+  "id": "002-hue-slew-360",
+  "graded_item": 1,
+  "description": "MAX_HUE_SLEW is 360",
+  "file": "src/safety.js",
+  "find": "export const MAX_HUE_SLEW = 240;",
+  "replace": "export const MAX_HUE_SLEW = 360;"
+}

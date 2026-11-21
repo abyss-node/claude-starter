@@ -1,0 +1,8 @@
+{
+  "id": "057-power-zero-damages",
+  "graded_item": 5,
+  "description": "a power-0 move does 1 damage",
+  "file": "src/rules.js",
+  "find": "  if (!(move.power > 0)) return 0;\n",
+  "replace": ""
+}

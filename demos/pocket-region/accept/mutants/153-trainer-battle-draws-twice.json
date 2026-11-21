@@ -1,0 +1,11 @@
+{
+  "id": "153-trainer-battle-draws-twice",
+  "graded_item": 16,
+  "description": "a trainer battle draws twice for its seed",
+  "file": "src/game.js",
+  "find": "const seed = Math.floor(rngNext(g.rng) * 4294967296);",
+  "replace": "rngNext(g.rng);\n  const seed = Math.floor(rngNext(g.rng) * 4294967296);",
+  "expect": [
+    "Graded 16:"
+  ]
+}

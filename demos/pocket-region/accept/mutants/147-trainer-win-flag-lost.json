@@ -1,0 +1,8 @@
+{
+  "id": "147-trainer-win-flag-lost",
+  "graded_item": 16,
+  "description": "a trainer battle does not remember its win flag",
+  "file": "src/game.js",
+  "find": "beginBattle(content, g, enemies, false, spec.win ?? null);",
+  "replace": "beginBattle(content, g, enemies, false, null);"
+}

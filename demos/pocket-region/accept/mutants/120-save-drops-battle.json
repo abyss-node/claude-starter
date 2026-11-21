@@ -1,0 +1,8 @@
+{
+  "id": "120-save-drops-battle",
+  "graded_item": 14,
+  "description": "a battle in progress is not saved",
+  "file": "src/save.js",
+  "find": "return canonicalJson({ version: SAVE_VERSION, game });",
+  "replace": "return canonicalJson({ version: SAVE_VERSION, game: { ...game, battle: null } });"
+}

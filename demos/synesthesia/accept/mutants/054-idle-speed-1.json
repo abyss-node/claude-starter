@@ -1,0 +1,8 @@
+{
+  "id": "054-idle-speed-1",
+  "graded_item": 11,
+  "description": "idle speed 1",
+  "file": "src/synth.js",
+  "find": "export const IDLE_SPEED = 0.1;",
+  "replace": "export const IDLE_SPEED = 1;"
+}

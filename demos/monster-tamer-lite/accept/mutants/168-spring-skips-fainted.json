@@ -1,0 +1,8 @@
+{
+  "id": "168-spring-skips-fainted",
+  "graded_item": 13,
+  "description": "the spring does not revive a fainted creature",
+  "file": "src/game.js",
+  "find": "    c.hp = c.maxHp;\n    c.status = null;\n  }\n}",
+  "replace": "    if (c.hp > 0) c.hp = c.maxHp;\n    c.status = null;\n  }\n}"
+}

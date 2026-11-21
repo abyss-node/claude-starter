@@ -1,0 +1,8 @@
+{
+  "id": "092-daze-lasts-3",
+  "graded_item": 8,
+  "description": "daze lasts three turns",
+  "file": "src/data.js",
+  "find": "export const STATUS_TURNS = { scorch: 3, daze: 2, chill: 3 };",
+  "replace": "export const STATUS_TURNS = { scorch: 3, daze: 3, chill: 3 };"
+}

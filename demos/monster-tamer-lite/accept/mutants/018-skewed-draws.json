@@ -1,0 +1,8 @@
+{
+  "id": "018-skewed-draws",
+  "graded_item": 2,
+  "description": "draws are squared, so the mean is a third",
+  "file": "src/rng.js",
+  "find": "return ((t ^ (t >>> 14)) >>> 0) / 4294967296;",
+  "replace": "return (((t ^ (t >>> 14)) >>> 0) / 4294967296) ** 2;"
+}

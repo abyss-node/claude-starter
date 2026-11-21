@@ -1,0 +1,8 @@
+{
+  "id": "124-encounter-inverted",
+  "graded_item": 15,
+  "description": "the encounter happens when the draw is over the rate",
+  "file": "src/game.js",
+  "find": "if (!(a * 100 < (map.encounterRate ?? 0)) || list.length === 0) return;",
+  "replace": "if (!(a * 100 > (map.encounterRate ?? 0)) || list.length === 0) return;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "173-level-range-short",
+  "graded_item": 13,
+  "description": "the top level of the range is never met",
+  "file": "src/game.js",
+  "find": "(entry.maxLevel - entry.minLevel + 1)",
+  "replace": "(entry.maxLevel - entry.minLevel)"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "134-pick-always-last-entry",
+  "graded_item": 15,
+  "description": "the last entry is always picked",
+  "file": "src/game.js",
+  "find": "if (t < acc) { pick = e; break; }",
+  "replace": "if (t < acc) { break; }"
+}

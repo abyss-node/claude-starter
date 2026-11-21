@@ -1,0 +1,8 @@
+{
+  "id": "260-team-not-copied",
+  "graded_item": 19,
+  "description": "a battle holds the caller's creatures",
+  "file": "src/battle.js",
+  "find": "    const team = clone(s.team);",
+  "replace": "    const team = s.team;"
+}

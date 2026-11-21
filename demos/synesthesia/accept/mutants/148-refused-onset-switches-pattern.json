@@ -1,0 +1,8 @@
+{
+  "id": "148-refused-onset-switches-pattern",
+  "graded_item": 15,
+  "description": "a refused onset still switches the block pattern (the layout strobes, only the counter is capped)",
+  "file": "src/synth.js",
+  "find": "        s.pattern = nextPattern();\n      }\n    }\n    if (idle) onsetTimes = [];",
+  "replace": "        s.pattern = nextPattern();\n      } else {\n        s.pattern = nextPattern();\n      }\n    }\n    if (idle) onsetTimes = [];"
+}

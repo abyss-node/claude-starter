@@ -1,0 +1,8 @@
+{
+  "id": "105-set-limiter-always-on",
+  "graded_item": 17,
+  "description": "setLimiter always switches on",
+  "file": "src/synth.js",
+  "find": "limiterOn = Boolean(on);",
+  "replace": "limiterOn = true;"
+}

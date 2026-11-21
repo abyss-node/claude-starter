@@ -1,0 +1,8 @@
+{
+  "id": "055-idle-brightness-high",
+  "graded_item": 11,
+  "description": "idle brightness 0.5",
+  "file": "src/synth.js",
+  "find": "export const IDLE_BRIGHTNESS = 0.1;",
+  "replace": "export const IDLE_BRIGHTNESS = 0.5;"
+}

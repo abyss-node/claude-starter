@@ -1,0 +1,11 @@
+{
+  "id": "145-step-changes-input",
+  "graded_item": 16,
+  "description": "step works on the game it was given",
+  "file": "src/game.js",
+  "find": "const g = structuredClone(game);",
+  "replace": "const g = game;",
+  "expect": [
+    "Graded 16:"
+  ]
+}

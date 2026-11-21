@@ -1,0 +1,8 @@
+{
+  "id": "031-unknown-move-listed",
+  "graded_item": 4,
+  "description": "a species lists a move that does not exist",
+  "file": "src/data.js",
+  "find": "moves: ['wick-flick', 'ash-burst', 'pebble-toss']",
+  "replace": "moves: ['wick-flick', 'ash-burst', 'pebble-tosss']"
+}

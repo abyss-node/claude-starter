@@ -1,0 +1,8 @@
+{
+  "id": "legal-004-log-damage-extra-fields",
+  "graded_item": 0,
+  "description": "damage entries carry extra fields",
+  "file": "src/battle.js",
+  "find": "battle.log.push({ type: 'damage', side: foeSide, amount, hp: foe.hp, cause: 'move' });",
+  "replace": "battle.log.push({ type: 'damage', side: foeSide, amount, hp: foe.hp, cause: 'move', by: side, move: move.id });"
+}

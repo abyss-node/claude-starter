@@ -1,0 +1,8 @@
+{
+  "id": "064-onset-or-gap",
+  "graded_item": 12,
+  "description": "gap condition is an or",
+  "file": "src/onsets.js",
+  "find": "const hit = flux > threshold && t - lastOnset >= MIN_ONSET_GAP;",
+  "replace": "const hit = flux > threshold || t - lastOnset >= MIN_ONSET_GAP;"
+}

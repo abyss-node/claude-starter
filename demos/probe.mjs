@@ -2,8 +2,9 @@
 // imported by the checks shares node:assert, Math and every other global with them and can replace any of
 // them: a module that set assert.equal and assert.ok to no-ops and returned constants once passed every check.
 // So the checks never import the workspace. outcomes() starts a new Node process (probe-child.mjs), which
-// imports the module and makes the calls, and hands back only what each call returned or threw. Whatever the
-// workspace's code does there, all it can change is those answers, and a right answer is the work itself.
+// imports the module and makes the calls, and hands back only what each call returned or threw, on a line that
+// carries a key the workspace's code cannot learn. Whatever that code does there, all it can change is those
+// answers, and a right answer is the work itself.
 //
 // That process runs under Node's permission model: it may read the workspace, which check.py has copied into
 // a folder of its own, and the two probe files; a scenario's process (below) may also read the scenario's
@@ -21,9 +22,17 @@
 // frozen before it is handed over, a callback) runs a scenario: a function exported by a module in the demo's
 // accept/ folder, which the same kind of process imports beside the workspace and runs there (scenario()). It
 // returns observations, plain data, and the asserts stay here. A scenario shares that process with the
-// workspace's code, which can change what it observes, so it returns what it saw, never a verdict such as
-// `true` for "it was pure": the test compares what it saw with what the kit computed.
+// workspace's code. Before that code loads, probe-child.mjs freezes the built-ins and what the kit's modules
+// there export, takes away Node's heap snapshots, promise hooks and syncBuiltinESMExports, and holds the clocks,
+// and it writes the answer from copies with functions it holds itself, so that code cannot change how a scenario
+// looks by any route demos/tests has tried (workspaces once changed Number.prototype.toFixed,
+// Object.getPrototypeOf, Math.random, a scenario's own table of seeds or node:fs's writeSync, and hid a real bug
+// each time). A scenario imports no node: module (scenarioReads). What that code can still change is its own
+// values as they are read: a getter or a Proxy
+// of its own runs when the scenario reads it. So a scenario returns what it saw, the values themselves, never a
+// verdict such as `true` for "it was pure" nor text it made of them: the test formats, classifies and compares.
 import { spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -68,6 +77,10 @@ function workspaceDir() {
   return path.resolve(ws);
 }
 
+// The key the answer line must carry, new for each process: the child reads it from stdin before any workspace
+// module loads, and the workspace's code, which can print lines of its own, cannot learn it.
+const answerKey = () => randomBytes(16).toString('hex');
+
 // Start probe-child.mjs under the permission model, reading the copy, the probe files and `alsoRead`, with
 // `args`, and return its one answer. `what` names it in a message.
 function ask(what, args, alsoRead, timeoutMs) {
@@ -78,21 +91,23 @@ function ask(what, args, alsoRead, timeoutMs) {
   delete env.DEMO_RESULT_TOKEN; // only the runner's own result lines carry it
   const flags = ['--permission', ...[ws, CHILD, PROBE, ...alsoRead].map((p) => `--allow-fs-read=${p}`)];
   const timeout = timeoutMs || TIMEOUT_MS;
+  const key = answerKey();
+  const head = `${MARK}${key}:`;
   const run = spawnSync(process.execPath, [...flags, CHILD, ...args], {
     cwd: ws, env, encoding: 'utf8', timeout, maxBuffer: MAX_OUTPUT, windowsHide: true,
-    stdio: ['ignore', 'pipe', 'pipe'],
+    input: key, stdio: ['pipe', 'pipe', 'pipe'],
   });
   if (run.error) {
     const why = run.error.code === 'ETIMEDOUT' ? `gave no answer within ${timeout / 1000} seconds` : run.error.message;
     throw new Error(`${what}: ${why}`);
   }
-  const line = String(run.stdout).split('\n').reverse().find((l) => l.startsWith(MARK));
+  const line = String(run.stdout).split('\n').find((l) => l.startsWith(head));
   if (!line) {
     const why = firstError(run.stderr) || `its process exited (${run.status ?? run.signal}) without an answer`;
     throw new Error(`${what}: ${why}`);
   }
   try {
-    return v8.deserialize(Buffer.from(line.slice(MARK.length), 'base64'));
+    return v8.deserialize(Buffer.from(line.slice(head.length), 'base64'));
   } catch (e) {
     throw new Error(`${what}: an answer that cannot be read (${e.message})`);
   }
@@ -111,7 +126,8 @@ const READS = new Map();
  * reference solution, since a folder's grant covers everything below it. So an import is followed only to a .mjs
  * module of the scenario's own folder outside mutants/, or to a probe file; anything else throws, before any
  * process starts, naming the import. An import missed here is not granted, so it fails to load (the permission
- * model denies it) rather than widening what can be read.
+ * model denies it) rather than widening what can be read. A node: builtin throws too: its functions read what the
+ * workspace's code beside the scenario can change, such as util.inspect.defaultOptions under inspect.
  */
 export function scenarioReads(file) {
   if (READS.has(file)) return READS.get(file);
@@ -139,7 +155,11 @@ export function scenarioReads(file) {
     }
     reads.push(f);
     for (const [, , s] of withoutComments(source).matchAll(IMPORT_SPEC)) {
-      if (!s.startsWith('./') && !s.startsWith('../')) continue;   // a node: builtin
+      if (!s.startsWith('./') && !s.startsWith('../')) {
+        throw new Error(`${path.relative(root, f)} imports ${s}, which the workspace's code in a scenario's process `
+          + 'can change: a scenario reads with the built-ins the probe freezes and the modules of its own folder '
+          + '(demos/AUTHORING.md)');
+      }
       const target = path.resolve(path.dirname(f), s);
       if (target !== PROBE && target !== CHILD) todo.push([target, f, s]);
     }
@@ -150,11 +170,12 @@ export function scenarioReads(file) {
 
 /**
  * Run the function `name`, exported by the scenario module `file` (a file URL or path of a module in the demo's
- * accept/ folder), in a process of its own beside the workspace: `fn({ load }, ...args)`, where `await
- * load('src/x.js')` imports a workspace module. Returns what it returned (awaited), which must be plain data;
+ * accept/ folder), in a process of its own beside the workspace: `fn({ load, withoutClocks }, ...args)`, where
+ * `await load('src/x.js')` imports a workspace module and `withoutClocks(fn)` runs fn with Math.random, Date.now and
+ * performance.now throwing (probe-child.mjs). Returns what it returned (awaited), which must be plain data;
  * throws, saying why, when it threw, a workspace module did not load or the process gave no answer. The
  * process may read the copy, the probe files and the files scenarioReads names, and nothing else: whatever a
- * scenario imports, the workspace's code there can read too. Options: timeoutMs (default 30000).
+ * scenario imports, the workspace's code there can read, and import, too. Options: timeoutMs (default 30000).
  */
 export function scenario(file, name, args = [], { timeoutMs } = {}) {
   const scenarioPath = String(file).startsWith('file:') ? fileURLToPath(file) : path.resolve(String(file));
@@ -166,8 +187,10 @@ export function scenario(file, name, args = [], { timeoutMs } = {}) {
   } catch (e) {
     throw new Error(`${what} did not run: ${e.message}`);
   }
+  // The kit's modules among what it may read: probe-child.mjs freezes what each exports.
+  const modules = reads.filter((f) => path.extname(f) === '.mjs').map((f) => pathToFileURL(f).href);
   const answer = ask(what, ['--scenario', pathToFileURL(scenarioPath).href, name, wsHref,
-    v8.serialize(args).toString('base64')], reads, timeoutMs);
+    v8.serialize(args).toString('base64'), v8.serialize(modules).toString('base64')], reads, timeoutMs);
   if (answer && typeof answer === 'object' && isText(answer.loadError)) {
     throw new Error(`${what} did not run: ${answer.loadError}`);
   }

@@ -1,0 +1,8 @@
+{
+  "id": "218-ai-ignores-seed",
+  "graded_item": 16,
+  "description": "the computer ignores the battle seed",
+  "file": "src/ai.js",
+  "find": "  const probe = JSON.parse(JSON.stringify(battle.rng));\n  for (let i = 0; i < battle.turn; i++) nextFloat(probe);\n  const explore = nextFloat(probe) < 0.15;\n  const draw = nextFloat(probe);",
+  "replace": "  const explore = false;\n  const draw = 0;"
+}

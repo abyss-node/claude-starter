@@ -5,7 +5,7 @@ import { ask } from './ask.mjs';
 
 // The first value in a list of [path, kind] pairs that plain data does not allow, as text; null when all do.
 const notPlain = (pairs) => {
-  const bad = pairs.find(([, kind]) => !PLAIN_KINDS.has(kind));
+  const bad = pairs.find(([, kind]) => !PLAIN_KINDS.includes(kind));
   return bad ? `${bad[0]} is ${bad[1]}` : null;
 };
 

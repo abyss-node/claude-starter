@@ -1,0 +1,8 @@
+{
+  "id": "038-wild-table-unknown-species",
+  "graded_item": 4,
+  "description": "the wild table names a species that does not exist",
+  "file": "src/data.js",
+  "find": "species: 'kelpjaw', weight: 1",
+  "replace": "species: 'kelpjawz', weight: 1"
+}

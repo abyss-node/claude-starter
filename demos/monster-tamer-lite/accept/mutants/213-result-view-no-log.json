@@ -1,0 +1,8 @@
+{
+  "id": "213-result-view-no-log",
+  "graded_item": 15,
+  "description": "the result view has no log",
+  "file": "src/duel.js",
+  "find": "if (duel.stage === 'result') return { ...base, teams: teams(b), log: duel.turnLog };",
+  "replace": "if (duel.stage === 'result') return { ...base, teams: teams(b) };"
+}

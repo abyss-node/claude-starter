@@ -1,0 +1,8 @@
+{
+  "id": "062-plus-one",
+  "graded_item": 8,
+  "description": "damage adds 1 instead of 2",
+  "file": "src/battle.js",
+  "find": "Math.floor((move.power * attacker.atk) / defender.def) + 2",
+  "replace": "Math.floor((move.power * attacker.atk) / defender.def) + 1"
+}

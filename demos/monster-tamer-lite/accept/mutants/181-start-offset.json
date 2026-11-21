@@ -1,0 +1,8 @@
+{
+  "id": "181-start-offset",
+  "graded_item": 13,
+  "description": "the player starts one tile off the S",
+  "file": "src/game.js",
+  "find": "    x: start.x,\n    y: start.y,\n    steps: 0,",
+  "replace": "    x: start.x + 1,\n    y: start.y,\n    steps: 0,"
+}

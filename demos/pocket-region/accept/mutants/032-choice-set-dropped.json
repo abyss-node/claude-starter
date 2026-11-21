@@ -1,0 +1,8 @@
+{
+  "id": "032-choice-set-dropped",
+  "graded_item": 5,
+  "description": "a choice does not set its flags",
+  "file": "src/dialogue.js",
+  "find": "for (const f of picked.set || []) flags[f] = true;",
+  "replace": "for (const f of []) flags[f] = true;"
+}

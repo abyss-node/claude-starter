@@ -1,0 +1,8 @@
+{
+  "id": "105-draw-is-side-1",
+  "graded_item": 9,
+  "description": "a double faint is won by side 1",
+  "file": "src/battle.js",
+  "find": "battle.winner = living[0] ? 0 : living[1] ? 1 : -1;",
+  "replace": "battle.winner = living[0] ? 0 : 1;"
+}

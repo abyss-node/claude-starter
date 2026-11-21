@@ -1,0 +1,8 @@
+{
+  "id": "016-chroma-min-20hz",
+  "graded_item": 4,
+  "description": "pitch range starts at 20 Hz",
+  "file": "src/analysis.js",
+  "find": "export const MIN_PITCH_HZ = 55;",
+  "replace": "export const MIN_PITCH_HZ = 20;"
+}

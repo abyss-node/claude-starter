@@ -1,0 +1,8 @@
+{
+  "id": "068-pattern-may-repeat",
+  "graded_item": 12,
+  "description": "a flash may pick the same pattern again",
+  "file": "src/synth.js",
+  "find": "return (s.pattern + 1 + Math.floor(rng() * (PATTERN_COUNT - 1))) % PATTERN_COUNT;",
+  "replace": "return Math.floor(rng() * PATTERN_COUNT);"
+}

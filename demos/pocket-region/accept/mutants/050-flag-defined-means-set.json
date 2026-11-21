@@ -1,0 +1,11 @@
+{
+  "id": "050-flag-defined-means-set",
+  "graded_item": 6,
+  "description": "a flag counts as set when it is defined, false and inherited names included",
+  "file": "src/map.js",
+  "find": "return Object.hasOwn(flags, name) && flags[name] === true;",
+  "replace": "return flags[name] !== undefined;",
+  "expect": [
+    "Graded 6:"
+  ]
+}

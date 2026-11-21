@@ -1,0 +1,8 @@
+{
+  "id": "221-ai-index-past-end",
+  "graded_item": 16,
+  "description": "the computer sometimes indexes past its options",
+  "file": "src/ai.js",
+  "find": "return options[Math.floor(draw * options.length)];",
+  "replace": "return options[Math.floor(draw * (options.length + 1))];"
+}

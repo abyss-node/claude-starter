@@ -1,0 +1,8 @@
+{
+  "id": "128-history-not-recorded",
+  "graded_item": 10,
+  "description": "history is never written",
+  "file": "src/battle.js",
+  "find": "  battle.history.push(clone(picks));\n",
+  "replace": ""
+}

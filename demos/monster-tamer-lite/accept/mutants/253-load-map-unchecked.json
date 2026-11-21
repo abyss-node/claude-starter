@@ -1,0 +1,8 @@
+{
+  "id": "253-load-map-unchecked",
+  "graded_item": 18,
+  "description": "loadGame accepts a save without a map",
+  "file": "src/game.js",
+  "find": "  if (!Array.isArray(g.map) || !Number.isInteger(g.x)",
+  "replace": "  if (!Number.isInteger(g.x)"
+}

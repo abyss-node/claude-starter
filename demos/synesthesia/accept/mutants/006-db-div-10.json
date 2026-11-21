@@ -1,0 +1,8 @@
+{
+  "id": "006-db-div-10",
+  "graded_item": 2,
+  "description": "dB converted with /10 instead of /20",
+  "file": "src/capture.js",
+  "find": "out[i] = Number.isFinite(v) ? 10 ** (v / 20) : 0;",
+  "replace": "out[i] = Number.isFinite(v) ? 10 ** (v / 10) : 0;"
+}

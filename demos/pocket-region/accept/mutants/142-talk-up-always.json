@@ -1,0 +1,11 @@
+{
+  "id": "142-talk-up-always",
+  "graded_item": 16,
+  "description": "talking always looks at the tile above",
+  "file": "src/game.js",
+  "find": "const [dx, dy] = DIRS[g.player.facing];",
+  "replace": "const [dx, dy] = DIRS.up;",
+  "expect": [
+    "Graded 16:"
+  ]
+}

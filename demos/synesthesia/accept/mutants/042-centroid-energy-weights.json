@@ -1,0 +1,8 @@
+{
+  "id": "042-centroid-energy-weights",
+  "graded_item": 9,
+  "description": "centroid weights by energy",
+  "file": "src/analysis.js",
+  "find": "weighted += binFrequency(k, m.length, rate) * m[k];",
+  "replace": "weighted += binFrequency(k, m.length, rate) * m[k] * m[k];"
+}

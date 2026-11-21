@@ -1,0 +1,8 @@
+{
+  "id": "072-tempo-last-five",
+  "graded_item": 13,
+  "description": "tempo from the last five onsets",
+  "file": "src/onsets.js",
+  "find": ".filter(Number.isFinite).slice(-9);",
+  "replace": ".filter(Number.isFinite).slice(-5);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "052-conversation-flags-lost",
+  "graded_item": 7,
+  "description": "flags set in a conversation are not kept by the game",
+  "file": "src/game.js",
+  "find": "  g.flags = r.game.flags;\n  g.inventory = r.game.inventory;\n  if (r.view.ended) {",
+  "replace": "  g.inventory = r.game.inventory;\n  if (r.view.ended) {"
+}

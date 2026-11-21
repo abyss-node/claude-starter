@@ -1,0 +1,8 @@
+{
+  "id": "144-page-no-mic",
+  "graded_item": 21,
+  "description": "page never asks for the microphone",
+  "file": "src/audio.js",
+  "find": "navigator.mediaDevices.getUserMedia({",
+  "replace": "navigator.mediaDevices.getDisplayMedia({"
+}

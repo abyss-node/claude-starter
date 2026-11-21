@@ -1,0 +1,8 @@
+{
+  "id": "026-unknown-type-is-neutral",
+  "graded_item": 3,
+  "description": "an unknown type gives 1 instead of throwing",
+  "file": "src/rules.js",
+  "find": "if (typeof v !== 'number') throw new Error(`unknown type pair ${attackType} -> ${defendType}`);",
+  "replace": "if (typeof v !== 'number') return 1;"
+}

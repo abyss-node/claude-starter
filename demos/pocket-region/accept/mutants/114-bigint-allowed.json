@@ -1,0 +1,8 @@
+{
+  "id": "114-bigint-allowed",
+  "graded_item": 13,
+  "description": "bigints are written",
+  "file": "src/save.js",
+  "find": "    case 'boolean': return value ? 'true' : 'false';",
+  "replace": "    case 'bigint': return String(value);\n    case 'boolean': return value ? 'true' : 'false';"
+}

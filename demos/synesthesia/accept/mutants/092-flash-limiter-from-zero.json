@@ -1,0 +1,8 @@
+{
+  "id": "092-flash-limiter-from-zero",
+  "graded_item": 15,
+  "description": "the limiter treats the first flash as refused",
+  "file": "src/safety.js",
+  "find": "let last = -Infinity;",
+  "replace": "let last = 0;"
+}

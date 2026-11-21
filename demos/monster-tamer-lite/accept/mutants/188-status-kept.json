@@ -1,0 +1,8 @@
+{
+  "id": "188-status-kept",
+  "graded_item": 14,
+  "description": "statuses survive the battle",
+  "file": "src/game.js",
+  "find": "  for (const c of party) c.status = null;\n",
+  "replace": ""
+}

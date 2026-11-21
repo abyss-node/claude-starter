@@ -1,0 +1,8 @@
+{
+  "id": "044-detail-div-3",
+  "graded_item": 9,
+  "description": "detail scale / 3",
+  "file": "src/synth.js",
+  "find": "Math.log10(centroid / 100) / 2",
+  "replace": "Math.log10(centroid / 100) / 3"
+}

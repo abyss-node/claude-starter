@@ -1,0 +1,8 @@
+{
+  "id": "158-one-level-at-a-time",
+  "graded_item": 12,
+  "description": "a big gain gives at most one level",
+  "file": "src/rules.js",
+  "find": "while (creature.level < MAX_LEVEL && creature.xp >= xpForLevel(creature.level + 1)) {",
+  "replace": "if (creature.level < MAX_LEVEL && creature.xp >= xpForLevel(creature.level + 1)) {"
+}

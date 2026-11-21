@@ -1,0 +1,8 @@
+{
+  "id": "153-reward-no-minimum",
+  "graded_item": 12,
+  "description": "the reward can be 0",
+  "file": "src/rules.js",
+  "find": "return Math.max(1, Math.floor((foe.baseXp * foe.level) / 5));",
+  "replace": "return Math.floor((foe.baseXp * foe.level) / 5);"
+}

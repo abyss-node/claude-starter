@@ -1,0 +1,8 @@
+{
+  "id": "110-warning-error-hides",
+  "graded_item": 18,
+  "description": "a storage error hides the warning",
+  "file": "src/safety.js",
+  "find": "return storage.getItem(WARNING_KEY) !== 'yes';\n  } catch {\n    return true;",
+  "replace": "return storage.getItem(WARNING_KEY) !== 'yes';\n  } catch {\n    return false;"
+}

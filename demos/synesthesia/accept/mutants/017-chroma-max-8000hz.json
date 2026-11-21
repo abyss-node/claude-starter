@@ -1,0 +1,8 @@
+{
+  "id": "017-chroma-max-8000hz",
+  "graded_item": 4,
+  "description": "pitch range ends at 8000 Hz",
+  "file": "src/analysis.js",
+  "find": "export const MAX_PITCH_HZ = 4200;",
+  "replace": "export const MAX_PITCH_HZ = 8000;"
+}

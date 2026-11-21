@@ -523,6 +523,458 @@ def test_a_scenarios_process_reads_only_the_modules_it_imports(local_demos):
     assert '"find": "w.t += 1"' in got[1].detail and "a module of accept/ no scenario imports" in got[2].detail, got
 
 
+# A scenario reads the workspace's values with the built-ins of the process it shares with the workspace's code. A
+# verifier's workspace once changed one of them in 5 to 7 lines and hid a real bug, three times over: a
+# Number.prototype.toFixed that made each stream the scenario formatted unique (seeds 0 and 65536 collided), an
+# Object.getPrototypeOf that made a class instance look plain, and a Math.random the scenario could not take away.
+# Another rewrote the scenario's own table of seeds, imported by the URL on its command line, and another hooked the
+# promises made after it loaded and rewrote the record a scenario's helper resolved with. probe-child.mjs now
+# freezes the built-ins (harden), takes Node's ways of looking into the process away (takeAway) and freezes what
+# the kit's modules there export (freezeExports) before any workspace module loads, and holds the clocks itself.
+# These scenarios still format and classify beside the workspace, which the monster-tamer-lite ones no longer do,
+# so that the freeze alone is what each check here rests on.
+FROZEN_SCENARIOS = (
+    "export const SEEDS = [0, 65536, 7];\n"
+    "export async function streams({ load }) {\n"
+    "  const m = await load('src/gen.js');\n"
+    "  return SEEDS.map((seed) => { const g = m.makeGen(seed); return [0, 1, 2].map(() => m.next(g).toFixed(9)).join(','); });\n"
+    "}\n"
+    "const look = async (gen) => ({ proto: Object.getPrototypeOf(gen) });\n"
+    "export async function prototype({ load }) {\n"
+    "  const m = await load('src/gen.js');\n"
+    "  const { proto } = await look(m.makeGen(1));\n"
+    "  return proto === Object.prototype ? 'Object.prototype' : String(proto && proto.constructor && proto.constructor.name);\n"
+    "}\n"
+    "export async function clockless({ load, withoutClocks }) {\n"
+    "  const m = await load('src/gen.js');\n"
+    "  try { withoutClocks(() => { const g = m.makeGen(3); for (let i = 0; i < 10; i++) m.next(g); }); return 'ran'; }\n"
+    "  catch (e) { return String(e.message); }\n"
+    "}\n"
+    "export async function copy({ load }) {\n"
+    "  const m = await load('src/gen.js');\n"
+    "  return JSON.stringify(m.makeGen(5));\n"
+    "}\n"
+    "export async function source({ load }) {\n"
+    "  const m = await load('src/gen.js');\n"
+    "  return Function.prototype.toString.call(m.next);\n"
+    "}\n")
+FROZEN_CHECKS = ["each seed has a stream of its own", "the state is plain data", "it reads no clock",
+                 "the state holds the seed alone", "next reads no global"]
+FROZEN_TEST = (
+    "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\n"
+    "import { scenario } from '../../probe.mjs';\n"
+    "const S = new URL('./scenarios.mjs', import.meta.url);\n"
+    f"test({FROZEN_CHECKS[0]!r}, () => {{\n"
+    "  const got = scenario(S, 'streams');\n  assert.equal(new Set(got).size, 3, got.join(' | '));\n});\n"
+    f"test({FROZEN_CHECKS[1]!r}, () => {{\n  assert.equal(scenario(S, 'prototype'), 'Object.prototype');\n}});\n"
+    f"test({FROZEN_CHECKS[2]!r}, () => {{\n  assert.equal(scenario(S, 'clockless'), 'ran');\n}});\n"
+    f"test({FROZEN_CHECKS[3]!r}, () => {{\n  assert.equal(scenario(S, 'copy'), '{{\"s\":5}}');\n}});\n"
+    f"test({FROZEN_CHECKS[4]!r}, () => {{\n  assert.doesNotMatch(scenario(S, 'source'), /globalThis/);\n}});\n")
+GEN = ("export const makeGen = (seed) => ({ s: seed >>> 0 });\n"
+       "export function next(g) {\n  g.s = (Math.imul(g.s ^ (g.s >>> 15), 0x2c1b3c6d) + 0x9e3779b9) >>> 0;\n"
+       "  return g.s / 4294967296;\n}\n")
+FROZEN_DEMO = {
+    "demo.json": dict(MIXED_DEMO["demo.json"], title="Frozen", app="Frozen", stack="node", runtime="node",
+                      kickoff="Build it.", accept_count=len(FROZEN_CHECKS)),
+    "BRIEF.md": MIXED_DEMO["BRIEF.md"],
+    "skeleton/src/gen.js": "export function makeGen() { throw new Error('not built yet'); }\n",
+    "reference/src/gen.js": GEN,
+    "accept/scenarios.mjs": FROZEN_SCENARIOS,
+    "accept/frozen.test.mjs": FROZEN_TEST,
+}
+# The real bugs, edits of GEN, each failing one check alone.
+A_CLASS = ("({ s: seed >>> 0 })", "new (class Gen { constructor(s) { this.s = s; } })(seed >>> 0)")
+LOW_BITS = ("seed >>> 0", "seed & 0xffff")
+A_CLOCK = ("return g.s / 4294967296;", "return g.s / 4294967296 + Math.random() * 0;")
+AN_EXTRA_FIELD = ("({ s: seed >>> 0 })", "({ s: seed >>> 0, t: 0 })")
+A_GLOBAL = ("return g.s / 4294967296;", "return g.s / 4294967296 + (globalThis.bias || 0);")
+FREEZE_BUILT_INS = "\nharden();\n"
+FREEZE_EXPORTS = "  for (const href of deserialize(Buffer.from(modules, 'base64'))) freezeExports(href, await import(href));\n"
+# A promise hook that makes the record a scenario's helper resolves with say "plain", for either module's hook.
+HOOKED = ("const then = Promise.prototype.then;\nlet busy = false;\n"
+          "const plain = (v) => { if (v && typeof v === 'object' && 'proto' in v) v.proto = Object.prototype; };\n"
+          "const hook = (p) => {\n  if (busy) return;\n  busy = true;\n"
+          "  try { then.call(p, plain, () => {}); } finally { busy = false; }\n};\n")
+# Each cheat, generalized: the real bug it hid, the check that bug fails, what the module imports for it, and the
+# cheat as an assignment and as a definition (for a hook, through each module that hands one out).
+FROZEN_CHEATS = {
+    "a prototype method": (
+        LOW_BITS, FROZEN_CHECKS[0], "",
+        ["const toFixed = Number.prototype.toFixed;\nlet tick = 0;\n"
+         "Number.prototype.toFixed = function (d) { return `${toFixed.call(this, d)}~${tick++}`; };\n",
+         "const toFixed = Number.prototype.toFixed;\nlet tick = 0;\n"
+         "Object.defineProperty(Number.prototype, 'toFixed', { value(d) { return `${toFixed.call(this, d)}~${tick++}`; } });\n"]),
+    "an Array method": (
+        LOW_BITS, FROZEN_CHECKS[0], "",
+        ["const join = Array.prototype.join;\nlet tick = 0;\n"
+         "Array.prototype.join = function (s) { return `${join.call(this, s)}~${tick++}`; };\n",
+         "const join = Array.prototype.join;\nlet tick = 0;\n"
+         "Object.defineProperty(Array.prototype, 'join', { value(s) { return `${join.call(this, s)}~${tick++}`; } });\n"]),
+    "Object.getPrototypeOf": (
+        A_CLASS, FROZEN_CHECKS[1], "",
+        ["const real = Object.getPrototypeOf;\nObject.getPrototypeOf = (o) => (real(o) === null ? null : Object.prototype);\n",
+         "const real = Object.getPrototypeOf;\n"
+         "Object.defineProperty(Object, 'getPrototypeOf', { value: (o) => (real(o) === null ? null : Object.prototype) });\n"]),
+    "Math.random": (
+        A_CLOCK, FROZEN_CHECKS[2], "",
+        ["Math.random = () => 0.5;\n",
+         "Object.defineProperty(Math, 'random', { configurable: true, get: () => () => 0.5, set() {} });\n"]),
+    "JSON": (
+        AN_EXTRA_FIELD, FROZEN_CHECKS[3], "",
+        ["const stringify = JSON.stringify;\n"
+         "JSON.stringify = (v, ...rest) => stringify(v && typeof v === 'object' && 's' in v ? { s: v.s } : v, ...rest);\n",
+         "const stringify = JSON.stringify;\nObject.defineProperty(JSON, 'stringify', {\n"
+         "  value: (v, ...rest) => stringify(v && typeof v === 'object' && 's' in v ? { s: v.s } : v, ...rest) });\n"]),
+    "Function.prototype.toString": (
+        A_GLOBAL, FROZEN_CHECKS[4], "",
+        ["const toString = Function.prototype.toString;\n"
+         "Function.prototype.toString = function () { return toString.call(this).replaceAll('globalThis', 'g'); };\n",
+         "const toString = Function.prototype.toString;\nObject.defineProperty(Function.prototype, 'toString', {\n"
+         "  value() { return toString.call(this).replaceAll('globalThis', 'g'); } });\n"]),
+    # Not a verifier's: the answer rewritten as probe-child.mjs serializes it, past every check at once.
+    "the serializer": (
+        A_CLASS, FROZEN_CHECKS[1], "import v8 from 'node:v8';\n",
+        ["const write = v8.Serializer.prototype.writeValue;\n"
+         "v8.Serializer.prototype.writeValue = function (v) {\n"
+         "  if (v && v.results && v.results[0] && v.results[0].value === 'Gen') v.results[0].value = 'Object.prototype';\n"
+         "  return write.call(this, v);\n};\n",
+         "const write = v8.Serializer.prototype.writeValue;\n"
+         "Object.defineProperty(v8.Serializer.prototype, 'writeValue', { value(v) {\n"
+         "  if (v && v.results && v.results[0] && v.results[0].value === 'Gen') v.results[0].value = 'Object.prototype';\n"
+         "  return write.call(this, v);\n} });\n"]),
+    "the scenario's own table": (
+        LOW_BITS, FROZEN_CHECKS[0], "",
+        ["const at = process.argv.find((a) => a.startsWith('file:') && a.endsWith('/scenarios.mjs'));\n"
+         "const { SEEDS } = await import(at);\nSEEDS.forEach((s, i) => { SEEDS[i] = i; });\n",
+         "const at = process.argv.find((a) => a.startsWith('file:') && a.endsWith('/scenarios.mjs'));\n"
+         "const { SEEDS } = await import(at);\nSEEDS.forEach((s, i) => Object.defineProperty(SEEDS, i, { value: i }));\n"]),
+    # Not a verifier's either: every promise made once the module has loaded, the helper's among them.
+    "a promise hook": (
+        A_CLASS, FROZEN_CHECKS[1], "import { createHook } from 'node:async_hooks';\nimport v8 from 'node:v8';\n",
+        [HOOKED + "createHook({ init(id, type, trigger, p) { if (type === 'PROMISE') hook(p); } }).enable();\n",
+         HOOKED + "v8.promiseHooks.onInit(hook);\n"]),
+}
+
+
+def frozen_ws(tmp_path: Path, name: str, source: str) -> Path:
+    ws = tmp_path / name
+    (ws / "src").mkdir(parents=True)
+    (ws / "src" / "gen.js").write_text(source, encoding="utf-8")
+    return ws
+
+
+def frozen_results(demo, ws: Path) -> list:
+    return [(c.name, c.ok) for c in check.run_accept(demo, ws)]
+
+
+def caught(prelude: str, cheat: str, source: str) -> str:
+    """The cheat in a try block, so that the module loads whether it took or not."""
+    return prelude + "try {\n" + cheat + "} catch { /* the built-ins are frozen */ }\n" + source
+
+
+@pytest.mark.parametrize("cheat", sorted(FROZEN_CHEATS))
+def test_a_workspace_cannot_change_the_built_ins_a_scenario_observes_with(local_demos, tmp_path, cheat):
+    """Each cheat, as written, throws as its module loads, so every check fails. Caught, so that the module loads,
+    it changes nothing a check sees: the bug fails the same checks as it does alone. The built-ins here include
+    what the kit's own modules export."""
+    make_demo(local_demos, "frozen", FROZEN_DEMO)
+    demo = dl.load_demo("frozen")
+    assert frozen_results(demo, demo.dir / "reference") == [(n, True) for n in FROZEN_CHECKS]
+    (find, replace), fails, prelude, forms = FROZEN_CHEATS[cheat]
+    buggy = GEN.replace(find, replace)
+    assert buggy != GEN
+    alone = frozen_results(demo, frozen_ws(tmp_path, "bug", prelude + buggy))
+    assert alone == [(n, n != fails) for n in FROZEN_CHECKS], alone
+    for i, form in enumerate(forms):
+        got = check.run_accept(demo, frozen_ws(tmp_path, f"as-written-{i}", prelude + form + buggy))
+        assert not any(c.ok for c in got) and all("TypeError" in c.detail for c in got), got
+        assert frozen_results(demo, frozen_ws(tmp_path, f"caught-{i}", caught(prelude, form, buggy))) == alone
+    # The plant: without the freeze, each form of the cheat hides the bug from every check. Both parts of it go,
+    # since freezing what the kit's modules export also freezes the built-ins their prototypes lead to.
+    child = local_demos / "probe-child.mjs"
+    text = dl.read_text(child)
+    assert FREEZE_BUILT_INS in text and FREEZE_EXPORTS in text
+    child.write_text(text.replace(FREEZE_BUILT_INS, "\n").replace(FREEZE_EXPORTS, ""), encoding="utf-8")
+    for i, form in enumerate(forms):
+        got = frozen_results(demo, frozen_ws(tmp_path, f"unfrozen-{i}", caught(prelude, form, buggy)))
+        assert got == [(n, True) for n in FROZEN_CHECKS], got
+
+
+def test_a_scenario_module_that_exports_what_freezing_cannot_keep_never_runs(local_demos):
+    """A frozen Set's members can still change, as can a frozen Map's, Date's or typed array's, so a module of a
+    scenario's process that exports one is refused before the workspace's code loads."""
+    spec = dict(FROZEN_DEMO)
+    spec["accept/scenarios.mjs"] = FROZEN_SCENARIOS + "export const KINDS = new Set(['number']);\n"
+    make_demo(local_demos, "frozen", spec)
+    demo = dl.load_demo("frozen")
+    got = check.run_accept(demo, demo.dir / "reference")
+    assert not any(c.ok for c in got) and all("exports KINDS, which holds a Set" in c.detail for c in got), got
+
+
+def test_an_answer_line_the_workspaces_code_prints_is_not_believed(local_demos, tmp_path):
+    """The workspace's code shares stdout with probe-child.mjs's answer and can print a line that looks like one,
+    as its module loads or as the process exits. The probe once took the last such line; now only the line with
+    the key it gave the process on stdin counts, and the workspace cannot learn the key."""
+    make_demo(local_demos, "frozen", FROZEN_DEMO)
+    demo = dl.load_demo("frozen")
+    guess = "0" * 32
+    forger = ("import v8 from 'node:v8';\n"
+              "const answer = v8.serialize({ results: [{ ok: true, value: 'Object.prototype' }] }).toString('base64');\n"
+              f"const line = (key) => `\\ndemo-probe-answer:${{key}}${{answer}}\\n`;\n"
+              f"for (const key of ['', '{guess}:']) process.stdout.write(line(key));\n"
+              f"process.on('exit', () => process.stdout.write(line('') + line('{guess}:')));\n")
+    ws = frozen_ws(tmp_path, "forger", forger + GEN.replace(*A_CLASS))
+    assert dict(frozen_results(demo, ws))[FROZEN_CHECKS[1]] is False
+    # The plant: with a key the workspace can guess, its own line is believed.
+    probe = local_demos / "probe.mjs"
+    planted = dl.read_text(probe).replace("randomBytes(16).toString('hex')", f"'{guess}'")
+    assert planted != dl.read_text(probe)
+    probe.write_text(planted, encoding="utf-8")
+    assert dict(frozen_results(demo, ws))[FROZEN_CHECKS[1]] is True
+
+
+# Node's ways of looking into the process a workspace's code shares with the kit's, each of which the permission
+# model allows. A workspace once read the answer key out of a heap snapshot and printed an answer line of its own
+# that the parent believed; the promise hooks are "a promise hook" above. Each is tried by every route to it: the
+# module's default export, a named import, process.getBuiltinModule and require.
+LOOK_INTO = {
+    "v8.getHeapSnapshot": "v8.getHeapSnapshot()",
+    "a named getHeapSnapshot": "getHeapSnapshot()",
+    "getBuiltinModule's getHeapSnapshot": "process.getBuiltinModule('node:v8').getHeapSnapshot()",
+    "require's getHeapSnapshot": "createRequire(import.meta.url)('node:v8').getHeapSnapshot()",
+    "v8.queryObjects": "v8.queryObjects(Object)",
+    "v8.setHeapSnapshotNearHeapLimit": "v8.setHeapSnapshotNearHeapLimit(1)",
+    "v8.setFlagsFromString": "v8.setFlagsFromString('--allow-natives-syntax')",
+    "v8.promiseHooks": "v8.promiseHooks.onInit(() => {})",
+    "async_hooks.createHook": "createHook({ init() {} }).enable()",
+    "async_hooks.executionAsyncResource": "executionAsyncResource()",
+}
+LOOKER = ("import v8, { getHeapSnapshot } from 'node:v8';\n"
+          "import { AsyncLocalStorage, createHook, executionAsyncResource } from 'node:async_hooks';\n"
+          "import { createRequire } from 'node:module';\n"
+          "const attempt = (f) => { try { f(); return 'ran'; } catch (e) { return String(e && e.message); } };\n"
+          "export const look = () => ({\n"
+          + "".join(f"  {json.dumps(k)}: attempt(() => {v}),\n" for k, v in LOOK_INTO.items())
+          + "});\n"
+          "const als = new AsyncLocalStorage();\n"
+          "export const kept = () => [als.run(5, () => als.getStore()), v8.deserialize(v8.serialize({ a: [1] })).a[0],\n"
+          "  typeof v8.getHeapStatistics().total_heap_size];\n")
+
+
+def test_nodes_ways_of_looking_into_the_process_are_taken_away(local_demos, tmp_path):
+    """Each throws, by every route to it, before any workspace module loads; what reads no value of the process
+    (the serializer, the statistics, AsyncLocalStorage) still works."""
+    ws = tmp_path / "ws"
+    (ws / "src").mkdir(parents=True)
+    (ws / "src" / "look.js").write_text(LOOKER, encoding="utf-8")
+    script = tmp_path / "t.mjs"
+    script.write_text(f"import {{ outcomes }} from {json.dumps((local_demos / 'probe.mjs').as_uri())};\n"
+                      "console.log(JSON.stringify(outcomes('src/look.js', [['look'], ['kept']])));\n", encoding="utf-8")
+
+    def looked() -> list:
+        r = subprocess.run([dl.exe("node"), str(script)], cwd=str(tmp_path), capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=120, env=dict(os.environ, DEMO_WORKSPACE=str(ws)))
+        assert r.returncode == 0, r.stdout + r.stderr
+        return json.loads(r.stdout)
+
+    look, kept = looked()
+    assert look["ok"] and kept == {"ok": True, "value": [5, 1, "number"]}, (look, kept)
+    assert {k: "taken away by the checks" in v for k, v in look["value"].items()} == dict.fromkeys(LOOK_INTO, True), look
+    # The plant: without harden(), each one runs.
+    child = local_demos / "probe-child.mjs"
+    text = dl.read_text(child)
+    assert FREEZE_BUILT_INS in text
+    child.write_text(text.replace(FREEZE_BUILT_INS, "\n"), encoding="utf-8")
+    look, _ = looked()
+    assert look["value"] == dict.fromkeys(LOOK_INTO, "ran"), look
+
+
+# A writeSync for node:fs that rewrites the answer line it is handed, key and all, so that the plain-data check sees
+# what it wants. It reaches probe-child.mjs only while the probe calls writeSync by a binding that
+# syncBuiltinESMExports re-points: a verifier's workspace did this, with no import statement, and passed fair-share
+# and monster-tamer-lite with a planted bug (Node 22.13 and 24.14). Each swap reaches node:fs and the sync by its own
+# route: the default imports, process.getBuiltinModule, and createRequire with a named import of the sync.
+REWRITER = (
+    "import fs from 'node:fs';\nimport nodeModule, { createRequire, syncBuiltinESMExports } from 'node:module';\n"
+    "import v8 from 'node:v8';\n"
+    "const rewrite = (write) => function writeSync(fd, data, ...rest) {\n"
+    "  const m = fd === 1 && typeof data === 'string' && /demo-probe-answer:(\\w+):([\\w+/=]+)/.exec(data);\n"
+    "  if (!m) return write(fd, data, ...rest);\n"
+    "  const answer = v8.deserialize(Buffer.from(m[2], 'base64'));\n"
+    "  if (answer.results?.[0]?.value === 'Gen') answer.results[0].value = 'Object.prototype';\n"
+    "  write(1, `\\ndemo-probe-answer:${m[1]}:${v8.serialize(answer).toString('base64')}\\n`);\n"
+    "  return data.length;\n};\n")
+SWAPS = [
+    "fs.writeSync = rewrite(fs.writeSync);\nnodeModule.syncBuiltinESMExports();\n",
+    "const got = process.getBuiltinModule('node:fs');\ngot.writeSync = rewrite(got.writeSync);\n"
+    "process.getBuiltinModule('node:module').syncBuiltinESMExports();\n",
+    "const req = createRequire(import.meta.url)('node:fs');\nreq.writeSync = rewrite(req.writeSync);\n"
+    "syncBuiltinESMExports();\n",
+]
+# probe-child.mjs as it was before each of the two things that now keep the swap from it.
+BY_NAME = [("import fs from 'node:fs';\n", "import fs, { writeSync } from 'node:fs';\n"),
+           ("const { readFileSync, writeSync } = fs;\n", "const { readFileSync } = fs;\n")]
+SYNC_KEPT = [("const TAKEN = new Map([[nodeModule, ['syncBuiltinESMExports']]]);\n", "const TAKEN = new Map();\n")]
+
+
+def planted(path: Path, text: str, edits: list) -> None:
+    for old, new in edits:
+        assert text.count(old) == 1, old
+        text = text.replace(old, new)
+    path.write_text(text, encoding="utf-8")
+
+
+def test_the_answer_is_written_by_functions_the_workspace_cannot_swap(local_demos, tmp_path):
+    """probe-child.mjs holds node:fs's writeSync in a const of its own, and syncBuiltinESMExports is taken away. So
+    each swap, as written, throws as its module loads; caught, it changes nothing a check sees. Either of the two
+    alone keeps the swap out; with neither, as the probe was, each swap hides the bug from every check."""
+    make_demo(local_demos, "frozen", FROZEN_DEMO)
+    demo = dl.load_demo("frozen")
+    buggy = GEN.replace(*A_CLASS)
+    alone = frozen_results(demo, frozen_ws(tmp_path, "bug", buggy))
+    assert alone == [(n, n != FROZEN_CHECKS[1]) for n in FROZEN_CHECKS], alone
+    for i, swap in enumerate(SWAPS):
+        got = check.run_accept(demo, frozen_ws(tmp_path, f"as-written-{i}", REWRITER + swap + buggy))
+        assert not any(c.ok for c in got), got
+        assert all("node:module syncBuiltinESMExports was taken away" in c.detail for c in got), got
+        assert frozen_results(demo, frozen_ws(tmp_path, f"caught-{i}", caught(REWRITER, swap, buggy))) == alone
+    child = local_demos / "probe-child.mjs"
+    text = dl.read_text(child)
+    for label, edits in (("by-name", BY_NAME), ("sync-kept", SYNC_KEPT)):
+        planted(child, text, edits)
+        got = frozen_results(demo, frozen_ws(tmp_path, f"{label}-0", caught(REWRITER, SWAPS[0], buggy)))
+        assert got == alone, (label, got)
+    # The plant: the probe as it was, with both.
+    planted(child, text, BY_NAME + SYNC_KEPT)
+    for i, swap in enumerate(SWAPS):
+        got = frozen_results(demo, frozen_ws(tmp_path, f"unswapped-{i}", caught(REWRITER, swap, buggy)))
+        assert got == [(n, True) for n in FROZEN_CHECKS], (i, got)
+
+
+# A named import of a builtin, or a namespace import of one, reads the module's live exports, which
+# syncBuiltinESMExports re-points (above).
+NAMED_BUILTIN = re.compile(r"""^\s*import\s+(?:[\w$]+\s*,\s*)?(?:\{[^}]*\}|\*\s*as\s+[\w$]+)\s*from\s*['"]node:""",
+                           re.M)
+
+
+def test_probe_child_takes_no_builtin_by_a_named_import():
+    assert NAMED_BUILTIN.search("import { readFileSync, writeSync } from 'node:fs';\n")   # the line the swap used
+    assert NAMED_BUILTIN.search("import fs, { writeSync } from 'node:fs';\n")
+    assert NAMED_BUILTIN.search("import * as fs from 'node:fs';\n")
+    assert not NAMED_BUILTIN.search("import fs from 'node:fs';\nimport { MARK } from './probe.mjs';\n")
+    assert NAMED_BUILTIN.findall(dl.read_text(DEMOS / "probe-child.mjs")) == []
+
+
+# A scenario whose record holds a value of the workspace's beside one the scenario took itself: a frame, and the
+# first draw of seed 7.
+FIRST_DRAW = "(() => { const s = (Math.imul(7 ^ (7 >>> 15), 0x2c1b3c6d) + 0x9e3779b9) >>> 0; return s / 4294967296; })()"
+FRAMED_DEMO = {
+    "demo.json": dict(MIXED_DEMO["demo.json"], title="Framed", app="Framed", stack="node", runtime="node",
+                      kickoff="Build it.", accept_count=1),
+    "BRIEF.md": MIXED_DEMO["BRIEF.md"],
+    "skeleton/src/gen.js": "export function makeGen() { throw new Error('not built yet'); }\n",
+    "reference/src/gen.js": GEN + "export const frame = () => new Uint8Array(2);\n",
+    "accept/scenarios.mjs": ("export async function framed({ load }) {\n  const m = await load('src/gen.js');\n"
+                             "  const g = m.makeGen(7);\n  return { frame: m.frame(), first: m.next(g) };\n}\n"),
+    "accept/framed.test.mjs": (
+        "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\n"
+        "import { scenario } from '../../probe.mjs';\n"
+        "const S = new URL('./scenarios.mjs', import.meta.url);\n"
+        f"const want = {FIRST_DRAW};\n"
+        "test('the first draw of seed 7', () => {\n  assert.equal(scenario(S, 'framed').first, want);\n});\n"),
+}
+# A typed array of the workspace's own class whose length is 0 when the serializer writes it and the length of the
+# answer's rest when the serializer reads its bytes: those bytes, the rest of an answer the workspace made with the
+# right first draw, are read back as the rest of the record.
+FRAMER = (
+    "import v8 from 'node:v8';\n"
+    f"const want = {FIRST_DRAW};\n"
+    "const model = v8.serialize({ results: [{ ok: true, value: { frame: new Uint8Array(0), first: want } }] });\n"
+    "const rest = model.subarray(model.indexOf(Buffer.from([0x5c, 0x01, 0x00])) + 3);   // after the frame\n"
+    "let reads = 0;\n"
+    "class Frame extends Uint8Array {\n"
+    "  get byteLength() { reads += 1; return reads % 2 ? 0 : rest.length; }\n"
+    "  get buffer() { return rest.buffer; }\n"
+    "  get byteOffset() { return rest.byteOffset; }\n}\n"
+    "export const frame = () => new Frame(0);\n")
+A_CONSTANT = ("0x9e3779b9", "0x9e3779b8")
+COPIED = [("    const copy = clone(value);\n    serialize(copy);\n    return { ok: true, value: copy };\n",
+           "    serialize(value);\n    return { ok: true, value };\n")]
+
+
+def test_an_answer_holds_copies_a_typed_array_of_the_workspaces_cannot_rewrite(local_demos, tmp_path):
+    """probe-child.mjs copies what a scenario returns as it returns (structuredClone), so the serializer never asks
+    the workspace's Frame for its length; with the value itself in the answer, as the probe had it, the bytes the
+    Frame gave were read back as the record's first draw, and the bug passed."""
+    make_demo(local_demos, "framed", FRAMED_DEMO)
+    demo = dl.load_demo("framed")
+    assert frozen_results(demo, demo.dir / "reference") == [("the first draw of seed 7", True)]
+    buggy = GEN.replace(*A_CONSTANT)
+    assert buggy != GEN
+    ws = frozen_ws(tmp_path, "bug", buggy + "export const frame = () => new Uint8Array(2);\n")
+    assert frozen_results(demo, ws) == [("the first draw of seed 7", False)]
+    framed = frozen_ws(tmp_path, "framed", FRAMER + buggy)
+    assert frozen_results(demo, framed) == [("the first draw of seed 7", False)]
+    planted(local_demos / "probe-child.mjs", dl.read_text(local_demos / "probe-child.mjs"), COPIED)
+    assert frozen_results(demo, framed) == [("the first draw of seed 7", True)]
+
+
+def test_a_value_that_cannot_cross_is_its_calls_error_and_the_other_calls_still_answer(local_demos, tmp_path):
+    """structuredClone copies a SharedArrayBuffer that the answer's serializer then refuses; the probe serializes
+    each copy as it makes it, so that call gets the error and the answer is still written."""
+    ws = tmp_path / "ws"
+    (ws / "src").mkdir(parents=True)
+    (ws / "src" / "v.js").write_text("export const shared = () => new SharedArrayBuffer(8);\n"
+                                     "export const fn = () => () => 1;\nexport const one = () => 1;\n", encoding="utf-8")
+    script = tmp_path / "t.mjs"
+    script.write_text(f"import {{ outcomes }} from {json.dumps((local_demos / 'probe.mjs').as_uri())};\n"
+                      "console.log(JSON.stringify(outcomes('src/v.js', [['shared'], ['fn'], ['one']])));\n",
+                      encoding="utf-8")
+    r = subprocess.run([dl.exe("node"), str(script)], cwd=str(tmp_path), capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", timeout=120, env=dict(os.environ, DEMO_WORKSPACE=str(ws)))
+    assert r.returncode == 0, r.stdout + r.stderr
+    shared, fn, one = json.loads(r.stdout)
+    assert one == {"ok": True, "value": 1}, one
+    for o in (shared, fn):
+        assert not o["ok"] and o["error"]["name"] == "DataCloneError", o
+        assert "cannot be copied out of its process" in o["error"]["message"], o
+
+
+# A scenario that formats what it saw with node:util's inspect, which reads options the workspace's code beside it
+# can set (util.inspect.defaultOptions). No freeze keeps them: the setter writes into an object of Node's own.
+SHOWN_DEMO = {
+    "demo.json": dict(MIXED_DEMO["demo.json"], title="Shown", app="Shown", stack="node", runtime="node",
+                      kickoff="Build it.", accept_count=1),
+    "BRIEF.md": MIXED_DEMO["BRIEF.md"],
+    "skeleton/src/gen.js": "export function makeGen() { throw new Error('not built yet'); }\n",
+    "reference/src/gen.js": GEN,
+    "accept/scenarios.mjs": ("import { inspect } from 'node:util';\n"
+                             "export async function shown({ load }) {\n  const m = await load('src/gen.js');\n"
+                             "  return inspect(m.makeGen(5));\n}\n"),
+    "accept/shown.test.mjs": (
+        "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\n"
+        "import { scenario } from '../../probe.mjs';\n"
+        "const S = new URL('./scenarios.mjs', import.meta.url);\n"
+        "test('the state shows as { s: 5 }', () => {\n  assert.equal(scenario(S, 'shown'), '{ s: 5 }');\n});\n"),
+}
+LET_THROUGH = [("      if (!s.startsWith('./') && !s.startsWith('../')) {\n",
+                "      if (!s.startsWith('./') && !s.startsWith('../')) {\n        continue;\n")]
+
+
+def test_a_scenario_that_imports_a_node_module_never_runs(local_demos, tmp_path):
+    """Refused before any process starts, naming the import. The plant: let through, the scenario runs, and one line
+    of the workspace's changes what it reads."""
+    make_demo(local_demos, "shown", SHOWN_DEMO)
+    demo = dl.load_demo("shown")
+    got = check.run_accept(demo, demo.dir / "reference")
+    assert not got[0].ok and "scenarios.mjs imports node:util, which the workspace's code" in got[0].detail, got
+    probe = local_demos / "probe.mjs"
+    planted(probe, dl.read_text(probe), LET_THROUGH)
+    assert frozen_results(demo, demo.dir / "reference") == [("the state shows as { s: 5 }", True)]
+    options = "process.getBuiltinModule('node:util').inspect.defaultOptions = { depth: -1 };\n"
+    assert frozen_results(demo, frozen_ws(tmp_path, "options", options + GEN)) == [("the state shows as { s: 5 }", False)]
+
+
 # ---- the copy: git history, and git kept to the copy ------------------------------------------------------
 
 def test_a_copy_git_copy_keeps_the_history_and_drops_what_runs_commands(tmp_path):

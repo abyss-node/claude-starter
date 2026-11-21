@@ -1,0 +1,11 @@
+{
+  "id": "171-win-sends-nowhere",
+  "graded_item": 19,
+  "description": "after a win the game stays in battle mode",
+  "file": "src/game.js",
+  "find": "  g.battle = null;\n  g.mode = 'world';\n}",
+  "replace": "  g.battle = null;\n}",
+  "expect": [
+    "Graded 19:"
+  ]
+}

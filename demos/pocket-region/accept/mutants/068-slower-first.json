@@ -1,0 +1,8 @@
+{
+  "id": "068-slower-first",
+  "graded_item": 9,
+  "description": "the slower creature goes first",
+  "file": "src/battle.js",
+  "find": "return c.mon.spd - a.mon.spd;",
+  "replace": "return a.mon.spd - c.mon.spd;"
+}

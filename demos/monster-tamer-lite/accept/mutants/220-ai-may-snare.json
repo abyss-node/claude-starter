@@ -1,0 +1,8 @@
+{
+  "id": "220-ai-may-snare",
+  "graded_item": 16,
+  "description": "the computer may snare",
+  "file": "src/ai.js",
+  "find": "const options = legal.filter((a) => a.kind !== 'snare');",
+  "replace": "const options = legal;"
+}

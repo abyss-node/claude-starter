@@ -1,0 +1,8 @@
+{
+  "id": "148-success-turn-continues",
+  "graded_item": 11,
+  "description": "a catch does not end the battle",
+  "file": "src/battle.js",
+  "find": "      battle.winner = 0;\n      battle.phase = 'over';\n      battle.log.push({ type: 'end', winner: 0 });\n      return battle;",
+  "replace": "      battle.winner = 0;\n      battle.log.push({ type: 'end', winner: 0 });"
+}

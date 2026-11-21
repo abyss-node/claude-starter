@@ -1,0 +1,8 @@
+{
+  "id": "legal-007-priority-two",
+  "graded_item": 9,
+  "description": "the shipped quick move has priority 2: the brief leaves any priority open",
+  "file": "src/content.js",
+  "find": "power: 30, accuracy: 100, priority: 1 }",
+  "replace": "power: 30, accuracy: 100, priority: 2 }"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "007-franchise-move-name",
+  "graded_item": 1,
+  "description": "a move carries a franchise place name",
+  "file": "src/data.js",
+  "find": "name: 'Boulder Drop'",
+  "replace": "name: 'Kan\u0074o Slam'"
+}

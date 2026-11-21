@@ -1,0 +1,8 @@
+{
+  "id": "128-draw-on-floor",
+  "graded_item": 15,
+  "description": "encounters are rolled on any walkable tile",
+  "file": "src/game.js",
+  "find": "=== ',') {\n        wildEncounter",
+  "replace": "!== '~') {\n        wildEncounter"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "100-seed-mod-7",
+  "graded_item": 12,
+  "description": "the seed is taken modulo 7",
+  "file": "src/rng.js",
+  "find": "return { s: Number(seed) >>> 0 };",
+  "replace": "return { s: (Number(seed) % 7) >>> 0 };",
+  "expect": [
+    "Graded 12:"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "032-no-scorch-move",
+  "graded_item": 4,
+  "description": "no move inflicts scorch",
+  "file": "src/data.js",
+  "find": "status: { kind: 'scorch', chance: 30 }",
+  "replace": "status: { kind: 'chill', chance: 30 }"
+}

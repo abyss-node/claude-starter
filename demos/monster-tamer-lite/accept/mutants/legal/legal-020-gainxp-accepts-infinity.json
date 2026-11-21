@@ -1,0 +1,8 @@
+{
+  "id": "legal-020-gainxp-accepts-infinity",
+  "graded_item": 0,
+  "description": "gainXp uses a whole-number check that lets Infinity through (it caps at level 30)",
+  "file": "src/rules.js",
+  "find": "const add = Number.isInteger(amount) && amount > 0 ? amount : 0;",
+  "replace": "const add = typeof amount === 'number' && amount >= 0 && Math.floor(amount) === amount ? amount : 0;"
+}

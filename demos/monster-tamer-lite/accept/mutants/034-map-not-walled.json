@@ -1,0 +1,8 @@
+{
+  "id": "034-map-not-walled",
+  "graded_item": 4,
+  "description": "the map has a gap in its top wall",
+  "file": "src/data.js",
+  "find": "export const MAP = [\n  '##############',",
+  "replace": "export const MAP = [\n  '#.############',"
+}

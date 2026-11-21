@@ -1,0 +1,8 @@
+{
+  "id": "156-level-up-heals",
+  "graded_item": 12,
+  "description": "levelling heals fully",
+  "file": "src/rules.js",
+  "find": "if (creature.hp > 0) creature.hp += creature.maxHp - oldMax;",
+  "replace": "if (creature.hp > 0) creature.hp = creature.maxHp;"
+}

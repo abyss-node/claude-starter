@@ -1,0 +1,8 @@
+{
+  "id": "035-bad-choice-not-range-error",
+  "graded_item": 5,
+  "description": "a missing or non-number choice is not refused with RangeError",
+  "file": "src/dialogue.js",
+  "find": "if (!Number.isInteger(choice) || choice < 0 || choice >= visible.length) {",
+  "replace": "if (choice < 0 || choice >= visible.length) {"
+}

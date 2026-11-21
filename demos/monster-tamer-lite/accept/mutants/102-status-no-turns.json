@@ -1,0 +1,8 @@
+{
+  "id": "102-status-no-turns",
+  "graded_item": 8,
+  "description": "an applied status has one turn too few",
+  "file": "src/battle.js",
+  "find": "turns: STATUS_TURNS[move.status.kind] }",
+  "replace": "turns: STATUS_TURNS[move.status.kind] - 1 }"
+}

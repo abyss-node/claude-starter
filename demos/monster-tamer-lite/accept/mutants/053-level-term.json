@@ -1,0 +1,8 @@
+{
+  "id": "053-level-term",
+  "graded_item": 5,
+  "description": "the level term is level + 5",
+  "file": "src/rules.js",
+  "find": "attacker.level + 10) * typePct",
+  "replace": "attacker.level + 5) * typePct"
+}

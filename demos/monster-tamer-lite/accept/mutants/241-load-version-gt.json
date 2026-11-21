@@ -1,0 +1,8 @@
+{
+  "id": "241-load-version-gt",
+  "graded_item": 18,
+  "description": "loadGame only refuses versions above 1",
+  "file": "src/game.js",
+  "find": "if (g.version !== 1) throw",
+  "replace": "if (g.version > 1) throw"
+}

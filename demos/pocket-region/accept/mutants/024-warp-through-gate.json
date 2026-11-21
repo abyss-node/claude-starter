@@ -1,0 +1,8 @@
+{
+  "id": "024-warp-through-gate",
+  "graded_item": 4,
+  "description": "a warp tile ignores a closed gate on it",
+  "file": "src/movement.js",
+  "find": "const why = blockedReason(map, tx, ty, flags);",
+  "replace": "const why = (map.warps || []).some((w) => w.x === tx && w.y === ty) ? null : blockedReason(map, tx, ty, flags);"
+}

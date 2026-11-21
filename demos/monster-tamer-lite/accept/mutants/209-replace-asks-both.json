@@ -1,0 +1,8 @@
+{
+  "id": "209-replace-asks-both",
+  "graded_item": 15,
+  "description": "both players are asked to replace",
+  "file": "src/duel.js",
+  "find": "duel.queue = pickers(duel.battle);",
+  "replace": "duel.queue = [0, 1];"
+}

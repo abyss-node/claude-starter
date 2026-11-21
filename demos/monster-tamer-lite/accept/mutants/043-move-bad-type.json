@@ -1,0 +1,8 @@
+{
+  "id": "043-move-bad-type",
+  "graded_item": 4,
+  "description": "a move of a type that does not exist",
+  "file": "src/data.js",
+  "find": "name: 'Jolt Hum', type: 'spark'",
+  "replace": "name: 'Jolt Hum', type: 'sparks'"
+}

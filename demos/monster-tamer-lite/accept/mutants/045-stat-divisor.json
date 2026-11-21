@@ -1,0 +1,8 @@
+{
+  "id": "045-stat-divisor",
+  "graded_item": 5,
+  "description": "calcStat divides by 20",
+  "file": "src/rules.js",
+  "find": "return Math.floor((base * level) / 25) + 5;",
+  "replace": "return Math.floor((base * level) / 20) + 5;"
+}

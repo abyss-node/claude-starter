@@ -1,0 +1,8 @@
+{
+  "id": "069-no-draw-at-100",
+  "graded_item": 9,
+  "description": "a move with accuracy 100 draws nothing",
+  "file": "src/battle.js",
+  "find": "const r = rngNext(b.rng);\n    const hit = r * 100 < s.move.accuracy;",
+  "replace": "const hit = s.move.accuracy >= 100 || rngNext(b.rng) * 100 < s.move.accuracy;"
+}

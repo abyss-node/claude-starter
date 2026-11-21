@@ -1,0 +1,8 @@
+{
+  "id": "193-loss-no-heal",
+  "graded_item": 14,
+  "description": "a loss does not heal the party",
+  "file": "src/game.js",
+  "find": "    healParty(game);\n    game.x = game.start.x;",
+  "replace": "    game.x = game.start.x;"
+}

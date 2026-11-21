@@ -1,0 +1,8 @@
+{
+  "id": "144-failed-snare-ends-turn",
+  "graded_item": 11,
+  "description": "after a failed snare the foe does not move",
+  "file": "src/battle.js",
+  "find": "    if (success) {\n      battle.caught = true;",
+  "replace": "    if (!success) return battle;\n    if (success) {\n      battle.caught = true;"
+}

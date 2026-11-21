@@ -1,0 +1,8 @@
+{
+  "id": "011-support-file-false",
+  "graded_item": 3,
+  "description": "file input reported unsupported",
+  "file": "src/capture.js",
+  "find": "file: true,",
+  "replace": "file: false,"
+}

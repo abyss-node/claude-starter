@@ -1,0 +1,8 @@
+{
+  "id": "048-warmth-instant",
+  "graded_item": 10,
+  "description": "warmth jumps to its target",
+  "file": "src/synth.js",
+  "find": "s.warmth = slewToward(s.warmth, targetWarmth, WARMTH_SLEW * dt);",
+  "replace": "s.warmth = targetWarmth;"
+}

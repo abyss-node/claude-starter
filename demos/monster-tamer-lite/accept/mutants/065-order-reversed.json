@@ -1,0 +1,8 @@
+{
+  "id": "065-order-reversed",
+  "graded_item": 6,
+  "description": "the slower side acts first",
+  "file": "src/battle.js",
+  "find": "if (s0 > s1) order = [0, 1];\n    else if (s1 > s0) order = [1, 0];",
+  "replace": "if (s0 > s1) order = [1, 0];\n    else if (s1 > s0) order = [0, 1];"
+}

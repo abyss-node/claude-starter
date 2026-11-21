@@ -1,0 +1,8 @@
+{
+  "id": "118-rng-mod-7",
+  "graded_item": 19,
+  "description": "rng uses seed mod 7",
+  "file": "src/synth.js",
+  "find": "let a = Number(seed) >>> 0;",
+  "replace": "let a = (Number(seed) % 7) >>> 0;"
+}

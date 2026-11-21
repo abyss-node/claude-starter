@@ -1,0 +1,8 @@
+{
+  "id": "266-legal-null-throws",
+  "graded_item": 10,
+  "description": "isLegalAction throws on a null action instead of returning false",
+  "file": "src/battle.js",
+  "find": "if (!a || !b || a.kind !== b.kind) return false;",
+  "replace": "if (!a || a.kind !== b.kind) return false;"
+}

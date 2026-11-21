@@ -1,0 +1,8 @@
+{
+  "id": "078-over-battle-keeps-playing",
+  "graded_item": 10,
+  "description": "a finished battle takes more turns",
+  "file": "src/battle.js",
+  "find": "if (b.over) return b;",
+  "replace": ""
+}

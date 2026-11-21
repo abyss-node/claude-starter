@@ -1,0 +1,8 @@
+{
+  "id": "089-revive-can-be-zero",
+  "graded_item": 11,
+  "description": "a revive can leave 0 hp",
+  "file": "src/inventory.js",
+  "find": "Math.max(1, Math.floor(target.maxHp / 2))",
+  "replace": "Math.floor(target.maxHp / 2)"
+}

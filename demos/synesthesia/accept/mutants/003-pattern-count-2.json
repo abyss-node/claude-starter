@@ -1,0 +1,8 @@
+{
+  "id": "003-pattern-count-2",
+  "graded_item": 1,
+  "description": "PATTERN_COUNT is 2",
+  "file": "src/synth.js",
+  "find": "export const PATTERN_COUNT = 6;",
+  "replace": "export const PATTERN_COUNT = 2;"
+}

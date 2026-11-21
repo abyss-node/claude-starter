@@ -1,0 +1,8 @@
+{
+  "id": "212-continue-from-pick",
+  "graded_item": 15,
+  "description": "continuing is allowed from the pick stage",
+  "file": "src/duel.js",
+  "find": "  } else {\n    throw new Error(`cannot continue from stage ${duel.stage}`);\n  }",
+  "replace": "  } else {\n    duel.stage = 'result';\n  }"
+}

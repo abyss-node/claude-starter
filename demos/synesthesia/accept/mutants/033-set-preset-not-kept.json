@@ -1,0 +1,8 @@
+{
+  "id": "033-set-preset-not-kept",
+  "graded_item": 7,
+  "description": "setPreset changes the label but not the colours",
+  "file": "src/synth.js",
+  "find": "      presetName = name;\n",
+  "replace": ""
+}

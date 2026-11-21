@@ -1,0 +1,8 @@
+{
+  "id": "legal-007-ai-returns-copies",
+  "graded_item": 0,
+  "description": "the computer returns fresh copies of the action",
+  "file": "src/ai.js",
+  "find": "return top[Math.floor(draw * top.length)];",
+  "replace": "return { ...top[Math.floor(draw * top.length)] };"
+}

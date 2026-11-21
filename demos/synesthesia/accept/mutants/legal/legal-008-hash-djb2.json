@@ -1,0 +1,8 @@
+{
+  "id": "legal-008-hash-djb2",
+  "graded_item": 19,
+  "description": "stateHash is djb2 over the same text",
+  "file": "src/synth.js",
+  "find": "let h = 0x811c9dc5;\n  for (let i = 0; i < text.length; i++) {\n    h ^= text.charCodeAt(i);\n    h = Math.imul(h, 0x01000193) >>> 0;\n  }",
+  "replace": "let h = 5381;\n  for (let i = 0; i < text.length; i++) {\n    h = (Math.imul(h, 33) + text.charCodeAt(i)) >>> 0;\n  }"
+}

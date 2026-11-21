@@ -1,0 +1,8 @@
+{
+  "id": "079-accuracy-bonus",
+  "graded_item": 7,
+  "description": "accuracy is ten points kinder than stated",
+  "file": "src/battle.js",
+  "find": "nextFloat(battle.rng) * 100 < move.accuracy)) {",
+  "replace": "nextFloat(battle.rng) * 100 < move.accuracy + 10)) {"
+}

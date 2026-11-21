@@ -1,0 +1,8 @@
+{
+  "id": "237-history-misses-replacements",
+  "graded_item": 17,
+  "description": "replacement picks are not recorded",
+  "file": "src/battle.js",
+  "find": "battle.history.push(clone(picks));",
+  "replace": "if (battle.phase !== 'replace') battle.history.push(clone(picks));"
+}

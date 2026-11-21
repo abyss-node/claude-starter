@@ -1,0 +1,8 @@
+{
+  "id": "240-load-any-version",
+  "graded_item": 18,
+  "description": "loadGame accepts any version",
+  "file": "src/game.js",
+  "find": "  if (g.version !== 1) throw new Error(`unsupported save version ${g.version}`);\n",
+  "replace": ""
+}

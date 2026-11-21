@@ -1,0 +1,11 @@
+{
+  "id": "143-talk-behind",
+  "graded_item": 16,
+  "description": "talking looks behind the player",
+  "file": "src/game.js",
+  "find": "n.x === g.player.x + dx && n.y === g.player.y + dy",
+  "replace": "n.x === g.player.x - dx && n.y === g.player.y - dy",
+  "expect": [
+    "Graded 16:"
+  ]
+}

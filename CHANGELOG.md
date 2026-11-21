@@ -8,7 +8,75 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
-## [0.7.0] - unreleased
+## [0.8.0] - 2026-11-22
+
+### Added
+
+- Three more demos, all Node and browser:
+  - Synesthesia (`synesthesia`, medium): live visuals that follow sound, with a
+    photosensitivity limiter on by default and a first-run warning. Analysis,
+    onset, tempo, limiter and synth modules run with no browser.
+  - Monster Tamer Lite (`monster-tamer-lite`, large): a small turn-based
+    creature battler with a tiny overworld and a catch-and-level loop, a
+    two-player mode with hidden picks on one screen, and a solo mode against a
+    computer opponent.
+  - Pocket Region (`pocket-region`, large): a small top-down role-playing game
+    engine with tile maps, warps, a gated door, dialogue trees, a turn-based
+    battle, an inventory, canonical-JSON save and load, and two scripted
+    playthroughs.
+
+### Changed
+
+- A demo scenario's process now freezes the JavaScript built-ins, the few Node
+  globals the kit uses there and what the kit's modules there export, before
+  any workspace module loads, and takes the clocks away itself: a scenario is
+  given `{ load, withoutClocks }`, and assigning to `Math.random` there throws.
+  A verifier's workspace had hidden real bugs from Monster Tamer Lite's checks
+  by changing `Number.prototype.toFixed`, `Object.getPrototypeOf` or
+  `Math.random`, and another by rewriting a scenario's table of seeds; each now
+  throws as the module loads, or changes nothing when the throw is caught.
+- The probe's answer line carries a key the workspace's code is not given, so
+  a line that code prints is not taken for the probe's. The probe writes it
+  with functions it holds in constants of its own, and `node:module`'s
+  `syncBuiltinESMExports` throws in its processes: a planted workspace had
+  swapped `node:fs`'s `writeSync`, re-pointed the probe's named import of it,
+  and rewritten the line it was then handed, key and all, so that Fair Share
+  and Monster Tamer Lite passed with a planted bug.
+- The probe's answer holds copies (`structuredClone`) of what each call or
+  scenario returned. A typed array of the workspace's own class had given the
+  serializer one length to write and bytes of another, which were read back as
+  the rest of a scenario's record. A `Buffer` a call returns now arrives as a
+  `Uint8Array`.
+- A scenario's modules may not import a `node:` module: `scenario()` refuses
+  one before any process starts. Its functions read settings the workspace's
+  code beside it can change (`util.inspect.defaultOptions`). No shipped
+  scenario imported one.
+- In the probe's processes, all of `node:v8` but its serializer and its
+  statistics, and `node:async_hooks`' `createHook` and
+  `executionAsyncResource`, throw. A planted workspace had read the answer
+  key from a heap snapshot and had its own answer line believed, and another
+  had rewritten a scenario's record through a promise hook; Node's permission
+  model allows both.
+- Monster Tamer Lite's scenarios return the draws and copies themselves; its
+  tests format and classify them.
+
+### Fixed
+
+- Held-out checks in the three new demos that rejected legal solutions now
+  accept them. The verifier found these by writing legal variants of each
+  reference; each is kept in the demo's `accept/mutants/legal/` list so it
+  cannot return.
+- A workspace module that the permission model kept from loading in a
+  scenario now says so, and names the flag, on Node 22.13 too: a scenario's
+  `load` rejects with the probe's own description of the refusal, where
+  Pocket Region's and Monster Tamer Lite's layout checks had reported only
+  22.13's "Access to this API has been restricted".
+- `demos/tests` pass from a folder whose path names a tool: the two-way term
+  check on `demo start` and `demo pick` output flagged the word in the paths
+  they print (pytest's temp folder under `Temp\claude\`, or a clone there), and
+  now reads that output with the machine's paths masked.
+
+## [0.7.0] - 2026-11-22
 
 ### Added
 
@@ -140,7 +208,7 @@ can show what each one does before it runs.
   PASS, locally and in CI's re-grade, so a Python or mixed run's workspace is
   read before its row is committed.
 
-## [0.6.0] - unreleased
+## [0.6.0] - 2026-11-16 (never tagged; shipped in v0.7.0)
 
 ### Added
 

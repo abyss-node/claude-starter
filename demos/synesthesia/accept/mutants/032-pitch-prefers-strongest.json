@@ -1,0 +1,8 @@
+{
+  "id": "032-pitch-prefers-strongest",
+  "graded_item": 7,
+  "description": "strongest note beats the triad root",
+  "file": "src/synth.js",
+  "find": "pitchClass = mode.root ?? strongestPitchClass(c);",
+  "replace": "pitchClass = strongestPitchClass(c) ?? mode.root;"
+}

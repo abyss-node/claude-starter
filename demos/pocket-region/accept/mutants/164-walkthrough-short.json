@@ -1,0 +1,8 @@
+{
+  "id": "164-walkthrough-short",
+  "graded_item": 18,
+  "description": "the last conversation is cut off",
+  "file": "src/content.js",
+  "find": "\"move:0\",\"action\",\"action\"] }",
+  "replace": "\"move:0\",\"action\"] }"
+}

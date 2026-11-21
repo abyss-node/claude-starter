@@ -1,0 +1,8 @@
+{
+  "id": "044-choices-unfiltered",
+  "graded_item": 6,
+  "description": "hidden choices are shown",
+  "file": "src/dialogue.js",
+  "find": "return (node.choices || []).filter((c) => passes(c, flags));",
+  "replace": "return node.choices || [];"
+}

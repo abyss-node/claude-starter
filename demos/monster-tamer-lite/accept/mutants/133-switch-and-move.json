@@ -1,0 +1,8 @@
+{
+  "id": "133-switch-and-move",
+  "graded_item": 10,
+  "description": "a side that switched also moves",
+  "file": "src/battle.js",
+  "find": "const movers = [0, 1].filter((side) => picks[side] && picks[side].kind === 'move');",
+  "replace": "const movers = [0, 1].filter((side) => picks[side] && (picks[side].kind === 'move' || picks[side].kind === 'switch'));"
+}

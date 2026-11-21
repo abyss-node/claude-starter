@@ -1,0 +1,8 @@
+{
+  "id": "014-edge-is-tile",
+  "graded_item": 2,
+  "description": "outside the map is reported as a tile",
+  "file": "src/map.js",
+  "find": "if (t === null) return 'edge';",
+  "replace": "if (t === null) return 'tile';"
+}

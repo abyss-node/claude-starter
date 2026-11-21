@@ -1,0 +1,8 @@
+{
+  "id": "168-walkthrough-bad-input",
+  "graded_item": 18,
+  "description": "the walkthrough holds an input the game does not take",
+  "file": "src/content.js",
+  "find": "\"up\",\"action\",\"action\",\"action\",\"right\",",
+  "replace": "\"up\",\"action\",\"action\",\"action\",\"jump\","
+}

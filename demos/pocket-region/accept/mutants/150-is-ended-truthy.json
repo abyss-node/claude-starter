@@ -1,0 +1,8 @@
+{
+  "id": "150-is-ended-truthy",
+  "graded_item": 16,
+  "description": "a flag with the value false ends the game",
+  "file": "src/game.js",
+  "find": "return hasFlag(game.flags, content.endFlag);",
+  "replace": "return Boolean(game.flags[content.endFlag]);"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "225-ai-replace-moves-on",
+  "graded_item": 16,
+  "description": "the computer does not special-case an empty move list",
+  "file": "src/ai.js",
+  "find": "if (explore || moves.length === 0) return",
+  "replace": "if (explore) return"
+}

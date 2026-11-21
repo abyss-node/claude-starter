@@ -1,0 +1,8 @@
+{
+  "id": "031-hue-ignores-preset",
+  "graded_item": 7,
+  "description": "hue always from the wheel",
+  "file": "src/synth.js",
+  "find": "hueForPitchClass(heldPitch, presetName);",
+  "replace": "hueForPitchClass(heldPitch);"
+}

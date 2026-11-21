@@ -1,0 +1,8 @@
+{
+  "id": "145-page-no-display",
+  "graded_item": 21,
+  "description": "page never asks for tab audio",
+  "file": "src/audio.js",
+  "find": "navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });",
+  "replace": "navigator.mediaDevices.getUserMedia({ audio: true });"
+}

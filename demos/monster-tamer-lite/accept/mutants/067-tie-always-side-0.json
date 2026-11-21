@@ -1,0 +1,8 @@
+{
+  "id": "067-tie-always-side-0",
+  "graded_item": 6,
+  "description": "a tie always goes to side 0 and takes no draw",
+  "file": "src/battle.js",
+  "find": "else order = nextFloat(battle.rng) < 0.5 ? [0, 1] : [1, 0];",
+  "replace": "else order = [0, 1];"
+}

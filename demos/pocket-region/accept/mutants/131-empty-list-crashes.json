@@ -1,0 +1,8 @@
+{
+  "id": "131-empty-list-crashes",
+  "graded_item": 15,
+  "description": "an empty encounter list is not checked",
+  "file": "src/game.js",
+  "find": " || list.length === 0) return;",
+  "replace": ") return;"
+}

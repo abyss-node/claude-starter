@@ -1,0 +1,8 @@
+{
+  "id": "166-blocked-step-counted",
+  "graded_item": 13,
+  "description": "a blocked step is counted",
+  "file": "src/game.js",
+  "find": "if (tile === undefined || tile === '#') return { moved: false, encounter: false };",
+  "replace": "if (tile === undefined || tile === '#') { game.steps += 1; return { moved: false, encounter: false }; }"
+}

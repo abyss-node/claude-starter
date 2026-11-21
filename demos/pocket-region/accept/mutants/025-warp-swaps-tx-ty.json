@@ -1,0 +1,8 @@
+{
+  "id": "025-warp-swaps-tx-ty",
+  "graded_item": 4,
+  "description": "the landing coordinates are swapped",
+  "file": "src/movement.js",
+  "find": "player: { map: warp.to, x: warp.tx, y: warp.ty,",
+  "replace": "player: { map: warp.to, x: warp.ty, y: warp.tx,"
+}

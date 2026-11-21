@@ -1,0 +1,8 @@
+{
+  "id": "050-palette-threshold-high",
+  "graded_item": 10,
+  "description": "warm needs 0.8",
+  "file": "src/synth.js",
+  "find": "s.palette = s.warmth > 0.3 ? 'warm' : s.warmth < -0.3 ? 'cool' : 'neutral';",
+  "replace": "s.palette = s.warmth > 0.8 ? 'warm' : s.warmth < -0.3 ? 'cool' : 'neutral';"
+}

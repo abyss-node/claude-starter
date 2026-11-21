@@ -1,0 +1,8 @@
+{
+  "id": "190-full-party-takes-more",
+  "graded_item": 14,
+  "description": "a caught creature always joins the party",
+  "file": "src/game.js",
+  "find": "(game.party.length < PARTY_MAX ? game.party : game.box).push(foe);",
+  "replace": "game.party.push(foe);"
+}

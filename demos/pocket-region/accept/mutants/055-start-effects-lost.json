@@ -1,0 +1,8 @@
+{
+  "id": "055-start-effects-lost",
+  "graded_item": 16,
+  "description": "what entering the first node does is thrown away",
+  "file": "src/game.js",
+  "find": "        const r = startDialogue(content.trees[npc.tree], g);\n        g.flags = r.game.flags;\n        g.inventory = r.game.inventory;",
+  "replace": "        const r = startDialogue(content.trees[npc.tree], g);"
+}

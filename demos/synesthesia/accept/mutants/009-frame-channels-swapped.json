@@ -1,0 +1,8 @@
+{
+  "id": "009-frame-channels-swapped",
+  "graded_item": 2,
+  "description": "left and right swapped in the frame",
+  "file": "src/capture.js",
+  "find": "magnitudes: magnitudesFromDb(db), left, right }",
+  "replace": "magnitudes: magnitudesFromDb(db), left: right, right: left }"
+}

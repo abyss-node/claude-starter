@@ -1,0 +1,8 @@
+{
+  "id": "091-flash-refusal-restarts",
+  "graded_item": 15,
+  "description": "a refused flash restarts the clock",
+  "file": "src/safety.js",
+  "find": "        return true;\n      }\n      return false;\n    },",
+  "replace": "        return true;\n      }\n      last = time;\n      return false;\n    },"
+}

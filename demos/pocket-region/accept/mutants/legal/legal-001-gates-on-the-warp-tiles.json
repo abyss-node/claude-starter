@@ -1,0 +1,15 @@
+{
+  "id": "legal-001-gates-on-the-warp-tiles",
+  "graded_item": 18,
+  "description": "both gates stand on the warp tiles of their doors, so the walkthrough never stands on a gate tile: it steps onto it and is sent on at once (a verifier's legal build that the check once refused)",
+  "file": "src/content.js",
+  "find": "gates: [{ x: 9, y: 4, flag: 'met_elder' }],",
+  "replace": "gates: [{ x: 11, y: 4, flag: 'met_elder' }],",
+  "also": [
+    {
+      "file": "src/content.js",
+      "find": "gates: [{ x: 9, y: 4, flag: 'bell_rung' }],",
+      "replace": "gates: [{ x: 11, y: 4, flag: 'bell_rung' }],"
+    }
+  ]
+}

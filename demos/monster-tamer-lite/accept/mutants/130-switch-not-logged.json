@@ -1,0 +1,8 @@
+{
+  "id": "130-switch-not-logged",
+  "graded_item": 10,
+  "description": "a switch is not logged",
+  "file": "src/battle.js",
+  "find": "  battle.log.push({ type: 'switch', side, to });\n",
+  "replace": ""
+}

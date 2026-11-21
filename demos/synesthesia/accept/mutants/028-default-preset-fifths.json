@@ -1,0 +1,8 @@
+{
+  "id": "028-default-preset-fifths",
+  "graded_item": 6,
+  "description": "default preset is fifths",
+  "file": "src/palette.js",
+  "find": "export function hueForPitchClass(pitchClass, preset = 'wheel') {",
+  "replace": "export function hueForPitchClass(pitchClass, preset = 'fifths') {"
+}

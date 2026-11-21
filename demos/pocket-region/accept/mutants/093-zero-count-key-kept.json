@@ -1,0 +1,8 @@
+{
+  "id": "093-zero-count-key-kept",
+  "graded_item": 11,
+  "description": "a count of 0 leaves a key behind",
+  "file": "src/inventory.js",
+  "find": "if (have - n === 0) delete out[id];\n  else out[id] = have - n;",
+  "replace": "out[id] = have - n;"
+}

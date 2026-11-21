@@ -1,0 +1,8 @@
+{
+  "id": "legal-008-damage-bigint",
+  "graded_item": 0,
+  "description": "damage is computed with BigInt",
+  "file": "src/rules.js",
+  "find": "return Math.max(1, Math.floor(num / den));",
+  "replace": "return Math.max(1, Number(BigInt(num) / BigInt(den)));"
+}

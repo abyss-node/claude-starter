@@ -1,0 +1,8 @@
+{
+  "id": "011-flag-truthy",
+  "graded_item": 2,
+  "description": "any truthy value, inherited names included, is a set flag",
+  "file": "src/map.js",
+  "find": "return Object.hasOwn(flags, name) && flags[name] === true;",
+  "replace": "return Boolean(flags[name]);"
+}

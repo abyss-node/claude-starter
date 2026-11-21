@@ -1,0 +1,8 @@
+{
+  "id": "023-stone-vs-spark-neutral",
+  "graded_item": 3,
+  "description": "stone is no longer strong against spark",
+  "file": "src/data.js",
+  "find": "stone:  { cinder: 2, tide: 1, moss: 1, spark: 2, stone: 0.5 },",
+  "replace": "stone:  { cinder: 2, tide: 1, moss: 1, spark: 1, stone: 0.5 },"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "097-hue-target-no-wrap",
+  "graded_item": 16,
+  "description": "a hue target past 360 is returned as is",
+  "file": "src/safety.js",
+  "find": "if (Math.abs(delta) <= limit) return wrapHue(target);",
+  "replace": "if (Math.abs(delta) <= limit) return target;"
+}

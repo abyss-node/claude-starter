@@ -1,0 +1,11 @@
+{
+  "id": "152-new-game-mode",
+  "graded_item": 16,
+  "description": "the new game starts in dialogue mode",
+  "file": "src/game.js",
+  "find": "    mode: 'world',\n    dialogue: null,",
+  "replace": "    mode: 'dialogue',\n    dialogue: null,",
+  "expect": [
+    "Graded 16:"
+  ]
+}

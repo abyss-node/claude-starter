@@ -1,0 +1,8 @@
+{
+  "id": "079-run-from-trainer",
+  "graded_item": 10,
+  "description": "running from a trainer battle works",
+  "file": "src/battle.js",
+  "find": "if (!b.wild) return b;",
+  "replace": ""
+}

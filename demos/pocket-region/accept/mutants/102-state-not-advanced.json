@@ -1,0 +1,11 @@
+{
+  "id": "102-state-not-advanced",
+  "graded_item": 12,
+  "description": "a draw does not advance the state",
+  "file": "src/rng.js",
+  "find": "rng.s = (rng.s + 0x6d2b79f5) >>> 0;\n  let t = rng.s;",
+  "replace": "let t = (rng.s + 0x6d2b79f5) >>> 0;",
+  "expect": [
+    "Graded 12:"
+  ]
+}

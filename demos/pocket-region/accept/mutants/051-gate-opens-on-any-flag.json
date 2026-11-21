@@ -1,0 +1,11 @@
+{
+  "id": "051-gate-opens-on-any-flag",
+  "graded_item": 7,
+  "description": "a gate opens when any flag is set",
+  "file": "src/map.js",
+  "find": "!hasFlag(flags, g.flag))) return",
+  "replace": "Object.keys(flags).length === 0)) return",
+  "expect": [
+    "Graded 7:"
+  ]
+}

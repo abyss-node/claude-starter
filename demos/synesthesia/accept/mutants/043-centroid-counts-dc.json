@@ -1,0 +1,8 @@
+{
+  "id": "043-centroid-counts-dc",
+  "graded_item": 9,
+  "description": "centroid includes bin 0",
+  "file": "src/analysis.js",
+  "find": "for (let k = 1; k < m.length; k++) {\n    weighted +=",
+  "replace": "for (let k = 0; k < m.length; k++) {\n    weighted +="
+}

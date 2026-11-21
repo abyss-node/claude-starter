@@ -1,0 +1,8 @@
+{
+  "id": "023-warp-keeps-old-facing",
+  "graded_item": 4,
+  "description": "a warp without facing keeps the facing from before the move",
+  "file": "src/movement.js",
+  "find": "facing: warp.facing ?? dir",
+  "replace": "facing: warp.facing ?? player.facing"
+}

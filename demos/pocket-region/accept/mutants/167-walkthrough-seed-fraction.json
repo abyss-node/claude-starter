@@ -1,0 +1,8 @@
+{
+  "id": "167-walkthrough-seed-fraction",
+  "graded_item": 18,
+  "description": "the walkthrough seed is not a whole number",
+  "file": "src/content.js",
+  "find": "walkthrough: { seed: 7,",
+  "replace": "walkthrough: { seed: 7.5,"
+}

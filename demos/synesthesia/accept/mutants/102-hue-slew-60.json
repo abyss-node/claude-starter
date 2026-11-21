@@ -1,0 +1,8 @@
+{
+  "id": "102-hue-slew-60",
+  "graded_item": 16,
+  "description": "hue slew 60 degrees a second",
+  "file": "src/safety.js",
+  "find": "export const MAX_HUE_SLEW = 240;",
+  "replace": "export const MAX_HUE_SLEW = 60;"
+}

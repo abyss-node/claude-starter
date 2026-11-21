@@ -1,0 +1,8 @@
+{
+  "id": "060-level-cap-99",
+  "graded_item": 5,
+  "description": "makeCreature lets levels go to 99",
+  "file": "src/rules.js",
+  "find": "const lv = Math.min(MAX_LEVEL,",
+  "replace": "const lv = Math.min(99,"
+}

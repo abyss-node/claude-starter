@@ -1,0 +1,8 @@
+{
+  "id": "081-status-chance-inverted",
+  "graded_item": 7,
+  "description": "a draw above the chance applies the status",
+  "file": "src/battle.js",
+  "find": "nextFloat(battle.rng) * 100 < move.status.chance) {",
+  "replace": "nextFloat(battle.rng) * 100 >= move.status.chance) {"
+}

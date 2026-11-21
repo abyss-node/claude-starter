@@ -1,0 +1,15 @@
+{
+  "id": "legal-022-save-carries-a-checksum",
+  "graded_item": 18,
+  "description": "saveGame adds a checksum field to the saved JSON and loadGame refuses text whose checksum does not match; a save is only ever read back after saveGame wrote it",
+  "file": "src/game.js",
+  "find": "export function saveGame(game) {\n  return JSON.stringify(game);\n}",
+  "replace": "function sumOf(text) {\n  let h = 7;\n  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) >>> 0;\n  return h;\n}\nexport function saveGame(game) {\n  return JSON.stringify({ ...game, check: sumOf(JSON.stringify(game)) });\n}",
+  "also": [
+    {
+      "file": "src/game.js",
+      "find": "  if (g.version !== 1) throw new Error(`unsupported save version ${g.version}`);",
+      "replace": "  const claimed = g.check;\n  delete g.check;\n  if (claimed !== sumOf(JSON.stringify(g))) throw new Error('save is damaged');\n  if (g.version !== 1) throw new Error(`unsupported save version ${g.version}`);"
+    }
+  ]
+}

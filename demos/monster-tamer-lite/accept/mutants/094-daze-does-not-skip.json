@@ -1,0 +1,8 @@
+{
+  "id": "094-daze-does-not-skip",
+  "graded_item": 8,
+  "description": "a dazed creature acts anyway",
+  "file": "src/battle.js",
+  "find": "if (user.status && user.status.kind === 'daze') {",
+  "replace": "if (false) {"
+}

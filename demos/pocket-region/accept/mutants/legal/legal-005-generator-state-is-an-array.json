@@ -1,0 +1,15 @@
+{
+  "id": "legal-005-generator-state-is-an-array",
+  "graded_item": 12,
+  "description": "the generator state is a one-element array, not an object: any plain data will do",
+  "file": "src/rng.js",
+  "find": "return { s: Number(seed) >>> 0 };",
+  "replace": "return [Number(seed) >>> 0];",
+  "also": [
+    {
+      "file": "src/rng.js",
+      "find": "  rng.s = (rng.s + 0x6d2b79f5) >>> 0;\n  let t = rng.s;",
+      "replace": "  rng[0] = (rng[0] + 0x6d2b79f5) >>> 0;\n  let t = rng[0];"
+    }
+  ]
+}

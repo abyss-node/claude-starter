@@ -1,0 +1,8 @@
+{
+  "id": "115-move-faint-unlogged",
+  "graded_item": 9,
+  "description": "a creature felled by a move is not logged as fainted",
+  "file": "src/battle.js",
+  "find": "    if (foe.hp === 0) faint(battle, foeSide);\n",
+  "replace": ""
+}

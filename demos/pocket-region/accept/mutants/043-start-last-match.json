@@ -1,0 +1,8 @@
+{
+  "id": "043-start-last-match",
+  "graded_item": 6,
+  "description": "the last matching start entry is used",
+  "file": "src/dialogue.js",
+  "find": "tree.start.find((e) => passes(e, game.flags))",
+  "replace": "tree.start.findLast((e) => passes(e, game.flags))"
+}

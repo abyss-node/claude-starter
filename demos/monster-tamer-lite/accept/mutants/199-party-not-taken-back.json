@@ -1,0 +1,8 @@
+{
+  "id": "199-party-not-taken-back",
+  "graded_item": 14,
+  "description": "the party is not taken back from the battle",
+  "file": "src/game.js",
+  "find": "  game.party = party;\n",
+  "replace": ""
+}

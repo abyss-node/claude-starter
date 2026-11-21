@@ -1,0 +1,8 @@
+{
+  "id": "224-ai-remembers",
+  "graded_item": 16,
+  "description": "the computer keeps its last answer in a module variable",
+  "file": "src/ai.js",
+  "find": "export function chooseAction(battle, side) {",
+  "replace": "const memo = [];\nexport function chooseAction(battle, side) {\n  const legalNow = legalActions(battle, side);\n  if (memo[side] !== undefined && legalNow.some((a) => JSON.stringify(a) === JSON.stringify(memo[side]))) return memo[side];\n  return (memo[side] = chooseAction2(battle, side));\n}\nfunction chooseAction2(battle, side) {"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "011-main-ignores-ai",
+  "graded_item": 1,
+  "description": "main.js does not import the ai module",
+  "file": "src/main.js",
+  "find": "import { chooseAction } from './ai.js';\n",
+  "replace": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "136-stage-not-canvas",
+  "graded_item": 21,
+  "description": "stage is a div",
+  "file": "index.html",
+  "find": "<canvas id=\"stage\" aria-label=\"Live visuals driven by sound\"></canvas>",
+  "replace": "<div id=\"stage\" aria-label=\"Live visuals driven by sound\"></div>"
+}

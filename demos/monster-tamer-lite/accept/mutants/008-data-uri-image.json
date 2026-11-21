@@ -1,0 +1,8 @@
+{
+  "id": "008-data-uri-image",
+  "graded_item": 1,
+  "description": "an embedded data: image URI",
+  "file": "src/data.js",
+  "find": "export const PARTY_MAX = 6;",
+  "replace": "export const PARTY_MAX = 6;\nexport const ICON = 'data\u003aimage/png;base64,iVBORw0KGgo=';"
+}

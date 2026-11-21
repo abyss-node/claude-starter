@@ -14,6 +14,7 @@ import importlib.util
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -46,12 +47,17 @@ PLANTS = {
     "commit-guard-dojo": ("064", "test_11_longest_streak_held_out_cases"),
     "fair-share": ("001", "split: the shares add up to exactly the total"),
     "lanes": ("023-hard-from-14", "backend: difficulty follows the rule, boundaries included"),
+    "monster-tamer-lite": ("140-attempt-off-by-one", "Graded 11: Catching"),
     "next-word": ("015-order-cap-3", "model: order n uses up to n-1 previous tokens, for any n"),
+    "pocket-region": ("016-up-is-down", "Graded 3: movePlayer moves one tile, turns the player even when blocked, "
+                      "names the reason, opens a gate with its flag"),
     "roulette-loom": ("001", "trace gives steps + 1 points, from the start of the curve back to it"),
     "spin-clash": ("058-ringout-skips-tick-1", "Graded 8: ring-out and spin-down are judged on tick 1 by the centre, "
                    "ring-out first, and the last top in play wins"),
     "split-screen-racer": ("080-player-starts-on-lap-1", "createRace: players start on the grid, with the documented "
                            "fields and the given laps and track"),
+    "synesthesia": ("001-flash-cap-4", "item 15: a strobe of 20 Hz never gets more than three flashes in any second "
+                    "over 10 s, but is not blocked either"),
     "trippy-video": ("004-frames-numbered-from-one", "test_frame_count"),
 }
 NUMBER = re.compile(r"\d+%|\$\d")
@@ -87,6 +93,18 @@ def clean_env(home: Path, **extra) -> dict:
     env.update(HOME=str(home), USERPROFILE=str(home), PYTHONIOENCODING="utf-8")
     env.update(extra)
     return env
+
+
+def masked(text: str, *roots: Path) -> str:
+    """`text` with the kit's clone and each of `roots` written as <path>, however the output spells them: as they
+    are or with forward slashes, an apostrophe as it is or quoted for bash or PowerShell. The term check holds the
+    kit's own words, and a folder above the clone or pytest's temp folder can name a tool without being the kit's:
+    16 start and pick tests failed only for running under Temp\\claude\\ (2026-11-21)."""
+    spellings = {form.replace("'", quoted) for root in (KIT, install.cmd_root(), *roots)
+                 for form in (str(root), root.as_posix()) for quoted in ("'", "'\"'\"'", "''")}
+    for spelling in sorted(spellings, key=len, reverse=True):
+        text = text.replace(spelling, "<path>")
+    return text
 
 
 def git(cwd: Path, *a: str, env: dict | None = None) -> str:
@@ -195,14 +213,16 @@ def paraphrase(src: Path, dest: Path) -> None:
 
 # ---- each brief's held-out checks bind (the CI core) -------------------------------------------------------
 
-def finished(demo: dl.Demo, tmp: Path, case=None) -> Path:
-    """The finished workspace the reference makes, with a mutant's edits if one is given: a copy of reference/, or
-    what the demo's fixture builds from that copy, history and all (a demo graded on its git log has no .git
-    in the kit), exactly as the mutants engine builds it."""
+def finished(demo: dl.Demo, tmp: Path, case=None, edit=None) -> Path:
+    """The finished workspace the reference makes, with a mutant's edits if one is given, then `edit(folder)`'s: a
+    copy of reference/, or what the demo's fixture builds from that copy, history and all (a demo graded on its git
+    log has no .git in the kit), exactly as the mutants engine builds it."""
     ref = tmp / "ref"
     shutil.copytree(str(demo.dir / "reference"), str(ref))
     if case is not None:
         assert mutants.parse_problem(mutants.apply_edits(ref, case)) is None
+    if edit is not None:
+        edit(ref)
     mutants.build_fixture(demo, ref, tmp / "ws", tmp)
     return tmp / "ws"
 
@@ -286,13 +306,17 @@ HAND_BACK = {
     "fair-share": ("src/share.js", "split, withTip", ["split", 1001, 4]),
     "lanes": ("frontend/render.js", "escapeHtml, renderDifficulty, renderTrailRow, renderBoard",
               ["escapeHtml", "<b>Ridge & Vale's</b>"]),
+    "monster-tamer-lite": ("src/rng.js", "createRng, nextFloat", ["createRng", 12345]),
     "next-word": ("src/lm.js", "tokenize, compareEntries, train, nextDistribution",
                   ["tokenize", "The fox's den, and 2 owls."]),
+    "pocket-region": ("src/save.js", "canonicalJson, saveGame, loadGame", ["canonicalJson", {"b": [2, None], "a": "x"}]),
     "roulette-loom": ("src/loom.js", "gcd, laps, point, trace", ["laps", 96, 35]),
     "spin-clash": ("src/physics.js", "DT, LIMITS, DEFAULTS, inertia, createWorld, collide, step",
                    ["inertia", {"mass": 2, "radius": 3}]),
     "split-screen-racer": ("src/camera.js", "splitViewports, worldToScreen",
                            ["splitViewports", 800, 600, [{"x": 120.5, "y": -40}, {"x": -900, "y": 310}]]),
+    "synesthesia": ("src/analysis.js", "binFrequency, chroma, loudness, spectralCentroid, balance, estimateMode",
+                    ["binFrequency", 3, 1024, 44100]),
 }
 _BARE: dict = {}
 
@@ -326,9 +350,9 @@ def unconfined_answer(module: Path, call: list, tmp: Path) -> str:
         "import { spawnSync } from 'node:child_process';\nimport v8 from 'node:v8';\n"
         f"const r = spawnSync(process.execPath, [{json.dumps(str(DEMOS / 'probe-child.mjs'))}, "
         f"{json.dumps(module.as_uri())}, v8.serialize([{json.dumps(call)}]).toString('base64')], "
-        "{ encoding: 'utf8' });\n"
-        "const line = r.stdout.split('\\n').find((l) => l.startsWith('demo-probe-answer:'));\n"
-        "console.log(JSON.stringify(v8.deserialize(Buffer.from(line.slice(18), 'base64'))));\n",
+        "{ encoding: 'utf8', input: 'k' });\n"
+        "const line = r.stdout.split('\\n').find((l) => l.startsWith('demo-probe-answer:k:'));\n"
+        "console.log(JSON.stringify(v8.deserialize(Buffer.from(line.slice(20), 'base64'))));\n",
         encoding="utf-8")
     r = subprocess.run([dl.exe("node"), str(probe)], cwd=str(tmp), capture_output=True, text=True,
                        encoding="utf-8", errors="replace", timeout=120)
@@ -490,10 +514,16 @@ def test_start_refuses_a_folder_the_test_script_cannot_quote(scratch, home, fold
 # the clone, and the process list names it too; a workspace that looked it up and ran reference/ got a recordable
 # PASS while four texts said "nothing it is given leads there". Nor that Node's permission model lets the workspace's
 # code read "nothing of the kit's": a scenario's process could read all of accept/, mutants and their quotes of
-# the reference included, while three texts said so.
+# the reference included, while three texts said so. Nor that the workspace's code can make a probe's answers
+# wrong "only by doing the work wrong", or that its answer lines are "no longer taken": a planted workspace swapped
+# node:fs's writeSync, which probe-child.mjs called by a named import it said was "taken before the freeze", and
+# rewrote the probe's own line, while AUTHORING.md said of the node: modules "a scenario observes with none of
+# them" (2026-11-21).
 OVERCLAIMS = ("copying the reference fails", "but not this", "but not that line", "no copying of the reference",
               "nothing it is given leads", "where no path leads", "where no kit path leads", "no path leads to the kit",
-              "nothing of the kit's", "the two probe files, and nothing else")
+              "nothing of the kit's", "the two probe files, and nothing else", "only by doing the work wrong",
+              "no longer taken for the probe's", "taken before the freeze", "a scenario observes with none of them",
+              "process the workspace cannot change")
 
 
 def test_no_text_claims_a_local_grade_is_tamper_proof():
@@ -536,8 +566,11 @@ CHEATS = {
     "fair-share": ("src/share.js", SABOTAGE + "export const split = (t, n) => Array(n).fill(0), withTip = () => 0;\n"),
     "lanes": ("frontend/render.js", SABOTAGE + "export const escapeHtml = (s) => String(s), renderDifficulty = () => '',"
               " renderTrailRow = () => '', renderBoard = () => '';\n"),
+    "monster-tamer-lite": ("src/rng.js", SABOTAGE + "export const createRng = () => ({ s: 0 }), nextFloat = () => 0;\n"),
     "next-word": ("src/lm.js", SABOTAGE + "export const tokenize = () => [], compareEntries = () => 0, train = () => ({}),"
                   " nextDistribution = () => ({});\n"),
+    "pocket-region": ("src/map.js", SABOTAGE + "export const tileAt = () => '.', blockedReason = () => null,"
+                      " canEnter = () => true;\n"),
     "roulette-loom": ("src/loom.js", SABOTAGE + "export const gcd = () => 1, laps = () => 1, point = () => ({ x: 0, y: 0 });\n"
                       "export const trace = (R, r, d, n) => Array.from({ length: n + 1 }, () => ({ x: 0, y: 0 }));\n"),
     "spin-clash": ("src/physics.js", SABOTAGE + "export const DT = 1 / 60, LIMITS = {}, DEFAULTS = {}, inertia = () => 0;\n"
@@ -545,6 +578,8 @@ CHEATS = {
     "split-screen-racer": ("src/track.js", SABOTAGE + "export const ROAD_WIDTH = 90, VERGE = 60, buildTrack = () => ({}),"
                            " isValidTrack = () => true;\nexport const fixedTrack = () => ({}), generateTrack = () => ({}),"
                            " surfaceAt = () => 'road';\n"),
+    "synesthesia": ("src/analysis.js", SABOTAGE + "export const binFrequency = () => 0, chroma = () => Array(12).fill(0),"
+                    " loudness = () => 0, spectralCentroid = () => 0, balance = () => 0, estimateMode = () => null;\n"),
 }
 
 
@@ -566,6 +601,82 @@ def test_a_module_that_switches_the_checks_off_gains_nothing(name, tmp_path):
     assert len(sabotaged) == demo.accept_count, sorted(sabotaged)
     assert [n for n, ok in sabotaged.items() if ok and not bare.get(n)] == []
     assert not all(sabotaged.values())
+
+
+# What a workspace's code would change to hide a bug from a scenario that observes it in the same process: the
+# built-ins a scenario formats, classifies, copies and compares with, node:v8's serializer and node:fs's writeSync,
+# which write the answer (a verifier's workspace once hid real bugs from monster-tamer-lite this way; test_runtimes
+# has each cheat itself). Each is changed here so that, did it take, every demo's checks would break, and each in a
+# try block of its own: probe-child.mjs freezes them all, or holds them itself, before any workspace module loads,
+# so none takes. With harden() taken out of probe-child.mjs, this test failed for every demo here (2026-11-19), and
+# so it did with writeSync taken by a named import and syncBuiltinESMExports left in (2026-11-21).
+TAMPERS = [
+    "Number.prototype.toFixed = function () { return '0'; }",
+    "Object.defineProperty(Number.prototype, 'toFixed', { value() { return '0'; } })",
+    "Object.getPrototypeOf = () => null",
+    "Object.defineProperty(Object, 'getPrototypeOf', { value: () => null })",
+    "Math.random = () => 0.5",
+    "Object.defineProperty(Math, 'random', { value: () => 0.5 })",
+    "Math.abs = () => 0",
+    "Array.prototype.map = function () { return []; }",
+    "Array.prototype.join = function () { return ''; }",
+    "Array.prototype.push = function () { return 0; }",
+    "Array.prototype.includes = function () { return false; }",
+    "Object.defineProperty(Array.prototype, 'forEach', { value() {} })",
+    "Array.prototype[Symbol.iterator] = function* () {}",
+    "Array.isArray = () => false",
+    "JSON.stringify = () => '0'",
+    "Object.defineProperty(JSON, 'parse', { value: () => 0 })",
+    "Function.prototype.toString = function () { return ''; }",
+    "Function.prototype.call = function () {}",
+    "Object.keys = () => []",
+    "Object.entries = () => []",
+    "Object.prototype.hasOwnProperty = () => false",
+    "String.prototype.slice = function () { return ''; }",
+    "Set.prototype.has = () => false",
+    "Map.prototype.get = () => undefined",
+    "Number.isFinite = () => false",
+    "Promise.prototype.then = function () {}",
+    "globalThis.structuredClone = () => ({})",
+    "Object.setPrototypeOf(Array.prototype, null)",
+    "process.getBuiltinModule('node:v8').Serializer.prototype.writeValue = function () { return true; }",
+    "const fs = process.getBuiltinModule('node:fs'); fs.writeSync = (fd, data) => data.length; "
+    "process.getBuiltinModule('node:module').syncBuiltinESMExports()",
+]
+TAMPERED = ("for (const t of [\n" + "".join(f"  () => {{ {t}; }},\n" for t in TAMPERS)
+            + "]) { try { t(); } catch { /* frozen */ } }\n")
+
+
+def tamper(folder: Path, but=None) -> None:
+    """Every module of the folder but `but`, with the tampers in front of it: whichever a check loads, they run
+    first."""
+    for f in sorted(folder.rglob("*")):
+        if f.is_file() and f.suffix in (".js", ".mjs") and f != but and not {".git", "node_modules"} & set(f.parts):
+            f.write_text(TAMPERED + dl.read_text(f), encoding="utf-8")
+
+
+@pytest.mark.parametrize("name", PROBED)
+def test_a_workspace_that_changes_the_built_ins_passes_no_more_checks(name, tmp_path):
+    """The planted bug of PLANTS, an honest wrong answer, with the tampers passes no check it fails without them,
+    and the reference with them still passes every check: no tamper took, in any scenario or call of the demo."""
+    demo = dl.load_demo(name)
+    mutant, fails = PLANTS[name]
+    case = next(c for c in mutants.load_cases(demo)[0] if c.id == mutant)
+    # A demo's fixture builder makes the workspace's history and is not graded, so it runs as it is.
+    builder = Path(demo.fixture).relative_to("reference") if demo.fixture else None
+
+    def tampered(ref: Path) -> None:
+        tamper(ref, builder and ref / builder)
+
+    def graded(label: str, case=None, tampers: bool = False) -> list:
+        results = check.run_accept(demo, finished(demo, tmp_path / label, case, tampered if tampers else None))
+        assert len(results) == demo.accept_count, [c.name for c in results]
+        return results
+
+    honest = {c.name for c in graded("honest", case) if c.ok}
+    assert fails not in honest
+    assert {c.name for c in graded("honest-tampered", case, tampers=True) if c.ok} <= honest
+    assert [(c.name, c.detail) for c in graded("reference-tampered", tampers=True) if not c.ok] == []
 
 
 def test_answers_keep_nan_and_minus_zero_apart_from_null_and_zero(tmp_path):
@@ -664,13 +775,16 @@ def test_start_makes_a_repo_with_the_guard_and_one_commit_and_prints_what_to_wat
 
 @pytest.mark.parametrize("tool, rules, opener", [("claude", "CLAUDE.md", "&& claude"),
                                                  ("opencode", "AGENTS.md", "opencode '")])
-def test_start_writes_each_tools_rules_file_and_open_line_in_its_own_words(scratch, home, tool, rules, opener):
+def test_start_writes_each_tools_rules_file_and_open_line_in_its_own_words(scratch, home, tool, rules, opener,
+                                                                          tmp_path_factory):
     kit, _ = scratch
     r = run(kit, "start.py", "fair-share", "--tool", tool, home=home)
     assert r.returncode == 0, r.stderr
     ws = home / "agent-demos" / "fair-share"
     assert (ws / rules).is_file() and opener in r.stdout
-    ba.check_terms({tool: {"start.txt": r.stdout, rules: dl.read_text(ws / rules)}}, ba.load_terms(), {}, full=False)
+    base = tmp_path_factory.getbasetemp()
+    ba.check_terms({tool: {"start.txt": masked(r.stdout, base), rules: masked(dl.read_text(ws / rules), base)}},
+                   ba.load_terms(), {}, full=False)
 
 
 def test_start_refuses_without_an_install_recorded_for_the_tool(scratch, tmp_path):
@@ -1167,7 +1281,7 @@ def test_pick_speaks_only_its_own_tools_words(tool, plan_id):
     texts = outputs([], tool, plan_id)
     if plan_id:
         texts.append("\n".join(pick.choose_plan(tool, dl.plans()[tool], None)))
-    ba.check_terms({tool: {"pick.txt": "\n\n".join(texts)}}, ba.load_terms(), {}, full=False)
+    ba.check_terms({tool: {"pick.txt": masked("\n\n".join(texts))}}, ba.load_terms(), {}, full=False)
 
 
 @pytest.mark.parametrize("tool, plan_id", list(every_cell()))
@@ -1187,11 +1301,28 @@ def test_a_plans_label_is_a_name_in_brackets_never_part_of_a_sentence(tool, plan
 
 
 def test_the_term_check_on_pick_output_fires_on_another_tools_plan():
-    codex = "\n".join(outputs([], "codex", "plus")) + "\nPick Max 20x if you can.\n"
+    codex = masked("\n".join(outputs([], "codex", "plus"))) + "\nPick Max 20x if you can.\n"
     with pytest.raises(SystemExit, match="codex/pick.txt"):
         ba.check_terms({"codex": {"pick.txt": codex}}, ba.load_terms(), {}, full=False)
-    opencode = "\n".join(outputs([], "opencode", "openai-chatgpt")) + "\nSigned in with ChatGPT Plus.\n"
+    opencode = masked("\n".join(outputs([], "opencode", "openai-chatgpt"))) + "\nSigned in with ChatGPT Plus.\n"
     ba.check_terms({"opencode": {"pick.txt": opencode}}, ba.load_terms(), {}, full=False)
+
+
+def test_masked_takes_out_a_path_that_names_a_tool_and_leaves_the_kits_words(tmp_path):
+    root = tmp_path / "Temp" / "claude" / "it's"
+    spelled = [str(root), root.as_posix(), shlex.quote(str(root)), shlex.quote(root.as_posix()),
+               install._ps_quote(str(root))]
+    text = "".join(f"open {s}\n" for s in spelled) + "then run claude --continue\n"
+
+    def problems(t: str) -> list:
+        try:
+            ba.check_terms({"opencode": {"t.txt": t}}, ba.load_terms(), {}, full=False)
+        except SystemExit as e:
+            return [ln.split(":")[1] for ln in str(e).splitlines() if ln.startswith("  opencode/t.txt:")]
+        return []
+
+    assert set(problems(text)) > {str(len(spelled) + 1)}   # each spelling of the path is flagged, unmasked
+    assert set(problems(masked(text, root))) == {str(len(spelled) + 1)}
 
 
 FREE_WORDS = re.compile(r"\$0\b|no extra dollars|no dollars|\bfree\b|costs nothing", re.I)

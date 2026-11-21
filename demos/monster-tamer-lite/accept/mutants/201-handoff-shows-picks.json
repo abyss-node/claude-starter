@@ -1,0 +1,8 @@
+{
+  "id": "201-handoff-shows-picks",
+  "graded_item": 15,
+  "description": "the cover screen view carries the picks",
+  "file": "src/duel.js",
+  "find": "if (duel.stage === 'handoff') return { ...base, who: duel.who };",
+  "replace": "if (duel.stage === 'handoff') return { ...base, who: duel.who, picks: duel.picks };"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "001-flash-cap-4",
+  "graded_item": 1,
+  "description": "MAX_FLASHES_PER_SECOND is 4",
+  "file": "src/safety.js",
+  "find": "export const MAX_FLASHES_PER_SECOND = 3;",
+  "replace": "export const MAX_FLASHES_PER_SECOND = 4;"
+}

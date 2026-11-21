@@ -1,0 +1,8 @@
+{
+  "id": "039-brightness-weak",
+  "graded_item": 8,
+  "description": "brightness uses 0.3 * loudness",
+  "file": "src/synth.js",
+  "find": "IDLE_BRIGHTNESS + 0.6 * loud",
+  "replace": "IDLE_BRIGHTNESS + 0.3 * loud"
+}

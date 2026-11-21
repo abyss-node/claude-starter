@@ -1,0 +1,8 @@
+{
+  "id": "064-xp-start-wrong",
+  "graded_item": 5,
+  "description": "a made creature starts with no XP",
+  "file": "src/rules.js",
+  "find": "    xp: xpForLevel(lv),",
+  "replace": "    xp: 0,"
+}

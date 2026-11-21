@@ -1,0 +1,8 @@
+{
+  "id": "147-snare-two-draws",
+  "graded_item": 11,
+  "description": "a snare takes two draws",
+  "file": "src/battle.js",
+  "find": "() => nextFloat(battle.rng));\n    battle.log.push({ type: 'snare'",
+  "replace": "() => (nextFloat(battle.rng), nextFloat(battle.rng)));\n    battle.log.push({ type: 'snare'"
+}

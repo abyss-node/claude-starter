@@ -1,0 +1,8 @@
+{
+  "id": "030-give-default-two",
+  "graded_item": 5,
+  "description": "a give with no count gives two",
+  "file": "src/dialogue.js",
+  "find": "g.count ?? 1",
+  "replace": "g.count ?? 2"
+}

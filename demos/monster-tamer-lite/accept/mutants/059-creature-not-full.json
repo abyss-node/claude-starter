@@ -1,0 +1,8 @@
+{
+  "id": "059-creature-not-full",
+  "graded_item": 5,
+  "description": "a made creature starts one hp short",
+  "file": "src/rules.js",
+  "find": "  c.hp = c.maxHp;\n  return c;",
+  "replace": "  c.hp = c.maxHp - 1;\n  return c;"
+}

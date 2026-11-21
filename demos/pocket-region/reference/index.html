@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pocket Region</title>
+  <style>
+    body { margin: 0; background: #1b2418; color: #d6e6c4; font: 14px monospace; display: grid; place-items: center; min-height: 100vh; }
+    canvas { image-rendering: pixelated; border: 4px solid #34452c; background: #0f150d; }
+    p { max-width: 640px; }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="screen" width="320" height="240"></canvas>
+    <p>Arrows to walk, Z to talk or confirm, 1 to 3 to choose, X to run, S to save, L to load, M for music.</p>
+  </main>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

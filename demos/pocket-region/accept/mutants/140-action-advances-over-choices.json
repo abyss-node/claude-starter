@@ -1,0 +1,11 @@
+{
+  "id": "140-action-advances-over-choices",
+  "graded_item": 16,
+  "description": "action advances a conversation that has choices",
+  "file": "src/game.js",
+  "find": "if (input === 'action' && view.choices.length === 0) {",
+  "replace": "if (input === 'action') {",
+  "expect": [
+    "Graded 16:"
+  ]
+}

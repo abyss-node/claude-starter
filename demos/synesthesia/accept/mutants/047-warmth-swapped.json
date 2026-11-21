@@ -1,0 +1,8 @@
+{
+  "id": "047-warmth-swapped",
+  "graded_item": 10,
+  "description": "major cool, minor warm",
+  "file": "src/synth.js",
+  "find": "mode.mode === 'major' ? 1 : mode.mode === 'minor' ? -1 : 0;",
+  "replace": "mode.mode === 'major' ? -1 : mode.mode === 'minor' ? 1 : 0;"
+}

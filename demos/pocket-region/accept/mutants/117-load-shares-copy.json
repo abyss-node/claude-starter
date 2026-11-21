@@ -1,0 +1,8 @@
+{
+  "id": "117-load-shares-copy",
+  "graded_item": 14,
+  "description": "loading the same text twice returns the same object",
+  "file": "src/save.js",
+  "find": "const data = JSON.parse(text);",
+  "replace": "const data = (loadGame.last && loadGame.last.text === text) ? loadGame.last.data : (loadGame.last = { text, data: JSON.parse(text) }).data;"
+}

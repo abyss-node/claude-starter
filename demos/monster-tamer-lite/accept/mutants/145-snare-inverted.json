@@ -1,0 +1,8 @@
+{
+  "id": "145-snare-inverted",
+  "graded_item": 11,
+  "description": "the snare succeeds when it should fail",
+  "file": "src/battle.js",
+  "find": "const success = attemptCatch(activeOf(battle, 1), () => nextFloat(battle.rng));",
+  "replace": "const success = !attemptCatch(activeOf(battle, 1), () => nextFloat(battle.rng));"
+}

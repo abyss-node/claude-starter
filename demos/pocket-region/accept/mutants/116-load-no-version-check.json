@@ -1,0 +1,8 @@
+{
+  "id": "116-load-no-version-check",
+  "graded_item": 14,
+  "description": "loadGame accepts any version",
+  "file": "src/save.js",
+  "find": "if (data === null || typeof data !== 'object' || data.version !== SAVE_VERSION) {",
+  "replace": "if (data === null || typeof data !== 'object') {"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "legal-012-support-extra-key",
+  "graded_item": 3,
+  "description": "detectSupport adds a field",
+  "file": "src/capture.js",
+  "find": "file: true,",
+  "replace": "file: true,\n    tabAudio: typeof devices?.getDisplayMedia === 'function',\n    "
+}

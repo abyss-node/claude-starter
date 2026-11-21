@@ -1,0 +1,8 @@
+{
+  "id": "137-status-bonus-5",
+  "graded_item": 11,
+  "description": "a status adds 5, not 10",
+  "file": "src/rules.js",
+  "find": "creature.status ? 10 : 0",
+  "replace": "creature.status ? 5 : 0"
+}

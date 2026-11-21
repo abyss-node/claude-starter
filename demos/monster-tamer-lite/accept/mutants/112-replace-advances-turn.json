@@ -1,0 +1,8 @@
+{
+  "id": "112-replace-advances-turn",
+  "graded_item": 9,
+  "description": "a replacement advances the turn",
+  "file": "src/battle.js",
+  "find": "    battle.pending = [false, false];\n    battle.phase = 'choose';\n    return battle;",
+  "replace": "    battle.pending = [false, false];\n    battle.phase = 'choose';\n    battle.turn += 1;\n    return battle;"
+}

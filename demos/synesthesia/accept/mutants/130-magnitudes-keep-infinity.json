@@ -1,0 +1,8 @@
+{
+  "id": "130-magnitudes-keep-infinity",
+  "graded_item": 20,
+  "description": "infinite magnitudes kept",
+  "file": "src/analysis.js",
+  "find": "out[i] = Number.isFinite(v) && v > 0 ? v : 0;",
+  "replace": "out[i] = v > 0 ? v : 0;"
+}

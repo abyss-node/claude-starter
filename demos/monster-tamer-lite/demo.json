@@ -1,0 +1,14 @@
+{
+  "title": "Monster Tamer Lite",
+  "app": "Monster Tamer Lite",
+  "tier": "L",
+  "stack": "browser",
+  "summary": "a small turn-based creature battler in the browser: a tiny overworld with a catch-and-level loop, a two-player mode on one screen with hidden picks, and a solo mode against a computer opponent",
+  "kickoff": "Read BRIEF.md and build it.",
+  "not_checked": "the page and how it feels: the canvas drawing, the battle menu, the cover screen's look, sound and animation, and whether the page really draws from duelView or offers only legal actions; the creatures, moves, wild table and map you invent, balance, and how strong the computer is: only the element ids, the module script and the logic in src/ are checked",
+  "accept_count": 19,
+  "runtime": "node",
+  "accept_runner": null,
+  "mutants_runner": "demos/mutants.py",
+  "timeout_s": 1200
+}

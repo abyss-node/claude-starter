@@ -1,0 +1,8 @@
+{
+  "id": "191-party-limit-7",
+  "graded_item": 14,
+  "description": "the party can hold seven",
+  "file": "src/game.js",
+  "find": "game.party.length < PARTY_MAX",
+  "replace": "game.party.length <= PARTY_MAX"
+}

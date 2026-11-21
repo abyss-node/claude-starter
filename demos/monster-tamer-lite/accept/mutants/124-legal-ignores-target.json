@@ -1,0 +1,8 @@
+{
+  "id": "124-legal-ignores-target",
+  "graded_item": 10,
+  "description": "isLegalAction ignores the switch target",
+  "file": "src/battle.js",
+  "find": "if (a.kind === 'switch') return a.to === b.to;",
+  "replace": "if (a.kind === 'switch') return true;"
+}

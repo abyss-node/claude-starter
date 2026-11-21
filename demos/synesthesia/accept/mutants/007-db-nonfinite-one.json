@@ -1,0 +1,8 @@
+{
+  "id": "007-db-nonfinite-one",
+  "graded_item": 2,
+  "description": "a non-finite dB value becomes 1",
+  "file": "src/capture.js",
+  "find": "out[i] = Number.isFinite(v) ? 10 ** (v / 20) : 0;",
+  "replace": "out[i] = Number.isFinite(v) ? 10 ** (v / 20) : 1;"
+}

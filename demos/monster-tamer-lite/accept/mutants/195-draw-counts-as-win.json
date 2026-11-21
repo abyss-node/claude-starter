@@ -1,0 +1,8 @@
+{
+  "id": "195-draw-counts-as-win",
+  "graded_item": 14,
+  "description": "a draw counts as a win",
+  "file": "src/game.js",
+  "find": "} else if (b.winner === 0) {",
+  "replace": "} else if (b.winner !== 1) {"
+}

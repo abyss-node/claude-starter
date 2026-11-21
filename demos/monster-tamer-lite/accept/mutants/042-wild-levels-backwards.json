@@ -1,0 +1,8 @@
+{
+  "id": "042-wild-levels-backwards",
+  "graded_item": 4,
+  "description": "a wild table entry with minLevel above maxLevel",
+  "file": "src/data.js",
+  "find": "weight: 1, minLevel: 4, maxLevel: 7",
+  "replace": "weight: 1, minLevel: 8, maxLevel: 7"
+}

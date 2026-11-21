@@ -1,0 +1,8 @@
+{
+  "id": "177-starter-level-3",
+  "graded_item": 13,
+  "description": "the starter begins at level 3",
+  "file": "src/game.js",
+  "find": "party: [makeCreature(species, 5)],",
+  "replace": "party: [makeCreature(species, 3)],"
+}

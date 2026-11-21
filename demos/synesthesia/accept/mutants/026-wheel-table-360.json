@@ -1,0 +1,8 @@
+{
+  "id": "026-wheel-table-360",
+  "graded_item": 6,
+  "description": "wheel ends at 360",
+  "file": "src/palette.js",
+  "find": "[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330]",
+  "replace": "[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 360]"
+}

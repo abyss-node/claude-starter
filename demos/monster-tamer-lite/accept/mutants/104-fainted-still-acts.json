@@ -1,0 +1,8 @@
+{
+  "id": "104-fainted-still-acts",
+  "graded_item": 9,
+  "description": "a creature that fainted earlier in the turn still acts",
+  "file": "src/battle.js",
+  "find": "  if (!alive(user)) return;\n",
+  "replace": ""
+}

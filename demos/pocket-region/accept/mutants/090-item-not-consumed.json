@@ -1,0 +1,8 @@
+{
+  "id": "090-item-not-consumed",
+  "graded_item": 11,
+  "description": "a used item stays in the bag",
+  "file": "src/inventory.js",
+  "find": "inventory: removeItem(inventory, itemId, 1), party: out",
+  "replace": "inventory: { ...inventory }, party: out"
+}

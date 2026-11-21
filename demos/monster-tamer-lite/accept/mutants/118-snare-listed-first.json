@@ -1,0 +1,8 @@
+{
+  "id": "118-snare-listed-first",
+  "graded_item": 10,
+  "description": "the snare is listed before the switches",
+  "file": "src/battle.js",
+  "find": "  actions.push(...switches);\n  if (battle.wild && side === 0 && battle.snares > 0) actions.push({ kind: 'snare' });",
+  "replace": "  if (battle.wild && side === 0 && battle.snares > 0) actions.push({ kind: 'snare' });\n  actions.push(...switches);"
+}

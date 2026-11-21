@@ -1,0 +1,8 @@
+{
+  "id": "085-target-is-first-creature",
+  "graded_item": 10,
+  "description": "attacks always hit the first creature of the party",
+  "file": "src/battle.js",
+  "find": "const target = s.foes[activeIndex(s.foes)];",
+  "replace": "const target = s.foes[0];"
+}

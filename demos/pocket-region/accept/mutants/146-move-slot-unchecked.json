@@ -1,0 +1,8 @@
+{
+  "id": "146-move-slot-unchecked",
+  "graded_item": 16,
+  "description": "a move slot the creature does not have is not ignored",
+  "file": "src/game.js",
+  "find": "if (Number(m[1]) < me.moves.length) action",
+  "replace": "if (true) action"
+}

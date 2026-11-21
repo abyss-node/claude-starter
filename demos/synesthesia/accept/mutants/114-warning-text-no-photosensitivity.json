@@ -1,0 +1,8 @@
+{
+  "id": "114-warning-text-no-photosensitivity",
+  "graded_item": 18,
+  "description": "the warning text does not name photosensitivity",
+  "file": "src/safety.js",
+  "find": "'Photosensitivity warning: this page shows moving light and colour that can flash in time with sound. ' +\n  'Flashing lights can trigger seizures in people with photosensitive epilepsy. ' +",
+  "replace": "'Notice: this page shows moving light and colour that can flash in time with sound. ' +\n  'Flashing lights bother some people. ' +"
+}

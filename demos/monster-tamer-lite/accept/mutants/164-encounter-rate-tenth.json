@@ -1,0 +1,8 @@
+{
+  "id": "164-encounter-rate-tenth",
+  "graded_item": 13,
+  "description": "the encounter chance is 0.1",
+  "file": "src/data.js",
+  "find": "export const ENCOUNTER_RATE = 0.25;",
+  "replace": "export const ENCOUNTER_RATE = 0.1;"
+}

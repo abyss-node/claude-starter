@@ -1,0 +1,8 @@
+{
+  "id": "128-hash-ignores-hue",
+  "graded_item": 19,
+  "description": "hash drops decimals of the hue",
+  "file": "src/synth.js",
+  "find": "const text = JSON.stringify(state, (key, value) => {",
+  "replace": "const text = JSON.stringify(state, (key, value) => {\n    if (key === 'hue') return Math.round(value);"
+}

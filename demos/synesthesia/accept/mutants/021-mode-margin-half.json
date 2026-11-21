@@ -1,0 +1,8 @@
+{
+  "id": "021-mode-margin-half",
+  "graded_item": 5,
+  "description": "mode margin 0.5",
+  "file": "src/analysis.js",
+  "find": "export const MODE_MARGIN = 0.1;",
+  "replace": "export const MODE_MARGIN = 0.5;"
+}

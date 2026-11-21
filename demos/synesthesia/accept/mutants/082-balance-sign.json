@@ -1,0 +1,8 @@
+{
+  "id": "082-balance-sign",
+  "graded_item": 14,
+  "description": "balance sign flipped",
+  "file": "src/analysis.js",
+  "find": "return l + r > 1e-9 ? (r - l) / (r + l) : 0;",
+  "replace": "return l + r > 1e-9 ? (l - r) / (r + l) : 0;"
+}

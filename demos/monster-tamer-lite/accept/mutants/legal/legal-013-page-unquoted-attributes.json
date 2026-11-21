@@ -1,0 +1,8 @@
+{
+  "id": "legal-013-page-unquoted-attributes",
+  "graded_item": 0,
+  "description": "index.html with unquoted attributes in another order",
+  "file": "index.html",
+  "find": "<canvas id=\"screen\" width=\"480\" height=\"288\"></canvas>",
+  "replace": "<canvas width=480 id=screen height=288></canvas>"
+}

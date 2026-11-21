@@ -1,0 +1,8 @@
+{
+  "id": "051-palette-never-neutral",
+  "graded_item": 10,
+  "description": "palette is never neutral",
+  "file": "src/synth.js",
+  "find": "s.palette = s.warmth > 0.3 ? 'warm' : s.warmth < -0.3 ? 'cool' : 'neutral';",
+  "replace": "s.palette = s.warmth >= 0 ? 'warm' : 'cool';"
+}

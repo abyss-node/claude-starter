@@ -1,0 +1,8 @@
+{
+  "id": "095-bad-target-before-key",
+  "graded_item": 11,
+  "description": "a bad target is reported before a key item",
+  "file": "src/inventory.js",
+  "find": "  if (def.kind === 'key') return fail('key');\n  if (!Number.isInteger(index) || index < 0 || index >= party.length) return fail('bad-target');",
+  "replace": "  if (!Number.isInteger(index) || index < 0 || index >= party.length) return fail('bad-target');\n  if (def.kind === 'key') return fail('key');"
+}

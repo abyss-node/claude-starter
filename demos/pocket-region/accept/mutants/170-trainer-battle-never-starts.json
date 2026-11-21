@@ -1,0 +1,11 @@
+{
+  "id": "170-trainer-battle-never-starts",
+  "graded_item": 19,
+  "description": "a conversation that ends in a battle starts nothing",
+  "file": "src/game.js",
+  "find": "if (r.view.battle) {",
+  "replace": "if (false) {",
+  "expect": [
+    "Graded 19:"
+  ]
+}

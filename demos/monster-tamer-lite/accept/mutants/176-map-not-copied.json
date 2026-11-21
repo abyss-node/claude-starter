@@ -1,0 +1,8 @@
+{
+  "id": "176-map-not-copied",
+  "graded_item": 13,
+  "description": "the game keeps the caller's map",
+  "file": "src/game.js",
+  "find": "const map = clone(options.map || MAP);",
+  "replace": "const map = options.map || MAP;"
+}

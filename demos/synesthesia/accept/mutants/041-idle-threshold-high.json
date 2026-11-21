@@ -1,0 +1,8 @@
+{
+  "id": "041-idle-threshold-high",
+  "graded_item": 8,
+  "description": "idle threshold 0.6",
+  "file": "src/synth.js",
+  "find": "export const IDLE_LOUDNESS = 0.05;",
+  "replace": "export const IDLE_LOUDNESS = 0.6;"
+}

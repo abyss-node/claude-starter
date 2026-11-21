@@ -1,0 +1,8 @@
+{
+  "id": "200-loss-gives-xp",
+  "graded_item": 14,
+  "description": "a loss still gives XP",
+  "file": "src/game.js",
+  "find": "    healParty(game);\n    game.x = game.start.x;",
+  "replace": "    for (const c of game.party) gainXp(c, 50);\n    healParty(game);\n    game.x = game.start.x;"
+}

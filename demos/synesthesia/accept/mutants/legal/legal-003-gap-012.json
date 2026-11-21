@@ -1,0 +1,8 @@
+{
+  "id": "legal-003-gap-012",
+  "graded_item": 12,
+  "description": "onsets at least 0.12 s apart",
+  "file": "src/onsets.js",
+  "find": "export const MIN_ONSET_GAP = 0.1;",
+  "replace": "export const MIN_ONSET_GAP = 0.12;"
+}

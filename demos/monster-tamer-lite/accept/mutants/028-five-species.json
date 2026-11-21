@@ -1,0 +1,8 @@
+{
+  "id": "028-five-species",
+  "graded_item": 4,
+  "description": "only five species",
+  "file": "src/data.js",
+  "find": "  { id: 'zapwren', name: 'Zapwren', type: 'spark', base: { hp: 38, atk: 55, def: 35, spd: 80 }, baseXp: 75, catchRate: 40, moves: ['static-nip', 'jolt-hum', 'wick-flick'], hue: 55 },\n  { id: 'pebblepaw', name: 'Pebblepaw', type: 'stone', base: { hp: 58, atk: 58, def: 65, spd: 30 }, baseXp: 70, catchRate: 40, moves: ['pebble-toss', 'boulder-drop', 'splashjab'], hue: 30 },\n",
+  "replace": ""
+}

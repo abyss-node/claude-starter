@@ -1,0 +1,8 @@
+{
+  "id": "123-hash-ignores-pattern",
+  "graded_item": 19,
+  "description": "hash ignores the pattern",
+  "file": "src/synth.js",
+  "find": "const text = JSON.stringify(state, (key, value) => {",
+  "replace": "const text = JSON.stringify(state, (key, value) => {\n    if (key === 'pattern') return undefined;"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "023-mode-major-third-wrong",
+  "graded_item": 5,
+  "description": "major template uses a fourth",
+  "file": "src/analysis.js",
+  "find": "const maj = (c[r] + c[(r + 4) % 12] + fifth) / total;",
+  "replace": "const maj = (c[r] + c[(r + 5) % 12] + fifth) / total;"
+}
