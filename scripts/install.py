@@ -2594,15 +2594,17 @@ def run_update(args) -> int:
 def apply_update_here(rec: dict | None, sha: str, args) -> int:
     """Plan against this clone at `sha`, its HEAD, and with --yes apply."""
     prev = ((rec or {}).get("kit") or {}).get("sha")
-    recorded = rec is not None
+    known = len((rec or {}).get("installs") or [])
+    recorded = known > 0  # a record `notices` started holds no installs, so it counts as none
     rec = adopt(rec)
+    adopted = len(rec["installs"]) > known
     steps = plan_installs(rec, args.guard_repo)
     rc = guard_refused(steps)
     if rc is not None:
         return rc
     pid = plan_id(sha, rec, steps)
     if not args.yes:
-        if not any(s.writes for s in steps) and prev == sha:
+        if not any(s.writes for s in steps) and prev == sha and not adopted:
             print(f"Nothing to update: every recorded install is current at {sha[:12]} "
                   f"({kit_version() or 'unknown version'}).")
             return 0

@@ -648,6 +648,17 @@ def test_notices_without_a_record_starts_one_and_the_reminder_stops(k):
     assert notice(k).startswith("claude-starter v0.4.1 is available")
 
 
+def test_a_record_started_by_notices_still_lets_update_adopt_an_install(k):
+    """`notices` starts a record with this clone's sha and no installs; an unrecorded install whose files
+    already match must still be adopted by the next update, not hidden behind 'Nothing to update'."""
+    (k.home / ".agents" / "starter" / "installs.json").unlink()
+    before = run(k, "update", "--offline", script="starter.py")
+    assert "adopted: codex" in before.stdout, before.stdout + before.stderr
+    assert run(k, "notices", "on", script="starter.py").returncode == 0
+    r = run(k, "update", "--offline", script="starter.py")
+    assert "adopted: codex" in r.stdout and "Nothing to update" not in r.stdout, r.stdout + r.stderr
+
+
 def test_notices_with_an_unreadable_record_exits_1_and_leaves_it(k):
     rec_path = k.home / ".agents" / "starter" / "installs.json"
     rec_path.write_text("{not json", encoding="utf-8")
