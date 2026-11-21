@@ -1244,8 +1244,12 @@ def test_every_pick_turn_ends_on_the_agent_stop_line(which):
 
 def test_the_installers_stop_line_reads_as_it_did():
     import argparse
-    for tool, ask in (("claude", "ask whether to add the commit guard to a repo"),
-                      ("codex", "ask which tier (starter or full) and whether to add the commit guard to a repo")):
+    # Pinned word for word: install.stop_line is shared with demo pick, so a change made for one shows
+    # here. The guard question asks for a project folder, never a repo (beginners had none).
+    folder = ("which project folder they work in, for the commit guard (one that is not a git repo yet is made "
+              "one; no folder yet: suggest ~/projects/<name>), or none")
+    for tool, ask in (("claude", "ask " + folder),
+                      ("codex", "ask which tier (starter or full) and " + folder)):
         assert install.agent_stop_line(argparse.Namespace(tool=tool)) == (
             f"If you are an AI agent: stop here. Show the user this plan, {ask}, and end your turn. "
             "Run with --yes only after they reply.")
