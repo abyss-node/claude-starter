@@ -735,7 +735,8 @@ def test_the_shipped_costs_file_holds_measured_runs_only():
 
 
 def test_node_side_tests_pass():
-    r = subprocess.run([shutil.which("node"), "--test", "--test-reporter=tap", str(DEMOS / "tests" / "npm-test.test.mjs")],
+    files = sorted(str(f) for f in (DEMOS / "tests").glob("*.test.mjs"))
+    r = subprocess.run([shutil.which("node"), "--test", "--test-reporter=tap", *files],
                        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
                        env=dict(os.environ, DEMO_TEST_PYTHON=sys.executable))
     assert r.returncode == 0 and "# fail 0" in r.stdout and "# skipped 0" in r.stdout, r.stdout + r.stderr

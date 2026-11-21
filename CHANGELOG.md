@@ -8,6 +8,23 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
+## [0.8.1] - unreleased
+
+### Fixed
+
+- The lanes demo's checks no longer fail at random on Linux. Each backend they
+  start took its port from listening on port 0 and closing, and Linux could
+  hand that just-closed port to two starts at once; the start whose backend
+  lost the bind then had its health check answered by the other backend, and
+  failed with `probe-N: not a skeleton trail`, `fetch failed` or `backend
+  exited with 1 before answering` (CI's `demo-mutants` job, now and then).
+  Each start now claims a port in 20000-25999, below every OS's range for
+  port 0, for its backend's whole life, with a listening socket on a lock port
+  that the OS closes if the process dies, so no other start, in any process,
+  can be handed it. A backend that exits before answering fails its start at
+  once, with its output, and an answer counts only while the backend is
+  running.
+
 ## [0.8.0] - 2026-11-22
 
 ### Added

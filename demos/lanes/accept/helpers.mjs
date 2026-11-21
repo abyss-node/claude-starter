@@ -2,6 +2,7 @@
 // process: the frontend is reached through the kit's probe.mjs, and the backend is a Python process of its
 // own, started here on the kit's Python and asked over HTTP. The workspace is DEMO_WORKSPACE, a copy the kit made.
 import { spawn, spawnSync } from "node:child_process";
+import { randomInt } from "node:crypto";
 import { cpSync, existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { createConnection, createServer } from "node:net";
@@ -116,18 +117,46 @@ function program(variable) {
   return path;
 }
 
-function freePort() {
-  return new Promise((ok, fail) => {
-    const srv = createServer();
-    srv.once("error", fail);
-    srv.listen(0, "127.0.0.1", () => {
-      const { port } = srv.address();
-      srv.close(() => ok(port));
-    });
-  });
-}
-
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// The ports backends are given, 20000-25999, and the lock port of each, the port plus 6000 (26000-31999). Both bands
+// sit below every OS's default range for port 0 and for outgoing connections (Linux 32768-60999, Windows and macOS
+// 49152-65535), so the OS never hands one out by itself.
+const BACKEND_PORTS = { low: 20000, count: 6000 };
+const LOCK_OFFSET = 6000;
+
+// A server listening on 127.0.0.1:port, or null when the port cannot be listened on (held, excluded, refused).
+const listening = (port) => new Promise((ok) => {
+  const srv = createServer();
+  srv.once("error", () => ok(null));
+  srv.listen(port, "127.0.0.1", () => ok(srv));
+});
+const closed = (srv) => new Promise((done) => srv.close(() => done()));
+
+// Claim a port for one backend's whole life: { port, release }. Never port 0 and close: the OS can hand that
+// just-closed port to the next asker before this backend binds it (Linux picks port 0 at random, so two starts at
+// once can draw the same one), and the start whose backend then loses the bind has its health check answered by
+// the other's. The claim is a listening socket on the port's lock port, held until release(): no other start, in
+// this process or any other, can listen there meanwhile, and the OS closes it when this process ends however it
+// ends, so a claim never outlives its holder. A port something else already listens on is skipped.
+async function claimPort() {
+  for (let attempt = 0; attempt < 1000; attempt++) {
+    const port = BACKEND_PORTS.low + randomInt(BACKEND_PORTS.count);
+    const lock = await listening(port + LOCK_OFFSET);
+    if (!lock) continue;
+    const probe = await listening(port);
+    if (!probe) {
+      await closed(lock);
+      continue;
+    }
+    await closed(probe);
+    lock.unref();
+    let released = null;
+    return { port, release: () => (released ??= closed(lock)) };
+  }
+  const last = BACKEND_PORTS.low + BACKEND_PORTS.count - 1;
+  throw new Error(`no port left to claim for the backend in ${BACKEND_PORTS.low}-${last}`);
+}
 
 // What the backend's process sees: the run's environment without the kit's variables (the result token above
 // all), and no bytecode written next to the code.
@@ -157,13 +186,15 @@ async function untilClosed(port) {
   for (let i = 0; i < 200 && (await accepting(port)); i++) await sleep(25);
 }
 
-// Start `python -B backend/server.py --port <free port>` with the folder `root` (default: the workspace) as
-// its cwd, wait for /api/health, and hand back the base URL and a stop().
+// Start `python -B backend/server.py --port <claimed port>` with the folder `root` (default: the workspace) as
+// its cwd, wait for /api/health, and hand back the base URL and a stop(). The port stays claimed until stop() has
+// seen it closed.
 export async function startBackend(root = workspace()) {
   const server = join(root, "backend", "server.py");
   if (!existsSync(server)) throw new Error("missing backend/server.py in the workspace");
-  const port = await freePort();
-  const child = spawn(program("DEMO_PYTHON"), ["-B", server, "--port", String(port)], {
+  const python = program("DEMO_PYTHON");
+  const { port, release } = await claimPort();
+  const child = spawn(python, ["-B", server, "--port", String(port)], {
     cwd: root,
     env: backendEnv(),
     stdio: ["ignore", "pipe", "pipe"],
@@ -173,26 +204,37 @@ export async function startBackend(root = workspace()) {
   child.stdout.on("data", (d) => (output += d));
   child.stderr.on("data", (d) => (output += d));
   let exited = null;
-  child.on("exit", (code) => (exited = code ?? "a signal"));
-  const stop = () => new Promise((done) => {
-    if (exited !== null) return done();
-    child.once("exit", () => untilClosed(port).then(done));
-    child.kill();
+  // Settles when the child has ended, by itself or by stop(); 'error' is a child that could not be started.
+  const ended = new Promise((done) => {
+    child.once("exit", (code) => done((exited ??= code ?? "a signal")));
+    child.on("error", (e) => done((exited ??= `an error (${e.message})`)));
   });
+  const drained = new Promise((done) => child.once("close", done));
+  let stopping = null;
+  const stop = () => (stopping ??= (async () => {
+    if (exited === null) {
+      child.kill();
+      await ended;
+    }
+    await untilClosed(port);
+    await release();
+  })());
+  const failed = async (why) => {
+    await stop();
+    await Promise.race([drained, sleep(2000)]); // the rest of its output, a traceback above all
+    return new Error(`${why}:\n${output.slice(-2000)}`);
+  };
   const base = `http://127.0.0.1:${port}`;
+  const healthy = () => fetch(`${base}/api/health`).then((r) => r.ok, () => false); // false: not listening yet
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
-    if (exited !== null) throw new Error(`backend exited with ${exited} before answering:\n${output.slice(-2000)}`);
-    try {
-      const r = await fetch(`${base}/api/health`);
-      if (r.ok) return { base, stop };
-    } catch {
-      // not listening yet
-    }
-    await sleep(150);
+    // The child ending ends the wait at once, and an answer counts only while the child is still running.
+    const ok = await Promise.race([healthy(), ended.then(() => false)]);
+    if (exited !== null) throw await failed(`backend exited with ${exited} before answering`);
+    if (ok) return { base, stop };
+    await Promise.race([sleep(150), ended]);
   }
-  await stop();
-  throw new Error(`backend did not answer /api/health on ${base} within 20 s:\n${output.slice(-2000)}`);
+  throw await failed(`backend did not answer /api/health on ${base} within 20 s`);
 }
 
 // Run `fn(base)` against a backend started in the workspace, and stop it afterwards, whatever fn does.
