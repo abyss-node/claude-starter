@@ -8,7 +8,7 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
-## [0.8.0] - unreleased
+## [0.8.0] - 2026-11-22
 
 ### Added
 
@@ -76,7 +76,7 @@ can show what each one does before it runs.
   they print (pytest's temp folder under `Temp\claude\`, or a clone there), and
   now reads that output with the machine's paths masked.
 
-## [0.7.0] - unreleased
+## [0.7.0] - 2026-11-22
 
 ### Added
 
@@ -208,7 +208,7 @@ can show what each one does before it runs.
   PASS, locally and in CI's re-grade, so a Python or mixed run's workspace is
   read before its row is committed.
 
-## [0.6.0] - unreleased
+## [0.6.0] - 2026-11-16 (never tagged; shipped in v0.7.0)
 
 ### Added
 
