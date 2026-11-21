@@ -23,9 +23,12 @@
 // accept/ folder, which the same kind of process imports beside the workspace and runs there (scenario()). It
 // returns observations, plain data, and the asserts stay here. A scenario shares that process with the
 // workspace's code. Before that code loads, probe-child.mjs freezes the built-ins and what the kit's modules
-// there export, takes away Node's heap snapshots and promise hooks, and holds the clocks, so it cannot change how
-// a scenario looks (workspaces once changed Number.prototype.toFixed, Object.getPrototypeOf, Math.random or a
-// scenario's own table of seeds, and hid a real bug each time). What it can still change is its own values as they are read: a getter or a Proxy
+// there export, takes away Node's heap snapshots, promise hooks and syncBuiltinESMExports, and holds the clocks,
+// and it writes the answer from copies with functions it holds itself, so that code cannot change how a scenario
+// looks by any route demos/tests has tried (workspaces once changed Number.prototype.toFixed,
+// Object.getPrototypeOf, Math.random, a scenario's own table of seeds or node:fs's writeSync, and hid a real bug
+// each time). A scenario imports no node: module (scenarioReads). What that code can still change is its own
+// values as they are read: a getter or a Proxy
 // of its own runs when the scenario reads it. So a scenario returns what it saw, the values themselves, never a
 // verdict such as `true` for "it was pure" nor text it made of them: the test formats, classifies and compares.
 import { spawnSync } from 'node:child_process';
@@ -123,7 +126,8 @@ const READS = new Map();
  * reference solution, since a folder's grant covers everything below it. So an import is followed only to a .mjs
  * module of the scenario's own folder outside mutants/, or to a probe file; anything else throws, before any
  * process starts, naming the import. An import missed here is not granted, so it fails to load (the permission
- * model denies it) rather than widening what can be read.
+ * model denies it) rather than widening what can be read. A node: builtin throws too: its functions read what the
+ * workspace's code beside the scenario can change, such as util.inspect.defaultOptions under inspect.
  */
 export function scenarioReads(file) {
   if (READS.has(file)) return READS.get(file);
@@ -151,7 +155,11 @@ export function scenarioReads(file) {
     }
     reads.push(f);
     for (const [, , s] of withoutComments(source).matchAll(IMPORT_SPEC)) {
-      if (!s.startsWith('./') && !s.startsWith('../')) continue;   // a node: builtin
+      if (!s.startsWith('./') && !s.startsWith('../')) {
+        throw new Error(`${path.relative(root, f)} imports ${s}, which the workspace's code in a scenario's process `
+          + 'can change: a scenario reads with the built-ins the probe freezes and the modules of its own folder '
+          + '(demos/AUTHORING.md)');
+      }
       const target = path.resolve(path.dirname(f), s);
       if (target !== PROBE && target !== CHILD) todo.push([target, f, s]);
     }

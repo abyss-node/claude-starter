@@ -119,8 +119,8 @@ own and assert on what comes back. Two static tests enforce it on every file in
   (`scenarioReads` in probe.mjs), and nothing else of the kit. The folder is
   never granted: a folder's grant covers everything below it, `accept/mutants/`
   included, whose `find` strings quote the reference. `scenario()` refuses,
-  before any process starts, a scenario that imports anything but those,
-  `node:` builtins and `../../probe.mjs` (a JSON file, say, a module under
+  before any process starts, a scenario that imports anything but those and
+  `../../probe.mjs` (a `node:` builtin, below, a JSON file, a module under
   `mutants/` or a file outside its folder). Whatever a scenario imports, the
   workspace's code in that process can read and import too, so nothing taken
   from `reference/` goes in a scenario's imports.
@@ -158,13 +158,28 @@ own and assert on what comes back. Two static tests enforce it on every file in
   hook is handed every promise made after it, with what it resolves to: a
   planted workspace read the key from `v8.getHeapSnapshot()` and had an answer
   line of its own believed, in 9 lines, and another rewrote the record a
-  scenario's helper resolved with. The permission model allows both. Not
+  scenario's helper resolved with. The permission model allows both. Taken
+  away too: `node:module`'s `syncBuiltinESMExports`, which re-points every
+  named import of a builtin at what the builtin's module holds now. Not
   frozen: the global object (code may add globals), `process`, `console`, the
-  timers, `performance` but for its `now`, and `node:` modules other than
-  those two; a scenario observes with none of them.
+  timers, `performance` but for its `now`, and every `node:` module but
+  `node:v8` and `node:async_hooks`. The probe itself uses three of those,
+  `node:fs`, `node:module` and `node:util`, so it holds what it calls of them
+  in constants of its own, taken from each module's object before any
+  workspace module loads, never by a named import: a planted workspace set
+  `node:fs`'s `writeSync` to a function of its own and called
+  `syncBuiltinESMExports`, and the probe's named import of `writeSync` then
+  handed that function the answer line, key and all, to rewrite. And a
+  scenario imports no `node:` module (`scenario()` refuses one, above): their
+  functions read what the workspace's code can set, `util.inspect`'s
+  `defaultOptions` for one, which no freeze holds.
   The answer line also carries a key the process reads from stdin before any
   workspace module loads, so a line the workspace's code prints is not taken
-  for it.
+  for it. And the answer holds copies: what a call or a scenario returns is
+  copied (`structuredClone`) as it returns. The serializer asks a typed array
+  for its length and its bytes by property reads, and a planted typed array of
+  the workspace's own class answered 0 and then bytes that were read back as
+  the rest of its scenario's record.
 - **Clocks.** `withoutClocks(fn)` runs `fn` with `Math.random`, `Date.now` and
   `performance.now` throwing (until its promise settles, when it returns
   one), and throws, naming the clock, when the code read one and caught the
@@ -182,14 +197,15 @@ own and assert on what comes back. Two static tests enforce it on every file in
   monster-tamer-lite's scenarios do; spin-clash's and pocket-region's still
   work out kinds beside the workspace (their `helpers.mjs` `kinds`), which the
   freeze keeps safe from changed built-ins, not from the value's own code.
-  v8 serialization refuses a Proxy and a function; what it cannot carry, a
-  scenario records beside the copy (a class instance arrives as a plain
-  object, a getter as one value it gave: monster-tamer-lite's `fixtures.mjs`
-  `uncopied`). Past that, the workspace's
-  code changes what a check sees only by changing the answers it gives: it
-  can make them wrong on purpose, but only by doing the work wrong. All of
-  this holds within Node's permission model, which is a seat belt, not a
-  sandbox (`demos/MEASURING.md`).
+  The copy refuses a Proxy and a function; what it cannot carry, a scenario
+  records beside it (a class instance arrives as a plain object, a getter as
+  one value it gave: monster-tamer-lite's `fixtures.mjs` `uncopied`; a
+  `Buffer` arrives as a `Uint8Array`). Past that, no other way is known for the
+  workspace's code to change what a check sees than by changing the answers
+  it gives, wrong on purpose or not. That is a record of what has been tried,
+  not a proof: the `writeSync` and typed-array routes above were found after
+  this text said none was left. All of this holds within Node's permission
+  model, which is a seat belt, not a sandbox (`demos/MEASURING.md`).
 - Reading a workspace file as text (an `index.html`) from the test is fine.
 - A mixed demo starts its backend from the test: `DEMO_PYTHON` by absolute
   path, `-B`, a free port, the copy as cwd, an environment without

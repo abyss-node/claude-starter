@@ -35,8 +35,22 @@ can show what each one does before it runs.
   by changing `Number.prototype.toFixed`, `Object.getPrototypeOf` or
   `Math.random`, and another by rewriting a scenario's table of seeds; each now
   throws as the module loads, or changes nothing when the throw is caught.
-- The probe's answer line carries a key the workspace's code cannot learn, so
-  an answer line that code prints is no longer taken for the probe's.
+- The probe's answer line carries a key the workspace's code is not given, so
+  a line that code prints is not taken for the probe's. The probe writes it
+  with functions it holds in constants of its own, and `node:module`'s
+  `syncBuiltinESMExports` throws in its processes: a planted workspace had
+  swapped `node:fs`'s `writeSync`, re-pointed the probe's named import of it,
+  and rewritten the line it was then handed, key and all, so that Fair Share
+  and Monster Tamer Lite passed with a planted bug.
+- The probe's answer holds copies (`structuredClone`) of what each call or
+  scenario returned. A typed array of the workspace's own class had given the
+  serializer one length to write and bytes of another, which were read back as
+  the rest of a scenario's record. A `Buffer` a call returns now arrives as a
+  `Uint8Array`.
+- A scenario's modules may not import a `node:` module: `scenario()` refuses
+  one before any process starts. Its functions read settings the workspace's
+  code beside it can change (`util.inspect.defaultOptions`). No shipped
+  scenario imported one.
 - In the probe's processes, all of `node:v8` but its serializer and its
   statistics, and `node:async_hooks`' `createHook` and
   `executionAsyncResource`, throw. A planted workspace had read the answer
@@ -57,6 +71,10 @@ can show what each one does before it runs.
   `load` rejects with the probe's own description of the refusal, where
   Pocket Region's and Monster Tamer Lite's layout checks had reported only
   22.13's "Access to this API has been restricted".
+- `demos/tests` pass from a folder whose path names a tool: the two-way term
+  check on `demo start` and `demo pick` output flagged the word in the paths
+  they print (pytest's temp folder under `Temp\claude\`, or a clone there), and
+  now reads that output with the machine's paths masked.
 
 ## [0.7.0] - unreleased
 

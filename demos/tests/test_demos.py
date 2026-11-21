@@ -14,6 +14,7 @@ import importlib.util
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -92,6 +93,18 @@ def clean_env(home: Path, **extra) -> dict:
     env.update(HOME=str(home), USERPROFILE=str(home), PYTHONIOENCODING="utf-8")
     env.update(extra)
     return env
+
+
+def masked(text: str, *roots: Path) -> str:
+    """`text` with the kit's clone and each of `roots` written as <path>, however the output spells them: as they
+    are or with forward slashes, an apostrophe as it is or quoted for bash or PowerShell. The term check holds the
+    kit's own words, and a folder above the clone or pytest's temp folder can name a tool without being the kit's:
+    16 start and pick tests failed only for running under Temp\\claude\\ (2026-11-21)."""
+    spellings = {form.replace("'", quoted) for root in (KIT, install.cmd_root(), *roots)
+                 for form in (str(root), root.as_posix()) for quoted in ("'", "'\"'\"'", "''")}
+    for spelling in sorted(spellings, key=len, reverse=True):
+        text = text.replace(spelling, "<path>")
+    return text
 
 
 def git(cwd: Path, *a: str, env: dict | None = None) -> str:
@@ -501,10 +514,16 @@ def test_start_refuses_a_folder_the_test_script_cannot_quote(scratch, home, fold
 # the clone, and the process list names it too; a workspace that looked it up and ran reference/ got a recordable
 # PASS while four texts said "nothing it is given leads there". Nor that Node's permission model lets the workspace's
 # code read "nothing of the kit's": a scenario's process could read all of accept/, mutants and their quotes of
-# the reference included, while three texts said so.
+# the reference included, while three texts said so. Nor that the workspace's code can make a probe's answers
+# wrong "only by doing the work wrong", or that its answer lines are "no longer taken": a planted workspace swapped
+# node:fs's writeSync, which probe-child.mjs called by a named import it said was "taken before the freeze", and
+# rewrote the probe's own line, while AUTHORING.md said of the node: modules "a scenario observes with none of
+# them" (2026-11-21).
 OVERCLAIMS = ("copying the reference fails", "but not this", "but not that line", "no copying of the reference",
               "nothing it is given leads", "where no path leads", "where no kit path leads", "no path leads to the kit",
-              "nothing of the kit's", "the two probe files, and nothing else")
+              "nothing of the kit's", "the two probe files, and nothing else", "only by doing the work wrong",
+              "no longer taken for the probe's", "taken before the freeze", "a scenario observes with none of them",
+              "process the workspace cannot change")
 
 
 def test_no_text_claims_a_local_grade_is_tamper_proof():
@@ -585,11 +604,12 @@ def test_a_module_that_switches_the_checks_off_gains_nothing(name, tmp_path):
 
 
 # What a workspace's code would change to hide a bug from a scenario that observes it in the same process: the
-# built-ins a scenario formats, classifies, copies and compares with, and node:v8's serializer, which writes the
-# answer (a verifier's workspace once hid real bugs from monster-tamer-lite this way; test_runtimes has each cheat
-# itself). Each is changed here so that, did it take, every demo's checks would break, and each in a try block of
-# its own: probe-child.mjs freezes them all before any workspace module loads, so none takes. With harden() taken
-# out of probe-child.mjs, this test failed for every demo here (2026-11-19).
+# built-ins a scenario formats, classifies, copies and compares with, node:v8's serializer and node:fs's writeSync,
+# which write the answer (a verifier's workspace once hid real bugs from monster-tamer-lite this way; test_runtimes
+# has each cheat itself). Each is changed here so that, did it take, every demo's checks would break, and each in a
+# try block of its own: probe-child.mjs freezes them all, or holds them itself, before any workspace module loads,
+# so none takes. With harden() taken out of probe-child.mjs, this test failed for every demo here (2026-11-19), and
+# so it did with writeSync taken by a named import and syncBuiltinESMExports left in (2026-11-21).
 TAMPERS = [
     "Number.prototype.toFixed = function () { return '0'; }",
     "Object.defineProperty(Number.prototype, 'toFixed', { value() { return '0'; } })",
@@ -620,6 +640,8 @@ TAMPERS = [
     "globalThis.structuredClone = () => ({})",
     "Object.setPrototypeOf(Array.prototype, null)",
     "process.getBuiltinModule('node:v8').Serializer.prototype.writeValue = function () { return true; }",
+    "const fs = process.getBuiltinModule('node:fs'); fs.writeSync = (fd, data) => data.length; "
+    "process.getBuiltinModule('node:module').syncBuiltinESMExports()",
 ]
 TAMPERED = ("for (const t of [\n" + "".join(f"  () => {{ {t}; }},\n" for t in TAMPERS)
             + "]) { try { t(); } catch { /* frozen */ } }\n")
@@ -753,13 +775,16 @@ def test_start_makes_a_repo_with_the_guard_and_one_commit_and_prints_what_to_wat
 
 @pytest.mark.parametrize("tool, rules, opener", [("claude", "CLAUDE.md", "&& claude"),
                                                  ("opencode", "AGENTS.md", "opencode '")])
-def test_start_writes_each_tools_rules_file_and_open_line_in_its_own_words(scratch, home, tool, rules, opener):
+def test_start_writes_each_tools_rules_file_and_open_line_in_its_own_words(scratch, home, tool, rules, opener,
+                                                                          tmp_path_factory):
     kit, _ = scratch
     r = run(kit, "start.py", "fair-share", "--tool", tool, home=home)
     assert r.returncode == 0, r.stderr
     ws = home / "agent-demos" / "fair-share"
     assert (ws / rules).is_file() and opener in r.stdout
-    ba.check_terms({tool: {"start.txt": r.stdout, rules: dl.read_text(ws / rules)}}, ba.load_terms(), {}, full=False)
+    base = tmp_path_factory.getbasetemp()
+    ba.check_terms({tool: {"start.txt": masked(r.stdout, base), rules: masked(dl.read_text(ws / rules), base)}},
+                   ba.load_terms(), {}, full=False)
 
 
 def test_start_refuses_without_an_install_recorded_for_the_tool(scratch, tmp_path):
@@ -1256,7 +1281,7 @@ def test_pick_speaks_only_its_own_tools_words(tool, plan_id):
     texts = outputs([], tool, plan_id)
     if plan_id:
         texts.append("\n".join(pick.choose_plan(tool, dl.plans()[tool], None)))
-    ba.check_terms({tool: {"pick.txt": "\n\n".join(texts)}}, ba.load_terms(), {}, full=False)
+    ba.check_terms({tool: {"pick.txt": masked("\n\n".join(texts))}}, ba.load_terms(), {}, full=False)
 
 
 @pytest.mark.parametrize("tool, plan_id", list(every_cell()))
@@ -1276,11 +1301,28 @@ def test_a_plans_label_is_a_name_in_brackets_never_part_of_a_sentence(tool, plan
 
 
 def test_the_term_check_on_pick_output_fires_on_another_tools_plan():
-    codex = "\n".join(outputs([], "codex", "plus")) + "\nPick Max 20x if you can.\n"
+    codex = masked("\n".join(outputs([], "codex", "plus"))) + "\nPick Max 20x if you can.\n"
     with pytest.raises(SystemExit, match="codex/pick.txt"):
         ba.check_terms({"codex": {"pick.txt": codex}}, ba.load_terms(), {}, full=False)
-    opencode = "\n".join(outputs([], "opencode", "openai-chatgpt")) + "\nSigned in with ChatGPT Plus.\n"
+    opencode = masked("\n".join(outputs([], "opencode", "openai-chatgpt"))) + "\nSigned in with ChatGPT Plus.\n"
     ba.check_terms({"opencode": {"pick.txt": opencode}}, ba.load_terms(), {}, full=False)
+
+
+def test_masked_takes_out_a_path_that_names_a_tool_and_leaves_the_kits_words(tmp_path):
+    root = tmp_path / "Temp" / "claude" / "it's"
+    spelled = [str(root), root.as_posix(), shlex.quote(str(root)), shlex.quote(root.as_posix()),
+               install._ps_quote(str(root))]
+    text = "".join(f"open {s}\n" for s in spelled) + "then run claude --continue\n"
+
+    def problems(t: str) -> list:
+        try:
+            ba.check_terms({"opencode": {"t.txt": t}}, ba.load_terms(), {}, full=False)
+        except SystemExit as e:
+            return [ln.split(":")[1] for ln in str(e).splitlines() if ln.startswith("  opencode/t.txt:")]
+        return []
+
+    assert set(problems(text)) > {str(len(spelled) + 1)}   # each spelling of the path is flagged, unmasked
+    assert set(problems(masked(text, root))) == {str(len(spelled) + 1)}
 
 
 FREE_WORDS = re.compile(r"\$0\b|no extra dollars|no dollars|\bfree\b|costs nothing", re.I)

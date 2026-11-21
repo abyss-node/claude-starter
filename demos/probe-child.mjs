@@ -19,28 +19,44 @@
 // - Taking the clocks away (a scenario's withoutClocks) is a switch held here: Math.random, Date.now and
 //   performance.now are this file's own functions from before the freeze, which throw while the switch is on.
 //   The workspace can neither replace them nor reach the switch.
-// - The answer is serialized and written with functions taken before the freeze, and carries a key the parent
-//   gave on stdin, read before any workspace module loads. A workspace that printed an answer line of its own,
-//   after this file's, once had its line believed: the parent took the last line that began with MARK.
+// - The answer carries a key the parent gave on stdin, read before any workspace module loads. A workspace that
+//   printed an answer line of its own, after this file's, once had its line believed: the parent took the last
+//   line that began with MARK.
+// - What this file calls of a node: module, writeSync among it, it holds in a const of its own, taken from the
+//   module's object before any workspace module loads. A named import of a builtin is a live binding: it follows
+//   what the module's object holds whenever node:module's syncBuiltinESMExports runs. A planted workspace set
+//   node:fs's writeSync to a function of its own and called syncBuiltinESMExports, with no import statement
+//   (process.getBuiltinModule), when this file still imported writeSync by name. Its function was then handed
+//   this file's answer line, key and all, and wrote a doctored line in its place, which the parent believed (Node
+//   22.13 and 24.14). syncBuiltinESMExports is taken away too (takeAway), so no named import of a builtin in this
+//   process can be re-pointed.
+// - The answer holds copies, never the workspace's objects: what a call or a scenario returns is copied as it
+//   returns (copiedOut), since the serializer asks a typed array for its length and bytes by property reads,
+//   which an array of the workspace's own class answers as it likes.
 // - Node's ways of looking into this process are taken away (takeAway): all of node:v8 but its serializer and
 //   its statistics, and node:async_hooks' createHook and executionAsyncResource, throw. A planted workspace read
 //   the answer key out of v8.getHeapSnapshot() and printed an answer line of its own that the parent believed, in
 //   9 lines; another hooked every promise made after it loaded (async_hooks.createHook, v8.promiseHooks) and
 //   rewrote the record a scenario's helper resolved with before the scenario read it. The permission model
 //   allows all of these.
-// What is left to the workspace is its own values: a scenario reads what they hold, and a getter, a Proxy trap
-// or a toJSON of the workspace's runs as the scenario reads it (demos/AUTHORING.md, "Node checks").
+// What is left to the workspace, of what the planted workspaces in demos/tests tried, is its own values: a
+// scenario reads what they hold, and a getter, a Proxy trap or a toJSON of the workspace's runs as the scenario
+// reads it (demos/AUTHORING.md, "Node checks").
 import asyncHooks from 'node:async_hooks';
-import { readFileSync, writeSync } from 'node:fs';
-import { syncBuiltinESMExports } from 'node:module';
-import { types } from 'node:util';
+import fs from 'node:fs';
+import nodeModule from 'node:module';
+import util from 'node:util';
 import v8 from 'node:v8';
 import { MARK } from './probe.mjs';
 
+const { readFileSync, writeSync } = fs;
+const { syncBuiltinESMExports } = nodeModule;
+const { types } = util;
 const KEY = readFileSync(0, 'utf8').trim();
 const ARGV = process.argv.slice(2);
 const exit = process.exit.bind(process);
 const { serialize, deserialize } = v8;
+const clone = structuredClone;
 const { apply, defineProperty, getOwnPropertyDescriptor, getPrototypeOf, ownKeys } = Reflect;
 const { freeze } = Object;
 const RealPromise = Promise;
@@ -187,7 +203,12 @@ const KEPT = new Map([
     'getCppHeapStatistics', 'isStringOneByteRepresentation']],
   [asyncHooks, ['AsyncLocalStorage', 'AsyncResource', 'executionAsyncId', 'triggerAsyncId', 'asyncWrapProviders']],
 ]);
-const MODULE_NAMES = new Map([[v8, 'node:v8'], [asyncHooks, 'node:async_hooks']]);
+// What node:module loses, by name, and nothing else of it: syncBuiltinESMExports re-points every named import of
+// a builtin at what the builtin's module object holds now (see the top of this file). Node runs that sync itself
+// only once per builtin, as it first builds the builtin's ES module: for each builtin this file imports, before
+// any workspace module loads.
+const TAKEN = new Map([[nodeModule, ['syncBuiltinESMExports']]]);
+const MODULE_NAMES = new Map([[v8, 'node:v8'], [asyncHooks, 'node:async_hooks'], [nodeModule, 'node:module']]);
 
 function takenAway(what, value) {
   if (value !== null && typeof value === 'object') {
@@ -202,16 +223,17 @@ function takenAway(what, value) {
 }
 
 function takeAway() {
+  const take = (mod, key) => {
+    const d = getOwnPropertyDescriptor(mod, key);
+    const value = takenAway(`${MODULE_NAMES.get(mod)} ${key}`, d.value);
+    defineProperty(mod, key, { value, writable: false, enumerable: d.enumerable, configurable: false });
+  };
   for (const [mod, kept] of KEPT) {
-    for (const key of ownKeys(mod)) {
-      if (typeof key !== 'string' || kept.includes(key)) continue;
-      const d = getOwnPropertyDescriptor(mod, key);
-      const value = takenAway(`${MODULE_NAMES.get(mod)} ${key}`, d.value);
-      defineProperty(mod, key, { value, writable: false, enumerable: d.enumerable, configurable: false });
-    }
+    for (const key of ownKeys(mod)) if (typeof key === 'string' && !kept.includes(key)) take(mod, key);
   }
+  for (const [mod, taken] of TAKEN) for (const key of taken) take(mod, key);
   // `import { getHeapSnapshot } from 'node:v8'` reads the module's named exports, which Node copied from it when
-  // this file imported it; this copies them again, from what is left.
+  // this file imported it; this copies them again, from what is left, with the one sync left in the process.
   syncBuiltinESMExports();
 }
 
@@ -318,10 +340,19 @@ function errorOf(e) {
   return { name: text(() => e.name), message: messageOf(e), range: e instanceof RangeError };
 }
 
+// A result as the answer carries it: a copy of the value, made the moment the call or the scenario returns it.
+// The serializer that writes the answer asks a typed array for its length and then for its bytes, by ordinary
+// property reads, and an array of the workspace's own class can answer the first with 0 and the second with
+// bytes of its choosing, which are then read back as the rest of the answer: a planted record said what its
+// scenario never saw (Node 22.13 and 24.14). structuredClone copies an array's length and bytes as the engine
+// holds them, so the answer holds no object of the workspace's; the value's getters run once, here. The copy is
+// serialized here too, since structuredClone takes a few things the answer's serializer refuses (a
+// SharedArrayBuffer), and a value that cannot cross is this result's error rather than the answer's.
 function copiedOut(value) {
   try {
-    serialize(value);
-    return null;
+    const copy = clone(value);
+    serialize(copy);
+    return { ok: true, value: copy };
   } catch (e) {
     const message = `it returned a value that cannot be copied out of its process (${text(() => e.message)})`;
     return { ok: false, error: { name: 'DataCloneError', message, range: false } };
@@ -338,7 +369,7 @@ function call(mod, [fn, ...args]) {
   } catch (e) {
     return { ok: false, error: errorOf(e) };
   }
-  return copiedOut(value) || { ok: true, value };
+  return copiedOut(value);
 }
 
 // A scenario (probe.mjs's scenario()): --scenario <its file URL> <export> <workspace folder URL> <args, v8, base64>
@@ -362,7 +393,7 @@ async function runScenario([scenarioHref, name, wsHref, request, modules]) {
   } catch (e) {
     return { results: [{ ok: false, error: errorOf(e) }] };
   }
-  return { results: [copiedOut(value) || { ok: true, value }] };
+  return { results: [copiedOut(value)] };
 }
 
 let answer;
