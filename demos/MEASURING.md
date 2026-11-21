@@ -140,7 +140,10 @@ that the answers are its own (below).
   the checks believe an answer the code had not given. Each of those is closed
   now, and a test in `demos/tests` holds it closed. What the code still
   controls there is its own values, whose getters or Proxy traps run as the
-  scenario reads them. No other way is known for it to change what a check
+  scenario reads them, and the answers themselves: code that can tell which
+  scenario runs can lie only there, and a check that trusts a value the code
+  reports (monster-tamer-lite's Graded 11 and its draw) believes the lie.
+  No other way is known for it to change what a check
   sees, but the last two were found after this text said none was left: read
   it as what has been tried, not as proof. The freeze leaves `process`,
   `console` and the timers alone, and holds only within the permission model

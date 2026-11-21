@@ -202,8 +202,15 @@ own and assert on what comes back. Two static tests enforce it on every file in
   one value it gave: monster-tamer-lite's `fixtures.mjs` `uncopied`; a
   `Buffer` arrives as a `Uint8Array`). Past that, no other way is known for the
   workspace's code to change what a check sees than by changing the answers
-  it gives, wrong on purpose or not. That is a record of what has been tried,
-  not a proof: the `writeSync` and typed-array routes above were found after
+  it gives, wrong on purpose or not. Wrong on purpose includes two-faced: the
+  code can tell which scenario runs (from `process.argv`, a stack trace or the
+  inputs) and lie only there. So a check whose expected value is worked out
+  from a value the workspace reports cannot catch a bug that lie covers:
+  monster-tamer-lite's Graded 11 derives the snare's outcome from the draw
+  `nextFloat` reports, and a workspace that shifts two draws only in
+  scenario 11 hides an off-by-one there. Where that matters, work the
+  expected value out from inputs the scenario chose. That is a record of what
+  has been tried, not a proof: the `writeSync` and typed-array routes above were found after
   this text said none was left. All of this holds within Node's permission
   model, which is a seat belt, not a sandbox (`demos/MEASURING.md`).
 - Reading a workspace file as text (an `index.html`) from the test is fine.
