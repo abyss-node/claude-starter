@@ -78,10 +78,10 @@ problem. So:
 - Before a session is left unattended with work that will wake it (background
   jobs, scheduled checks, multi-agent runs), suggest `/compact` first, so each
   wake-up re-reads a summary instead of the full history.
-- Before any `/clear` or `/compact`, write the session's state to a handoff file
-  (or to memory, where your tool has it): what is running and how to check it,
-  what is done and verified, what is waiting on the user. A summary or a cleared
-  window loses detail; the written record is what the next turn can trust.
+- Before any `/clear` or `/compact`, write the session's state to memory or a
+  handoff file: what is running and how to check it, what is done and
+  verified, what is waiting on the user. A summary or a fresh window loses
+  detail; the written record is what the next turn can trust.
 - Do not keep a session open only to host a session-only scheduled job when a
   checklist run in a fresh session would do; say so and offer that instead.
 
@@ -94,7 +94,7 @@ Pick the model by capability:
 - `haiku` — pure lookups and formatting only: file and symbol searches, "where is
   X", reading a config or log back. Name the model explicitly on such agents: an
   agent spawned with no model inherits the session's model, so lookups quietly
-  run at the top tier.
+  run at the session's tier.
 
 Then pick effort by the task's shape, not the model's:
 - `low` — pure lookups and formatting

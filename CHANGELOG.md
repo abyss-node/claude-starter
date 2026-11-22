@@ -20,14 +20,17 @@ can show what each one does before it runs.
   that will wake it, to write the session's state to a handoff file (or to
   memory, where the tool has it) before either, and not to hold a session open
   only for a session-only scheduled job. Claude Code's copy names `/clear` and
-  `/compact`; the other tools' copies say "start a fresh session" and "compact
-  or summarise the conversation", since the kit has not checked those commands
+  `/compact`; the other tools' copies say "a fresh session" and "compacting
+  or summarising the conversation", since the kit has not checked those commands
   in any other tool. The light rules do not get it: they have no pacing rule
   for it to follow, and the full tier is where unattended multi-agent runs
   live.
-- `core/terms.json` guards `/clear` and `/compact` as Claude Code's own, so a
-  build for another tool that names either now fails with its file and line.
-  OpenCode's onboarding, whose source already names `/compact`, is allowed.
+- `core/terms.json` guards `/clear` and `/compact` as Claude Code's own, with
+  or without backticks, so a build for another tool that names either now
+  fails with its file and line. Two lines of OpenCode's onboarding that
+  already name `/compact` are allowed for that command only: OpenCode's TUI
+  docs list no `/compact`, just a `session.compact` keybind, so whether those
+  lines are right is still open.
 
 ### Changed
 
