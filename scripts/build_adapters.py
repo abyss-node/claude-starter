@@ -611,6 +611,26 @@ def common_rewrites(cmd: Callable[[str], str], tool_config: str) -> list[tuple[s
          "Where the commit guard is installed as git hooks (installer `--guard-repo`),\n"
          "   it checks for this; elsewhere nothing does. A chat summary dies with the\n"
          "   session while a commit outlives it."),
+        # /clear and /compact are Claude Code's commands; core/terms.json says what is known elsewhere.
+        # Whole bullets are rewritten so the generated copies keep even line wrapping.
+        ("- A side question or aside is answered in place. Suggest `/clear` only when the\n"
+         "  user moves the main work to an unrelated task.\n",
+         "- A side question or aside is answered in place. Suggest a fresh session only\n"
+         "  when the user moves the main work to an unrelated task.\n"),
+        ("  jobs, scheduled checks, multi-agent runs), suggest `/compact` first, so each\n"
+         "  wake-up re-reads a summary instead of the full history.\n",
+         "  jobs, scheduled checks, multi-agent runs), suggest compacting or summarising\n"
+         "  the conversation first, so each wake-up re-reads a summary instead of the\n"
+         "  full history.\n"),
+        ("- Before any `/clear` or `/compact`, write the session's state to memory or a\n"
+         "  handoff file: what is running and how to check it, what is done and\n"
+         "  verified, what is waiting on the user. A summary or a fresh window loses\n"
+         "  detail; the written record is what the next turn can trust.\n",
+         "- Before a fresh session or a compaction, write the session's state to a\n"
+         "  handoff file (or to memory, where your tool has it): what is running and how\n"
+         "  to check it, what is done and verified, what is waiting on the user. A\n"
+         "  summary or a fresh window loses detail; the written record is what the next\n"
+         "  turn can trust.\n"),
         ("`/starter:checkpoint` writes", f"{cmd('checkpoint')} writes"),
         ("`/starter:lanes` sets this up", f"{cmd('lanes')[0].upper()}{cmd('lanes')[1:]} sets this up"),
         (MARKETPLACE_UPDATE, "\n"),
