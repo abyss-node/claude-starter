@@ -215,9 +215,14 @@ own and assert on what comes back. Two static tests enforce it on every file in
   model, which is a seat belt, not a sandbox (`demos/MEASURING.md`).
 - Reading a workspace file as text (an `index.html`) from the test is fine.
 - A mixed demo starts its backend from the test: `DEMO_PYTHON` by absolute
-  path, `-B`, a free port, the copy as cwd, an environment without
-  `DEMO_RESULT_TOKEN`, output piped (never inherited), killed after. It runs
-  outside any permission model, as Python checks do (below).
+  path, `-B`, a port no other start can be handed and nothing already
+  answers on (`claimPort` in `lanes/accept/helpers.mjs` says why it is never
+  port 0 and close, and why a listen alone is not the test), started again
+  on a fresh port when it exits saying its port was taken or refused, and on
+  no other failure (`startBackend` says why), the copy as cwd,
+  an environment without `DEMO_RESULT_TOKEN`, output piped (never
+  inherited), killed after. It runs outside any permission model, as Python
+  checks do (below).
 - Results come from the kit's reporter: one per top-level test. Keep
   `accept_runner: null`. An `.mjs` runner of the demo's own runs as
   `node <runner>` and must print result lines (below) itself; a `run.mjs`
