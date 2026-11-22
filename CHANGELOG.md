@@ -23,9 +23,16 @@ can show what each one does before it runs.
   that the OS closes if the process dies, so no other start, in any process,
   can be handed it. A port another program already answers on is skipped,
   including one listening on 0.0.0.0 or `[::]`, which Windows lets a
-  127.0.0.1 listen sit beside. A backend that exits before answering fails
-  its start at once, with its output, and an answer counts only while the
-  backend is running.
+  127.0.0.1 listen sit beside. A free-looking port can still be one the
+  backend cannot bind: a server without `SO_REUSEADDR`
+  (`socketserver.TCPServer`) failed with `[Errno 98] Address already in use`
+  on a port the previous backend had just left in `TIME_WAIT`, which Node's
+  own look at the port cannot see on Linux. A backend that exits before
+  answering because its port is taken or refused is now started again on a
+  fresh port, up to 5 times, and fails with its own output if every one is.
+  A backend that exits before answering for any other reason fails its start
+  at once, with its output, and is not started again. An answer counts only
+  while the backend is running.
 
 ## [0.8.0] - 2026-11-22
 

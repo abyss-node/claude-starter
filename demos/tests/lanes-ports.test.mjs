@@ -3,13 +3,16 @@
 // hand the same just-closed port to two starts at once (it picks port 0 at random), and the start whose backend
 // lost the bind had its health check answered by the other's backend. CI's demo-mutants job failed that way
 // ("probe-N: not a skeleton trail", "fetch failed"). Nor may a start be handed a port another program already
-// answers on, or have its claim held by a stray connection. demos/tests/test_demos.py runs this file.
+// answers on, or have its claim held by a stray connection. A port the claim judged free can still turn out to be
+// one the backend cannot bind (a server without SO_REUSEADDR, on a port the kit's previous backend left in
+// TIME_WAIT, failed with [Errno 98] on Linux): such a start is made again on a fresh port, and no other failure is.
+// demos/tests/test_demos.py runs this file.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import net from 'node:net';
 import { createRequire, syncBuiltinESMExports } from 'node:module';
-import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -245,3 +248,228 @@ test('a backend that exits before answering fails its start with its own output'
     remove(dir);
   }
 });
+
+// The draws helpers.mjs makes are `ports`, in order; later draws are random again. Returns the undo.
+function drawsAre(...ports) {
+  const real = crypto.randomInt;
+  const queue = [...ports];
+  crypto.randomInt = (...args) => (queue.length ? queue.shift() - BAND.low : real(...args));
+  syncBuiltinESMExports();
+  return () => {
+    crypto.randomInt = real;
+    syncBuiltinESMExports();
+  };
+}
+
+// Records the port of every backend helpers.mjs spawns, in order. Returns { ports, undo }.
+function spawnsRecorded() {
+  const childProcess = createRequire(import.meta.url)('node:child_process');
+  const real = childProcess.spawn;
+  const seen = { ports: [] };
+  childProcess.spawn = function (command, args, ...rest) {
+    const at = Array.isArray(args) ? args.indexOf('--port') : -1;
+    if (at >= 0) seen.ports.push(Number(args[at + 1]));
+    return real.call(this, command, args, ...rest);
+  };
+  syncBuiltinESMExports();
+  seen.undo = () => {
+    childProcess.spawn = real;
+    syncBuiltinESMExports();
+  };
+  return seen;
+}
+
+const REFERENCE_SERVER = readFileSync(path.join(REFERENCE_BACKEND, 'server.py'), 'utf8');
+// The reference server with `prelude` run first, before it binds (a checkout may give it CRLF line ends).
+function serverAfter(prelude) {
+  const edited = REFERENCE_SERVER.replace(/from __future__ import annotations\r?\n/, (m) => `${m}${prelude}\n`);
+  assert.notEqual(edited, REFERENCE_SERVER, 'the reference server no longer starts with a __future__ import');
+  return edited;
+}
+
+// startBackend's outcome, { value } or { reason }, never a throw.
+const outcome = (dir) => startBackend(dir).then((value) => ({ value }), (reason) => ({ reason }));
+
+test('a backend without SO_REUSEADDR, started where the previous backend just stopped, is started again on a fresh port', { skip: NO_PYTHON }, async () => {
+  process.env.DEMO_PYTHON = PYTHON;
+  // socketserver.TCPServer leaves allow_reuse_address False, so on Linux and macOS its bind fails ([Errno 98],
+  // [Errno 48]) while the port holds the TIME_WAIT that the previous backend's served connection left there.
+  // Node's own listen gets SO_REUSEADDR from libuv there, so the claim's look at the port cannot see it.
+  const plain = REFERENCE_SERVER.replace('server = ThreadingHTTPServer(', "server = __import__('socketserver').TCPServer(");
+  assert.notEqual(plain, REFERENCE_SERVER, 'the reference server no longer builds a ThreadingHTTPServer');
+  const dirs = { shipped: folderServing('shipped'), plain: folderServing('plain', plain) };
+  const spawns = spawnsRecorded();
+  const port = BAND.low + crypto.randomInt(BAND.count);
+  let start;
+  try {
+    const undoDraws = drawsAre(port, port);
+    try {
+      const shipped = await startBackend(dirs.shipped);
+      try {
+        const { body } = await getJson(`${shipped.base}/api/trails`);
+        assert.deepEqual(body?.trails?.map((t) => t.id), ['shipped']);
+      } finally {
+        await shipped.stop();
+      }
+      start = await outcome(dirs.plain);
+    } finally {
+      undoDraws();
+    }
+    assert.deepEqual(spawns.ports.slice(0, 2), [port, port], `the draws were not forced to ${port}: has BACKEND_PORTS in helpers.mjs moved?`);
+    assert.equal(start.reason?.message, undefined, 'the second backend should start');
+    const { body } = await getJson(`${start.value.base}/api/trails`);
+    assert.deepEqual(body?.trails?.map((t) => t.id), ['plain'], `${start.value.base} answered with another backend's trails`);
+  } finally {
+    spawns.undo();
+    await start?.value?.stop();
+    Object.values(dirs).forEach(remove);
+  }
+});
+
+// What a backend prints when the port it was given is taken or refused, as Python words it on each OS.
+const PORT_UNAVAILABLE = {
+  'Linux EADDRINUSE': 'raise OSError(98, "Address already in use")',
+  'macOS EADDRINUSE': 'raise OSError(48, "Address already in use")',
+  'Windows WSAEADDRINUSE': 'raise OSError("[WinError 10048] Only one usage of each socket address (protocol/network address/port) is normally permitted")',
+  'Windows WSAEACCES': 'raise PermissionError("[WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions")',
+  'Unix EACCES on the bind': 'def bind():\n    raise PermissionError(13, "Permission denied")\nbind()',
+};
+
+for (const [name, raise] of Object.entries(PORT_UNAVAILABLE)) {
+  test(`a backend whose port turns out to be unavailable (${name}) is started again on a fresh port`, { skip: NO_PYTHON }, async () => {
+    process.env.DEMO_PYTHON = PYTHON;
+    // It fails on its first start only: the marker file next to it says it has been started before.
+    const once = [
+      'import pathlib as _pl',
+      '_marker = _pl.Path(__file__).with_name("started-once")',
+      'if not _marker.exists():',
+      '    _marker.write_text("x")',
+      raise.replace(/^/gm, '    '),
+    ].join('\n');
+    const dir = folderServing('retried', serverAfter(once));
+    const spawns = spawnsRecorded();
+    let start;
+    try {
+      start = await outcome(dir);
+    } finally {
+      spawns.undo();
+    }
+    try {
+      assert.equal(start.reason?.message, undefined, 'the second start should succeed');
+      assert.equal(spawns.ports.length, 2, 'the backend should have been started twice');
+      assert.equal(start.value.base, `http://127.0.0.1:${spawns.ports[1]}`);
+      const { body } = await getJson(`${start.value.base}/api/trails`);
+      assert.deepEqual(body?.trails?.map((t) => t.id), ['retried']);
+    } finally {
+      await start.value?.stop();
+      remove(dir);
+    }
+  });
+}
+
+// Another program, started by the backend's first start: it listens on that start's port, accepts and drops every
+// connection for at most 60 s, and writes its pid to argv[2] once it is listening.
+const HOLDER = [
+  'import os, pathlib, socket, sys, time',
+  's = socket.socket()',
+  's.bind(("127.0.0.1", int(sys.argv[1])))',
+  's.listen(5)',
+  's.settimeout(0.5)',
+  'pathlib.Path(sys.argv[2]).write_text(str(os.getpid()))',
+  'end = time.time() + 60',
+  'while time.time() < end:',
+  '    try:',
+  '        s.accept()[0].close()',
+  '    except OSError:',
+  '        pass',
+].join('\n');
+
+test('a backend whose port another program holds is started again without waiting for that program to leave', { skip: NO_PYTHON }, async () => {
+  process.env.DEMO_PYTHON = PYTHON;
+  const prelude = [
+    'import pathlib as _pl, subprocess as _sp, sys as _sys, time as _t',
+    '_marker = _pl.Path(__file__).with_name("started-once")',
+    'if not _marker.exists():',
+    '    _marker.write_text("x")',
+    '    _pid = _pl.Path(__file__).with_name("holder.pid")',
+    `    _sp.Popen([_sys.executable, "-c", ${JSON.stringify(HOLDER)}, _sys.argv[_sys.argv.index("--port") + 1], str(_pid)],`,
+    '              stdin=_sp.DEVNULL, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)',
+    '    for _ in range(400):',
+    '        if _pid.exists() and _pid.read_text():',
+    '            break',
+    '        _t.sleep(0.025)',
+    '    raise OSError(98, "Address already in use")',
+  ].join('\n');
+  const dir = folderServing('held-elsewhere', serverAfter(prelude));
+  const pidFile = path.join(dir, 'backend', 'holder.pid');
+  const spawns = spawnsRecorded();
+  let start;
+  try {
+    const began = Date.now();
+    start = await outcome(dir);
+    const took = Date.now() - began;
+    assert.equal(start.reason?.message, undefined, 'the second start should succeed');
+    assert.equal(spawns.ports.length, 2, 'the backend should have been started twice');
+    const held = await new Promise((yes) => {
+      const socket = net.createConnection({ port: spawns.ports[0], host: '127.0.0.1' });
+      socket.once('connect', () => (socket.destroy(), yes(true)));
+      socket.once('error', () => yes(false));
+    });
+    assert.ok(held, `nothing holds port ${spawns.ports[0]}: the test did not set up what it is about`);
+    assert.ok(took < 4000, `the start took ${took} ms: it waited for the other program to leave the first port`);
+  } finally {
+    spawns.undo();
+    await start?.value?.stop();
+    try {
+      process.kill(Number(readFileSync(pidFile, 'utf8')));
+    } catch {
+      // gone already, or never started
+    }
+    remove(dir);
+  }
+});
+
+test('a backend whose port is taken on every start fails after a few, with its own output', { skip: NO_PYTHON }, async () => {
+  process.env.DEMO_PYTHON = PYTHON;
+  const dir = folderServing('always-taken', serverAfter('raise OSError(98, "Address already in use")'));
+  const spawns = spawnsRecorded();
+  let start;
+  try {
+    start = await outcome(dir);
+    assert.match(String(start.reason?.message), /^backend exited with 1 before answering/);
+    assert.match(start.reason.message, /OSError: \[Errno 98\] Address already in use/);
+    assert.ok(spawns.ports.length > 1 && spawns.ports.length <= 5, `started ${spawns.ports.length} times, not 2 to 5`);
+  } finally {
+    spawns.undo();
+    await start?.value?.stop();
+    remove(dir);
+  }
+});
+
+// A broken workspace fails at once with its own output: started again, it would only take longer to fail.
+const BROKEN = {
+  'a syntax error': ['def broken(:\n', /SyntaxError/],
+  'a file it may not read': [
+    serverAfter('raise PermissionError(13, "Permission denied", "backend/trails.json")'),
+    /PermissionError: \[Errno 13\] Permission denied: 'backend\/trails.json'/,
+  ],
+};
+
+for (const [name, [server, said]] of Object.entries(BROKEN)) {
+  test(`a backend that exits before answering for ${name} is not started again`, { skip: NO_PYTHON }, async () => {
+    process.env.DEMO_PYTHON = PYTHON;
+    const dir = folderServing('broken', server);
+    const spawns = spawnsRecorded();
+    let start;
+    try {
+      start = await outcome(dir);
+      assert.match(String(start.reason?.message), /^backend exited with 1 before answering/);
+      assert.match(start.reason.message, said);
+      assert.equal(spawns.ports.length, 1, `started ${spawns.ports.length} times`);
+    } finally {
+      spawns.undo();
+      await start?.value?.stop();
+      remove(dir);
+    }
+  });
+}

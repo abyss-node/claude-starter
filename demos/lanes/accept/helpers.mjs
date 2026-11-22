@@ -191,13 +191,45 @@ async function untilClosed(port) {
   for (let i = 0; i < 200 && (await accepting(port)); i++) await sleep(25);
 }
 
+// How many claimed ports a start tries before it fails with the backend's own output.
+const PORT_ATTEMPTS = 5;
+
+// Whether a backend's output says the OS would not give it its port: in use (EADDRINUSE: errno 98 on Linux, 48 on
+// macOS, WSAEADDRINUSE 10048 on Windows) or refused (WSAEACCES 10013 on Windows; EACCES, errno 13, on Unix, which
+// counts only beside a bind, since a workspace whose own files cannot be read fails with it too).
+function portUnavailable(output) {
+  if (/EADDRINUSE|address already in use|\b(?:errno|winerror)\s*(?:98|48|10048|10013)\b|WSAEACCES/i.test(output)) return true;
+  return /\berrno\s*13\b|\bEACCES\b/i.test(output) && /\bbind\b/.test(output);
+}
+
 // Start `python -B backend/server.py --port <claimed port>` with the folder `root` (default: the workspace) as
 // its cwd, wait for /api/health, and hand back the base URL and a stop(). The port stays claimed until stop() has
 // seen it closed.
+// claimPort can only predict that the backend will be let bind its port, and a prediction can be wrong: the bind
+// depends on the backend's own socket options (a server without SO_REUSEADDR cannot bind a port that still holds
+// the TIME_WAIT the kit's previous backend there left, where Node's look at it, which libuv gives SO_REUSEADDR on
+// Unix, can) and on what other programs bind meanwhile. So a backend that exits before answering, saying its port
+// was taken or refused, is started again on a fresh claim, up to PORT_ATTEMPTS times; the error of the first is kept
+// if all fail. Any other early exit fails the start at once: a broken workspace is never started again.
 export async function startBackend(root = workspace()) {
   const server = join(root, "backend", "server.py");
   if (!existsSync(server)) throw new Error("missing backend/server.py in the workspace");
   const python = program("DEMO_PYTHON");
+  let first = null;
+  for (let attempt = 1; ; attempt++) {
+    const started = await startOnClaimedPort(python, server, root);
+    if (started.backend) return started.backend;
+    first ??= started.error;
+    if (!started.portUnavailable) throw started.error;
+    if (attempt === PORT_ATTEMPTS) {
+      throw new Error(first.message.replace(/:\n/, `, its port taken or refused on each of ${PORT_ATTEMPTS} ports tried:\n`));
+    }
+  }
+}
+
+// One start of the backend on a port claimed for it: { backend: { base, stop } }, or, for a backend that exited
+// before answering, { error, portUnavailable }. A backend that does not answer in time throws.
+async function startOnClaimedPort(python, server, root) {
   const { port, release } = await claimPort();
   const child = spawn(python, ["-B", server, "--port", String(port)], {
     cwd: root,
@@ -216,12 +248,14 @@ export async function startBackend(root = workspace()) {
   });
   const drained = new Promise((done) => child.once("close", done));
   let stopping = null;
+  // A child that ended by itself holds the port no longer (a venv launcher ends only after its interpreter), so
+  // whatever still answers there is another program's, and waiting for it to close would only delay the next start.
   const stop = () => (stopping ??= (async () => {
     if (exited === null) {
       child.kill();
       await ended;
+      await untilClosed(port);
     }
-    await untilClosed(port);
     await release();
   })());
   const failed = async (why) => {
@@ -235,8 +269,11 @@ export async function startBackend(root = workspace()) {
   while (Date.now() < deadline) {
     // The child ending ends the wait at once, and an answer counts only while the child is still running.
     const ok = await Promise.race([healthy(), ended.then(() => false)]);
-    if (exited !== null) throw await failed(`backend exited with ${exited} before answering`);
-    if (ok) return { base, stop };
+    if (exited !== null) {
+      const error = await failed(`backend exited with ${exited} before answering`);
+      return { error, portUnavailable: portUnavailable(output) };
+    }
+    if (ok) return { backend: { base, stop } };
     await Promise.race([sleep(150), ended]);
   }
   throw await failed(`backend did not answer /api/health on ${base} within 20 s`);

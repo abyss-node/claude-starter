@@ -217,7 +217,9 @@ own and assert on what comes back. Two static tests enforce it on every file in
 - A mixed demo starts its backend from the test: `DEMO_PYTHON` by absolute
   path, `-B`, a port no other start can be handed and nothing already
   answers on (`claimPort` in `lanes/accept/helpers.mjs` says why it is never
-  port 0 and close, and why a listen alone is not the test), the copy as cwd,
+  port 0 and close, and why a listen alone is not the test), started again
+  on a fresh port when it exits saying its port was taken or refused, and on
+  no other failure (`startBackend` says why), the copy as cwd,
   an environment without `DEMO_RESULT_TOKEN`, output piped (never
   inherited), killed after. It runs outside any permission model, as Python
   checks do (below).
