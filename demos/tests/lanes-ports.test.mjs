@@ -117,7 +117,7 @@ function listensSucceedBeside(owner, port) {
 
 // Another program on the machine: an HTTP service on 127.0.0.1 at a free port of the band that answers any path
 // with 200 and a FOREIGN trail. Resolves to { server, port, connections }.
-async function foreignService() {
+async function foreignService(band = BAND) {
   const seen = { connections: 0 };
   const server = http.createServer((req, res) => {
     const body = JSON.stringify({ ok: true, trails: [{ id: 'FOREIGN', name: 'FOREIGN', length_km: 1, climb_m: 1 }] });
@@ -125,7 +125,7 @@ async function foreignService() {
   });
   server.on('connection', () => seen.connections++);
   for (let attempt = 0; attempt < 50; attempt++) {
-    const port = BAND.low + crypto.randomInt(BAND.count);
+    const port = band.low + crypto.randomInt(band.count);
     const up = await new Promise((ok) => {
       server.once('error', () => ok(false));
       server.listen(port, '127.0.0.1', () => ok(true));
@@ -154,6 +154,36 @@ test('a port another program already answers on is never handed to a backend, ev
     assert.notEqual(start.value.base, `http://127.0.0.1:${foreign.port}`, 'the backend was handed the port the foreign service answers on');
     const { body } = await getJson(`${start.value.base}/api/trails`);
     assert.deepEqual(body?.trails?.map((t) => t.id), ['ours'], `${start.value.base} answered with another program's trails`);
+  } finally {
+    await start.value?.stop();
+    foreign.server.closeAllConnections();
+    await new Promise((done) => foreign.server.close(done));
+    remove(dir);
+  }
+});
+
+// The claim's lock listens at the backend port plus LOCK_OFFSET for the backend's whole life, and drops every
+// connection it gets. Where a listen there succeeds beside another program's, the lock would take that program's
+// loopback traffic away from it until the backend stops.
+const LOCK_BAND = { low: BAND.low + 6000, count: BAND.count };
+
+test("a port another program answers on is never taken for a claim's lock either", { skip: NO_PYTHON }, async () => {
+  process.env.DEMO_PYTHON = PYTHON;
+  const dir = folderServing('ours');
+  const foreign = await foreignService(LOCK_BAND);
+  const undoDraw = firstDrawIs(foreign.port - 6000);
+  const listens = listensSucceedBeside(foreign.server, foreign.port);
+  let start;
+  try {
+    start = await startBackend(dir).then((value) => ({ value }), (reason) => ({ reason }));
+  } finally {
+    listens.undo();
+    undoDraw();
+  }
+  try {
+    assert.equal(start.reason?.message?.split('\n')[0], undefined, 'the backend should start');
+    assert.equal(listens.beside, 0, `a lock listened on port ${foreign.port}, where another program answers`);
+    assert.notEqual(start.value.base, `http://127.0.0.1:${foreign.port - 6000}`, "the backend was handed the port whose lock another program holds");
   } finally {
     await start.value?.stop();
     foreign.server.closeAllConnections();

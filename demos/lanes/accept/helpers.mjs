@@ -156,6 +156,7 @@ const accepting = (port) => new Promise((yes) => {
 async function claimPort() {
   for (let attempt = 0; attempt < 1000; attempt++) {
     const port = BACKEND_PORTS.low + randomInt(BACKEND_PORTS.count);
+    if (await accepting(port + LOCK_OFFSET)) continue; // a listen there can sit beside another program's
     const lock = await listening(port + LOCK_OFFSET);
     if (!lock) continue;
     const probe = (await accepting(port)) ? null : await listening(port);
