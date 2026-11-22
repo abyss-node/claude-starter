@@ -8,7 +8,7 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
-## [0.9.0] - unreleased
+## [0.9.0] - 2026-11-22
 
 ### Added
 
