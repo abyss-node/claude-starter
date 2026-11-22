@@ -2,15 +2,22 @@
 // starts must never be handed one port: when each took a port from listening on port 0 and closing, Linux could
 // hand the same just-closed port to two starts at once (it picks port 0 at random), and the start whose backend
 // lost the bind had its health check answered by the other's backend. CI's demo-mutants job failed that way
-// ("probe-N: not a skeleton trail", "fetch failed"). demos/tests/test_demos.py runs this file.
+// ("probe-N: not a skeleton trail", "fetch failed"). Nor may a start be handed a port another program already
+// answers on, or have its claim held by a stray connection. demos/tests/test_demos.py runs this file.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import net from 'node:net';
+import { createRequire, syncBuiltinESMExports } from 'node:module';
 import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getJson, startBackend } from '../lanes/accept/helpers.mjs';
+
+const crypto = createRequire(import.meta.url)('node:crypto');
+// The band helpers.mjs claims backend ports from: BACKEND_PORTS there.
+const BAND = { low: 20000, count: 6000 };
 
 const REFERENCE_BACKEND = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lanes', 'reference', 'backend');
 const PYTHON = process.env.DEMO_TEST_PYTHON;
@@ -76,6 +83,122 @@ test('two backends started at once get a port each and answer for themselves, ev
   } finally {
     await Promise.all(up.map((b) => b.stop()));
     dirs.forEach(remove);
+  }
+});
+
+// The first port helpers.mjs draws is `port`; later draws are random again. Returns the undo.
+function firstDrawIs(port) {
+  const real = crypto.randomInt;
+  let drawn = false;
+  crypto.randomInt = (...args) => (drawn ? real(...args) : ((drawn = true), port - BAND.low));
+  syncBuiltinESMExports();
+  return () => {
+    crypto.randomInt = real;
+    syncBuiltinESMExports();
+  };
+}
+
+// A listen on 127.0.0.1:port by any server but `owner` succeeds beside it, as Windows lets a listen on 127.0.0.1
+// sit beside another program's on 0.0.0.0 or [::] (here the other program is on 127.0.0.1 itself, which needs no
+// firewall prompt and is reached the same way). Returns { undo, beside: how many such listens there were }.
+function listensSucceedBeside(owner, port) {
+  const { listen } = net.Server.prototype;
+  const seen = { beside: 0 };
+  net.Server.prototype.listen = function (...args) {
+    if (this !== owner && args[0] === port) {
+      seen.beside++;
+      args[0] = 0;
+    }
+    return listen.apply(this, args);
+  };
+  seen.undo = () => Object.assign(net.Server.prototype, { listen });
+  return seen;
+}
+
+// Another program on the machine: an HTTP service on 127.0.0.1 at a free port of the band that answers any path
+// with 200 and a FOREIGN trail. Resolves to { server, port, connections }.
+async function foreignService() {
+  const seen = { connections: 0 };
+  const server = http.createServer((req, res) => {
+    const body = JSON.stringify({ ok: true, trails: [{ id: 'FOREIGN', name: 'FOREIGN', length_km: 1, climb_m: 1 }] });
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(body);
+  });
+  server.on('connection', () => seen.connections++);
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const port = BAND.low + crypto.randomInt(BAND.count);
+    const up = await new Promise((ok) => {
+      server.once('error', () => ok(false));
+      server.listen(port, '127.0.0.1', () => ok(true));
+    });
+    if (up) return Object.assign(seen, { server, port });
+  }
+  throw new Error('no free port in the band for the foreign service');
+}
+
+test('a port another program already answers on is never handed to a backend, even where a listen there succeeds', { skip: NO_PYTHON }, async () => {
+  process.env.DEMO_PYTHON = PYTHON;
+  const dir = folderServing('ours');
+  const foreign = await foreignService();
+  const undoDraw = firstDrawIs(foreign.port);
+  const listens = listensSucceedBeside(foreign.server, foreign.port);
+  let start;
+  try {
+    start = await startBackend(dir).then((value) => ({ value }), (reason) => ({ reason }));
+  } finally {
+    listens.undo();
+    undoDraw();
+  }
+  try {
+    assert.ok(foreign.connections > 0 || listens.beside > 0, `the claim never looked at port ${foreign.port}: has BACKEND_PORTS in helpers.mjs moved?`);
+    assert.equal(start.reason?.message?.split('\n')[0], undefined, 'the backend should start');
+    assert.notEqual(start.value.base, `http://127.0.0.1:${foreign.port}`, 'the backend was handed the port the foreign service answers on');
+    const { body } = await getJson(`${start.value.base}/api/trails`);
+    assert.deepEqual(body?.trails?.map((t) => t.id), ['ours'], `${start.value.base} answered with another program's trails`);
+  } finally {
+    await start.value?.stop();
+    foreign.server.closeAllConnections();
+    await new Promise((done) => foreign.server.close(done));
+    remove(dir);
+  }
+});
+
+test('a connection held open on a claim does not hold up stop()', { skip: NO_PYTHON }, async () => {
+  process.env.DEMO_PYTHON = PYTHON;
+  const dir = folderServing('held');
+  const { listen } = net.Server.prototype;
+  const servers = [];
+  net.Server.prototype.listen = function (...args) {
+    servers.push(this);
+    return listen.apply(this, args);
+  };
+  let backend;
+  try {
+    backend = await startBackend(dir);
+  } finally {
+    Object.assign(net.Server.prototype, { listen });
+  }
+  const claims = servers.filter((s) => s.listening);
+  const clients = [];
+  try {
+    assert.ok(claims.length > 0, 'startBackend should hold a listening socket for its claim');
+    for (const claim of claims) {
+      const client = net.createConnection({ port: claim.address().port, host: '127.0.0.1' });
+      client.on('error', () => {}); // the claim may drop it once connected: that is the point
+      clients.push(client);
+      await new Promise((ok, fail) => {
+        client.once('connect', ok);
+        client.once('close', () => fail(new Error('could not connect to the claim')));
+      });
+    }
+    const verdict = await Promise.race([
+      backend.stop().then(() => 'stopped'),
+      new Promise((ok) => setTimeout(() => ok('still waiting after 10 s'), 10000).unref()),
+    ]);
+    assert.equal(verdict, 'stopped', 'stop() waited for a client of its claim to leave');
+  } finally {
+    clients.forEach((c) => c.destroy());
+    await backend.stop();
+    remove(dir);
   }
 });
 

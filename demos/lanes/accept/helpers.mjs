@@ -126,25 +126,39 @@ const BACKEND_PORTS = { low: 20000, count: 6000 };
 const LOCK_OFFSET = 6000;
 
 // A server listening on 127.0.0.1:port, or null when the port cannot be listened on (held, excluded, refused).
+// It drops every connection it is sent, so a client that connects and stays connected cannot hold up close().
 const listening = (port) => new Promise((ok) => {
-  const srv = createServer();
+  const srv = createServer((socket) => socket.destroy());
   srv.once("error", () => ok(null));
   srv.listen(port, "127.0.0.1", () => ok(srv));
 });
 const closed = (srv) => new Promise((done) => srv.close(() => done()));
+
+// Whether something accepts connections on 127.0.0.1:port.
+const accepting = (port) => new Promise((yes) => {
+  const socket = createConnection({ port, host: "127.0.0.1" });
+  socket.once("connect", () => {
+    socket.destroy();
+    yes(true);
+  });
+  socket.once("error", () => yes(false));
+});
 
 // Claim a port for one backend's whole life: { port, release }. Never port 0 and close: the OS can hand that
 // just-closed port to the next asker before this backend binds it (Linux picks port 0 at random, so two starts at
 // once can draw the same one), and the start whose backend then loses the bind has its health check answered by
 // the other's. The claim is a listening socket on the port's lock port, held until release(): no other start, in
 // this process or any other, can listen there meanwhile, and the OS closes it when this process ends however it
-// ends, so a claim never outlives its holder. A port something else already listens on is skipped.
+// ends, so a claim never outlives its holder.
+// A port something already answers on is skipped, and so is one that cannot be listened on. A listen alone does not
+// see every program already there: Windows lets a listen on 127.0.0.1 sit beside one on 0.0.0.0 or [::], and the
+// program on the wildcard answers the health check until the backend binds.
 async function claimPort() {
   for (let attempt = 0; attempt < 1000; attempt++) {
     const port = BACKEND_PORTS.low + randomInt(BACKEND_PORTS.count);
     const lock = await listening(port + LOCK_OFFSET);
     if (!lock) continue;
-    const probe = await listening(port);
+    const probe = (await accepting(port)) ? null : await listening(port);
     if (!probe) {
       await closed(lock);
       continue;
@@ -167,16 +181,6 @@ function backendEnv() {
   }
   return { ...env, PYTHONDONTWRITEBYTECODE: "1", PYTHONUNBUFFERED: "1" };
 }
-
-// Whether something accepts connections on the port.
-const accepting = (port) => new Promise((yes) => {
-  const socket = createConnection({ port, host: "127.0.0.1" });
-  socket.once("connect", () => {
-    socket.destroy();
-    yes(true);
-  });
-  socket.once("error", () => yes(false));
-});
 
 // Wait, for at most 5 s, until nothing accepts connections on the port: the backend is gone. The child's 'exit'
 // is not that moment. On Windows a venv's python.exe is a launcher that starts the real interpreter as its child:

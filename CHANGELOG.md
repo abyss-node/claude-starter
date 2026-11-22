@@ -21,9 +21,11 @@ can show what each one does before it runs.
   Each start now claims a port in 20000-25999, below every OS's range for
   port 0, for its backend's whole life, with a listening socket on a lock port
   that the OS closes if the process dies, so no other start, in any process,
-  can be handed it. A backend that exits before answering fails its start at
-  once, with its output, and an answer counts only while the backend is
-  running.
+  can be handed it. A port another program already answers on is skipped,
+  including one listening on 0.0.0.0 or `[::]`, which Windows lets a
+  127.0.0.1 listen sit beside. A backend that exits before answering fails
+  its start at once, with its output, and an answer counts only while the
+  backend is running.
 
 ## [0.8.0] - 2026-11-22
 
