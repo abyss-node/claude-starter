@@ -611,6 +611,15 @@ def common_rewrites(cmd: Callable[[str], str], tool_config: str) -> list[tuple[s
          "Where the commit guard is installed as git hooks (installer `--guard-repo`),\n"
          "   it checks for this; elsewhere nothing does. A chat summary dies with the\n"
          "   session while a commit outlives it."),
+        # /clear and /compact are Claude Code's own commands; no other tool's docs have been checked for them.
+        ("Suggest `/clear` only when the\n  user moves",
+         "Suggest starting a fresh session\n  only when the user moves"),
+        ("suggest `/compact` first, so each\n  wake-up re-reads a summary",
+         "suggest compacting or\n  summarising the conversation first, so each\n  wake-up re-reads a summary"),
+        ("Before any `/clear` or `/compact`, write the session's state to a handoff file\n"
+         "  (or to memory, where your tool has it)",
+         "Before starting a fresh session or compacting the conversation, write the\n"
+         "  session's state to a handoff file (or to memory, where your tool has it)"),
         ("`/starter:checkpoint` writes", f"{cmd('checkpoint')} writes"),
         ("`/starter:lanes` sets this up", f"{cmd('lanes')[0].upper()}{cmd('lanes')[1:]} sets this up"),
         (MARKETPLACE_UPDATE, "\n"),

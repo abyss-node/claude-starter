@@ -8,7 +8,36 @@ Notable changes to claude-starter, newest first. The format follows
 Every migration a release ships is listed under it by ID, so `starter-update`
 can show what each one does before it runs.
 
-## [0.8.1] - unreleased
+## [0.9.0] - unreleased
+
+### Added
+
+- A "Keep sessions lean" rule in the full rules, after "Pacing the week". Every
+  turn re-reads the whole session, so a long one makes each later turn costly,
+  and every wake-up while the user is away. It says to answer a side question
+  in place and suggest `/clear` only when the main work moves to an unrelated
+  task, to suggest `/compact` before a session is left unattended with work
+  that will wake it, to write the session's state to a handoff file (or to
+  memory, where the tool has it) before either, and not to hold a session open
+  only for a session-only scheduled job. Claude Code's copy names `/clear` and
+  `/compact`; the other tools' copies say "start a fresh session" and "compact
+  or summarise the conversation", since the kit has not checked those commands
+  in any other tool. The light rules do not get it: they have no pacing rule
+  for it to follow, and the full tier is where unattended multi-agent runs
+  live.
+- `core/terms.json` guards `/clear` and `/compact` as Claude Code's own, so a
+  build for another tool that names either now fails with its file and line.
+  OpenCode's onboarding, whose source already names `/compact`, is allowed.
+
+### Changed
+
+- The `haiku` row of the full rules now says what a lookup is (file and symbol
+  searches, "where is X", reading a config or log back) and to name the model
+  on such an agent: an agent spawned with no model inherits the session's, so
+  lookups quietly ran at the top tier. The kit's own agents already pin
+  `model:` in their frontmatter and are unchanged.
+
+## [0.8.1] - 2026-11-22
 
 ### Fixed
 

@@ -69,13 +69,32 @@ The agent usually cannot read either percentage. Ask the user for their reset da
 time and timezone once, and for both percentages every few days and before any
 large run late in the week or late in a window.
 
+**Keep sessions lean.** Every turn re-reads the whole session, so a long one makes
+each later turn expensive, including every wake-up while the user is away. Side
+questions mid-task and sessions left running unattended are fine; neither is the
+problem. So:
+- A side question or aside is answered in place. Suggest `/clear` only when the
+  user moves the main work to an unrelated task.
+- Before a session is left unattended with work that will wake it (background
+  jobs, scheduled checks, multi-agent runs), suggest `/compact` first, so each
+  wake-up re-reads a summary instead of the full history.
+- Before any `/clear` or `/compact`, write the session's state to a handoff file
+  (or to memory, where your tool has it): what is running and how to check it,
+  what is done and verified, what is waiting on the user. A summary or a cleared
+  window loses detail; the written record is what the next turn can trust.
+- Do not keep a session open only to host a session-only scheduled job when a
+  checklist run in a fresh session would do; say so and offer that instead.
+
 Pick the model by capability:
 - `opus` — hard design or algorithmic work, gnarly debugging, independent review
   voices, verification/judging of other agents' work, and any implementation
   where a wrong "done" is expensive
 - `sonnet` — standard feature implementation, multi-file mechanical edits, test
   writing, refactors with clear specs, boilerplate, one-file scripts
-- `haiku` — pure lookups and formatting only
+- `haiku` — pure lookups and formatting only: file and symbol searches, "where is
+  X", reading a config or log back. Name the model explicitly on such agents: an
+  agent spawned with no model inherits the session's model, so lookups quietly
+  run at the top tier.
 
 Then pick effort by the task's shape, not the model's:
 - `low` — pure lookups and formatting
